@@ -1,0 +1,72 @@
+# ======================
+# ENV
+# ======================
+.env
+.env.*
+
+# ======================
+# NODE / FRONTEND
+# ======================
+node_modules/
+dist/
+build/
+.expo/
+web-build/
+.expo-shared/
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# typescript
+*.tsbuildinfo
+
+# ======================
+# PYTHON / BACKEND
+# ======================
+__pycache__/
+*.pyc
+.venv/
+env/
+backend/uploads
+
+# ======================
+# LOGS
+# ======================
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# ======================
+# OS / EDITOR
+# ======================
+.DS_Store
+Thumbs.db
+.vscode/
+
+# ======================
+# SECURITY FILES
+# ======================
+*.pem
+*.key
+*.p8
+*.p12
+*.jks
+*.mobileprovision
+
+# ======================
+# OPTIONAL (be careful)
+# ======================
+Dataset/
+
+# Expo native (only if managed workflow)
+android/
+ios/
