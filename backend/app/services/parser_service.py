@@ -259,7 +259,7 @@ def parse_receipt(text):
     return data
 
 def clean_name(name: str) -> str:
-    from app.services.replace_service import clean_common_ocr
+    from replace_service import clean_common_ocr
     name = re.sub(r'[^a-zA-Z\s]', ' ', name)
     name = re.sub(r'[^\w\s\-\(\)\/]', ' ', name)
     name = re.sub(r'\s{2,}', ' ', name).strip()
@@ -272,7 +272,7 @@ def clean_name(name: str) -> str:
 # Used for debugging
 # if __name__ == "__main__":
 #     from ocr_service import run_ocr
-#     with open("backend/uploads/receipt.jpeg", "rb") as f:
+#     with open("backend/uploads/Images/dhabha.jpeg", "rb") as f:
 #         raw_text = run_ocr(f.read())
 
 #     result = parse_receipt(raw_text)
