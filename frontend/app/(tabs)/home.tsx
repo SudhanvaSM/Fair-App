@@ -153,7 +153,7 @@ export default function Home() {
               <View style={{alignItems: "center"}}>
                 <Image
                   source={{ uri: selectedImage }}
-                  style={{ width: 350, height: 350, borderRadius: 12, }}
+                  style={{ width: 350, height: 450, borderRadius: 12, }}
                 />
               </View>
             </View>
@@ -161,8 +161,8 @@ export default function Home() {
 
           {showAppOptions && (
             <View style={{ marginTop: 20, flexDirection: "row"}}>
-              <IconButton icon="refresh" label="Reset" size={36} onPress={onReset} />
-              <IconButton icon="send" label="Continue" size={36} onPress={onContinueImageAsync}/>
+              <IconButton icon="refresh" label="Reset" size={36} color={"#60A5FA"} onPress={onReset} />
+              <IconButton icon="send" label="Continue" size={36} color={"#10B981"} onPress={onContinueImageAsync}/>
             </View>
           )}
 

@@ -7,6 +7,7 @@ type Props = {
   item: Item;
   onSave: (updatedItem: Item) => void;
   onCancel: () => void;
+  tax?: number;
 };
 
 export default function Edit({ item, onSave, onCancel }: Props) {

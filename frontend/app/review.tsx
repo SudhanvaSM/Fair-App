@@ -2,7 +2,7 @@ import { Stack } from "expo-router";
 import { useLocalSearchParams, useRouter} from "expo-router";
 import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Alert } from "react-native";
 import Edit from "@/components/Edit";
-import React from "react";
+import React, { useState } from "react";
 import { Item } from "@/types/item";
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -118,8 +118,17 @@ export default function Review() {
 
 	const subtotalDiff = Math.abs(raw.subtotal - computedSubtotal);
 
+	const [taxInput, setTaxInput] = useState("");
+	const [tempTaxInput, setTempTaxInput] = useState("");
+	const [isEditingTax, setIsEditingTax] = useState(false);
+
+	const [tipInput, setTipInput] = useState("");
+	const [tempTipInput, setTempTipInput] = useState("");
+	const [isEditingTip, setIsEditingTip] = useState(false);
+
 	let tax = 0;
 	let taxRate = 0;
+	let tip = 0;
 
 	if (subtotalDiff > 5) {
 		taxRate = 0.05
@@ -135,9 +144,13 @@ export default function Review() {
 		tax = computedSubtotal * taxRate;
 	}
 
+	const finalTax = taxInput ? parseFloat(taxInput) : tax;
+
+	const finalTip = tipInput ? parseFloat(tipInput) : tip;
+
 	const serviceCharge = includeServiceCharge ? raw.service_charge : 0;
 
-	const total = computedSubtotal + tax + serviceCharge;	
+	const total = computedSubtotal + finalTax + finalTip + serviceCharge;	
 
 	const router = useRouter();
 
@@ -237,7 +250,56 @@ export default function Review() {
 
 					<View style={styles.row}>
 						<Text style={styles.label}>Estimated Tax @ {Math.round(taxRate * 100)}%</Text>
-						<Text style={styles.price}>₹{tax.toFixed(2)}</Text>
+						{isEditingTax ? (
+							<View style={[styles.input, { gap: 8, paddingVertical: 8}]}>
+								<TextInput 
+									style={[{ color: "#fff", borderBottomWidth: 1, borderColor: "#888" }]}
+									onChangeText={setTempTaxInput}
+									value={tempTaxInput}
+									placeholder="Enter tax value"
+									placeholderTextColor="#888"
+									keyboardType="numeric"
+									autoFocus
+								/>
+								<View style={{ flexDirection: "row", justifyContent: "space-between", gap: 20 }}>
+									<Pressable
+										hitSlop={10}
+										onPress={() => {
+											setIsEditingTax(false);
+											setTempTaxInput("");
+										}}
+									>
+										<Text style={{ color: "red" }}>Cancel</Text>
+									</Pressable>
+
+									<Pressable
+										hitSlop={10}
+										onPress={() => {
+											const parsedTax = parseFloat(tempTaxInput);
+											if (isNaN(parsedTax) || parsedTax < 0 || parsedTax > 9999) {
+												Alert.alert("Invalid input", "Enter a valid number.");
+												return;
+											}
+											setIsEditingTax(false);
+											setTaxInput(parsedTax.toFixed(2));
+										}}
+									>
+										<Text style={{ color: "#10B981" }}>Save</Text>
+									</Pressable>
+								</View>
+							</View>
+						) : (
+							<Pressable 
+								onPress={() => {
+									setTempTaxInput(taxInput || finalTax.toFixed(2));
+									setIsEditingTax(true)
+								}}
+							>
+								<Text style={styles.price}>
+									₹{finalTax.toFixed(2)}
+								</Text>
+							</Pressable>
+						)}
 					</View>
 
 					{includeServiceCharge && (
@@ -252,6 +314,60 @@ export default function Review() {
 						</Text>
 					</Pressable>
 					)}
+
+					<View style={styles.row}>
+						<Text style={styles.label}>Tips</Text>
+						{isEditingTip ? (
+							<View style={[styles.input, { gap: 8, paddingVertical: 8}]}>
+								<TextInput 
+									style={[{ color: "#fff", borderBottomWidth: 1, borderColor: "#888" }]}
+									onChangeText={setTempTipInput}
+									value={tempTipInput}
+									placeholder="Enter tip value"
+									placeholderTextColor="#888"
+									keyboardType="numeric"
+									autoFocus
+								/>
+								<View style={{ flexDirection: "row", justifyContent: "space-between", gap: 20 }}>
+									<Pressable
+										hitSlop={10}
+										onPress={() => {
+											setIsEditingTip(false);
+											setTempTipInput("");
+										}}
+									>
+										<Text style={{ color: "red" }}>Cancel</Text>
+									</Pressable>
+
+									<Pressable
+										hitSlop={10}
+										onPress={() => {
+											const paresdTip = parseFloat(tempTipInput);
+											if (isNaN(paresdTip) || paresdTip < 0 || paresdTip > 9999) {
+												Alert.alert("Invalid input", "Enter a valid number.");
+												return;
+											}
+											setIsEditingTip(false);
+											setTipInput(paresdTip.toFixed(2));
+										}}
+									>
+										<Text style={{ color: "#10B981" }}>Save</Text>
+									</Pressable>
+								</View>
+							</View>
+						) : (
+							<Pressable 
+								onPress={() => {
+									setTempTipInput(tipInput || finalTip.toFixed(2));
+									setIsEditingTip(true)
+								}}
+							>
+								<Text style={styles.price}>
+									₹{finalTip.toFixed(2)}
+								</Text>
+							</Pressable>
+						)}
+					</View>
 
 					{/* Divider */}
 					<View style={styles.divider} />

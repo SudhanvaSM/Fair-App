@@ -5,13 +5,14 @@ type Props = {
 	icon: keyof typeof MaterialIcons.glyphMap;
 	label: string;
 	size: number;
+	color: string;
 	onPress: () => void;
 };
 
-export default function IconButton({ icon, label, size, onPress } : Props) {
+export default function IconButton({ icon, label, size, color, onPress } : Props) {
 	return (
 		<Pressable style={styles.iconButton} onPress={onPress}>
-			<MaterialIcons name={icon} size={size} color="orange" />
+			<MaterialIcons name={icon} size={size} color={color} />
 			<Text style={styles.iconButtonLabel}>{label}</Text>
 		</Pressable>
 	);
