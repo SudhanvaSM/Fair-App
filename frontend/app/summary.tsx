@@ -35,7 +35,7 @@ export default function Summary() {
 				subtotal: parsedData.raw?.subtotal,
 				tax: parsedData.raw?.tax,
 				total: parsedData.raw?.total,
-				service_charge: parsedData.raw?.service_charge,
+				serviceCharge: parsedData.raw?.serviceCharge,
 				finalTip: parsedData.raw?.finalTip
 			},
 			thing: parsedData.assignedItems,

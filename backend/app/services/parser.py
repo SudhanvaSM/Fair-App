@@ -271,7 +271,7 @@ def parse_receipt(result):
         "items": [],
         "subtotal": 0.0,
         "tax": 0.0,
-        "service_charge": 0.0,
+        "serviceCharge": 0.0,
         "rounding": 0.0,
         "total": 0.0
     }
@@ -322,7 +322,7 @@ def parse_receipt(result):
                 data["tax"] = price
                 continue
             elif SERVICE_LINE.search(name):
-                data["service_charge"] = price
+                data["serviceCharge"] = price
                 continue
             elif TOTAL_LINE.search(name):
                 data["total"] = price
@@ -391,9 +391,9 @@ def parse_receipt(result):
         data["subtotal"] = calculated_sum
 
     if data["tax"] == 0 and data["total"] > 0:
-        data["tax"] = round(data["total"] - data["subtotal"] - data["service_charge"], 2)
+        data["tax"] = round(data["total"] - data["subtotal"] - data["serviceCharge"], 2)
 
-    expected_total = data["subtotal"] + data["tax"] + data["service_charge"]
+    expected_total = data["subtotal"] + data["tax"] + data["serviceCharge"]
 
     if data["total"] == 0 or abs(data["total"] - expected_total) > 1:
         data["total"] = round(expected_total, 2)

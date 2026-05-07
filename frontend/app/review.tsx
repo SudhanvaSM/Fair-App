@@ -144,11 +144,13 @@ export default function Review() {
 		tax = computedSubtotal * taxRate;
 	}
 
-	const finalTax = taxInput ? parseFloat(taxInput) : tax;
+	const parsedTax = parseFloat(taxInput)
+	const finalTax = !isNaN(parsedTax) ? parsedTax : tax;
 
-	const finalTip = tipInput ? parseFloat(tipInput) : tip;
+	const parsedTip = parseFloat(tipInput)
+	const finalTip = !isNaN(parsedTip) ? parsedTip : 0;
 
-	const serviceCharge = includeServiceCharge ? raw.service_charge : 0;
+	const serviceCharge = includeServiceCharge ? (raw.serviceCharge ?? raw.serviceCharge ?? 0) : 0;
 
 	const total = computedSubtotal + finalTax + finalTip + serviceCharge;	
 
@@ -308,7 +310,7 @@ export default function Review() {
 							<Text style={styles.price}>₹{serviceCharge.toFixed(2)}</Text>
 						</View>
 					)}
-					{raw.service_charge != 0 && (<Pressable onPress={() => setIncludeServiceCharge(prev => !prev)}>
+					{raw.serviceCharge != 0 && (<Pressable onPress={() => setIncludeServiceCharge(prev => !prev)}>
 						<Text style={{ color: "orange", marginTop: 10 }}>
 							{includeServiceCharge ? "Remove Service Charge" : "Add Service Charge"}
 						</Text>

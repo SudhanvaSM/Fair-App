@@ -30,7 +30,7 @@ export type ParsedData = {
   }[];
   subtotal: number;
   tax: number;
-  service_charge?: number;
+  serviceCharge?: number;
   rounding?: number;
   total: number;
   finalTip?: number;
@@ -54,7 +54,7 @@ export type SplitHistory = {
     total?: number;
     subtotal?: number;
     tax?: number;
-    service_charge?: number;
+    serviceCharge?: number;
     items?: Item[];
     finalTip?: number;
   }

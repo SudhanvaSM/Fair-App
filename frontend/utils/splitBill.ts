@@ -54,13 +54,15 @@ export function splitBill(parsedData: ParsedData, assignments: Assignments, incl
   const {
     subtotal,
     tax,
-    service_charge = 0,
+    serviceCharge = 0,
     rounding = 0,
     finalTip = 0,
     total,
   } = parsedData;
 
-  const totalExtra = tax + rounding + (includeServiceCharge ? service_charge : 0) + (finalTip !== 0 ? finalTip : 0);
+  const totalExtra = tax + rounding + (includeServiceCharge ? serviceCharge : 0) + finalTip;
+
+  const newTotal = subtotal + totalExtra;
 
   const personTotalsExact: Record<string, number> = {};
 
@@ -89,7 +91,7 @@ export function splitBill(parsedData: ParsedData, assignments: Assignments, incl
     0
   );
 
-  const diff = Number((total - currentSum).toFixed(2));
+  const diff = Number((newTotal - currentSum).toFixed(2));
 
   if (diff !== 0) {
     const highest = Object.keys(personSubtotals).reduce((a, b) =>
@@ -108,7 +110,7 @@ export function splitBill(parsedData: ParsedData, assignments: Assignments, incl
   );
 
   if (
-    Number(finalSum.toFixed(2)) !== Number(total.toFixed(2))
+    Number(finalSum.toFixed(2)) !== Number(newTotal.toFixed(2))
   ) {
     throw new Error("Split mismatch: totals do not add up");
   }
