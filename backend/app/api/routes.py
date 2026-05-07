@@ -5,7 +5,7 @@ from fastapi import APIRouter, UploadFile, File
 import os
 
 from app.services.ocr_service import run_ocr
-from app.services.parser_service import parse_receipt
+from app.services.parser import parse_receipt
 
 router = APIRouter()
 

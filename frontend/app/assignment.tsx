@@ -108,6 +108,7 @@ export default function Assignment() {
 					tax: parsedData.raw.tax,
 					total: parsedData.raw.total,
 					serviceCharge: parsedData.raw.serviceCharge,
+					finalTip: parsedData.raw.finalTip
 				},
 				assignedItems: thing,
 				group: parsedGroup,

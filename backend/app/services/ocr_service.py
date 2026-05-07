@@ -1,5 +1,5 @@
 import cv2
-import pytesseract
+from pytesseract import *
 import numpy as np
 from PIL import Image
 import io
@@ -63,13 +63,13 @@ def run_ocr(image_bytes):
 
     custom_config = r'--oem 3 --psm 4'
 
-    items_text = pytesseract.image_to_data(items_processed, config=custom_config)
+    items_text = pytesseract.image_to_data(items_processed, config=custom_config, output_type=Output.DICT)
 
     return items_text
 
 # Used for debugging
 # if __name__ == "__main__":
-#     with open("backend/uploads/Images/dhabha.jpeg", "rb") as f:
+#     with open("backend/uploads/Images/receipt1.jpeg", "rb") as f:
 #         raw = run_ocr(f.read())
 #     print("── RAW OCR ──────────────────────────────")
 #     print(raw)

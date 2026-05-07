@@ -1,4 +1,4 @@
-import {Text, View, StyleSheet, ScrollView} from "react-native"
+import {Text, View, StyleSheet, ScrollView, Pressable, Alert} from "react-native"
 import  AsyncStorage  from "@react-native-async-storage/async-storage";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
@@ -52,7 +52,8 @@ export default function ProfileScreen() {
 					</View>
 				)
 				:
-				( 
+				(
+					<>
 					<View style ={{ justifyContent: "center" }}>
 						{history.map((item) => {
 							const label = getMealLabel(new Date(item.createdAt).getHours());
@@ -71,6 +72,41 @@ export default function ProfileScreen() {
 							);
 						})}
 					</View>
+
+					<View style={styles.container}>
+						<Pressable
+							onPress={() => {
+								Alert.alert (
+									"Confirm Action",
+									"Are you sure you want to delete all splits?",
+									[
+										{
+											text: "Cancel",
+											style: "cancel",
+										},
+										{
+											text: "Delete",
+											style: "destructive",
+											onPress: async() => {
+												try {
+													await AsyncStorage.clear();
+													router.back();
+												}
+												catch (e) {
+													console.error("Remove all splits failed: ", e);
+												}
+											}
+										}
+									]
+								);
+							}}
+						>
+							<Text style={{ color: "red", fontWeight: "600", fontSize: 18, textDecorationLine: "underline" }}>
+								Remove all splits
+							</Text>
+						</Pressable>
+					</View>
+					</>
 				)}
 			</ScrollView>
 		</>

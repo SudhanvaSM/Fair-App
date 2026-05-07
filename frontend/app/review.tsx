@@ -407,10 +407,11 @@ export default function Review() {
 							...raw,
 							items: itemsState,
 							subtotal: computedSubtotal,
-							tax: tax,
+							tax: finalTax,
 							total: total,
 							serviceCharge: serviceCharge,
 							includeServiceCharge: includeServiceCharge,
+							finalTip: finalTip
 						},
 						}),
 					},

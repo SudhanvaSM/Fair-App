@@ -56,10 +56,11 @@ export function splitBill(parsedData: ParsedData, assignments: Assignments, incl
     tax,
     service_charge = 0,
     rounding = 0,
+    finalTip = 0,
     total,
   } = parsedData;
 
-  const totalExtra = tax + rounding + (includeServiceCharge ? service_charge : 0);
+  const totalExtra = tax + rounding + (includeServiceCharge ? service_charge : 0) + (finalTip !== 0 ? finalTip : 0);
 
   const personTotalsExact: Record<string, number> = {};
 

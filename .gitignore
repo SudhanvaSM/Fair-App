@@ -36,6 +36,8 @@ __pycache__/
 .venv/
 env/
 backend/uploads
+# Old parser
+backend/app/services/parser_service.py
 
 # ======================
 # LOGS

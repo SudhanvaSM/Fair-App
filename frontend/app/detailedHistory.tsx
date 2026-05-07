@@ -132,6 +132,11 @@ export default function DetailedHistory() {
 							</View>
 
 							<View style={styles.row}>
+								<Text style={styles.text}>Tips:</Text>
+								<Text style={styles.text}>₹{parsed.raw.finalTip ?? 0}</Text>
+							</View>
+
+							<View style={styles.row}>
 								<Text style={styles.text}>Total:</Text>
 								<Text style={styles.text}>₹{parsed.raw.total.toFixed(2) ?? 0}</Text>
 							</View>

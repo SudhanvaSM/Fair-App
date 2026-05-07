@@ -36,6 +36,7 @@ export default function Summary() {
 				tax: parsedData.raw?.tax,
 				total: parsedData.raw?.total,
 				service_charge: parsedData.raw?.service_charge,
+				finalTip: parsedData.raw?.finalTip
 			},
 			thing: parsedData.assignedItems,
 		});

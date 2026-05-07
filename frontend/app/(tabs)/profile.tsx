@@ -39,7 +39,7 @@ export default function ProfileScreen() {
 					</View>
 					<View style={{ flexDirection: "column" }}>
 						<View style={styles.textContainer}>
-							<Text style={{ color: "white", fontSize: 16, fontWeight: "600", marginHorizontal: 10, }}>Sudhanva S M</Text>
+							<Text style={{ color: "white", fontSize: 18, fontWeight: "600", marginHorizontal: 10, }}>Sudhanva S M</Text>
 						</View>
 						<View style={styles.chipContainer}>
 							<View style={styles.chip}>
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
 		marginBottom: 12,
 		marginTop: 20,
 		elevation: 2,
-		borderWidth: 2,
+		borderWidth: 1,
 		borderColor: "#fff",
 		flexDirection: "row",
     },

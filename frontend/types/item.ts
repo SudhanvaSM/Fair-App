@@ -33,6 +33,7 @@ export type ParsedData = {
   service_charge?: number;
   rounding?: number;
   total: number;
+  finalTip?: number;
 }
 
 export type RecentSplit = {
@@ -55,6 +56,7 @@ export type SplitHistory = {
     tax?: number;
     service_charge?: number;
     items?: Item[];
+    finalTip?: number;
   }
   thing: ItemWithSelection[];
 }
