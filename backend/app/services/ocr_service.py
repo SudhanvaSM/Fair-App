@@ -68,8 +68,8 @@ def run_ocr(image_bytes):
     return items_text
 
 # Used for debugging
-# if __name__ == "__main__":
-#     with open("backend/uploads/Images/receipt1.jpeg", "rb") as f:
-#         raw = run_ocr(f.read())
-#     print("── RAW OCR ──────────────────────────────")
-#     print(raw)
+if __name__ == "__main__":
+    with open("backend/uploads/Images/ai_receipt.jpeg", "rb") as f:
+        raw = run_ocr(f.read())
+    print("── RAW OCR ──────────────────────────────")
+    print(raw)

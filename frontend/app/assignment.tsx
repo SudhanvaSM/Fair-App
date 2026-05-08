@@ -22,7 +22,7 @@ export default function Assignment() {
 
 	const raw = parsedData.raw;
 	const items = raw.items;
-	const includeServiceCharge = parsedData.includeServiceCharge;
+	const includeServiceCharge = parsedData.raw.includeServiceCharge;
 
 	const [thing, setThing] = useState(
 		items.map((item: ItemWithSelection) => ({

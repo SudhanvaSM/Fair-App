@@ -2,9 +2,11 @@ import re
 import json
 
 # Set this is to True to print parsing results along with confidence scoring
-DEBUG = False 
+DEBUG = True 
 
 PRICE_REGEX = re.compile(r'\d+(?:[.,]\d{1,2})?\s*$')
+#PRICE_REGEX = re.compile(r'(\d+(?:[.,]\d{1,2})?)\D*$')
+#PRICE_REGEX = re.compile(r'(\d+(?:[.,]\d{2})?)\s*$')
 
 NUMBER_REGEX = re.compile(r'\d+(?:[.,]\d{1,2})?')
 
@@ -281,7 +283,8 @@ def parse_receipt(result):
     SERVICE_LINE = re.compile(r'\bservice(?:\s*charge)?\b', re.IGNORECASE)
     TOTAL_LINE = re.compile(r'\btotal\b', re.IGNORECASE)
     ROUND_LINE = re.compile(r'\b(round|rounding)\b', re.IGNORECASE)
-    QTY_PREFIX = re.compile(r'^(\d{1,2})\s+(.+)$')
+    QTY_PREFIX1 = re.compile(r'^(\d{1,2})\s*[xX*]\s*(.+)$')
+    QTY_PREFIX2 = re.compile(r'^(\d{1,2})\s+([A-Za-z].+)$')
 
     lines = group_words_into_lines(result)
     columns = detect_columns(lines)
@@ -319,7 +322,7 @@ def parse_receipt(result):
                 data["subtotal"] = price
                 continue
             elif TAX_LINE.search(name):
-                data["tax"] = price
+                data["tax"] += price
                 continue
             elif SERVICE_LINE.search(name):
                 data["serviceCharge"] = price
@@ -333,11 +336,11 @@ def parse_receipt(result):
             continue
 
         score_data = item_confidence_score(line)
+
         if score_data["score"] < 4: 
             continue
 
         # ── Extract item quantity────────────────────────────────
-        qty = parsed["qty"]
         try:
             qty = int(qty) if qty else None
         except:
@@ -345,7 +348,10 @@ def parse_receipt(result):
 
         # fallback inline qty parsing
         if qty is None:
-            qty_match = QTY_PREFIX.match(name)
+            qty_match = QTY_PREFIX1.match(name)
+
+            if not qty_match:
+                qty_match = QTY_PREFIX2.match(name)
 
             if qty_match:
                 qty = int(qty_match.group(1))
@@ -367,7 +373,7 @@ def parse_receipt(result):
         name = clean_name(name)
 
         if DEBUG:
-            print("Line: ", name, ", Qty: ", qty, ", Rate: ", total)
+            print("Line: ", line, ", Qty: ", qty, ", Rate: ", total)
             print("Score: ", score_data["score"])
 
         data["items"].append({
@@ -378,9 +384,6 @@ def parse_receipt(result):
             "unit_price": round(total / qty, 2),
             "total_price": total
         })
-
-        #if DEBUG:
-        #    print("Line: ", line)
         
         i = i + 1
 
@@ -393,15 +396,20 @@ def parse_receipt(result):
     if data["tax"] == 0 and data["total"] > 0:
         data["tax"] = round(data["total"] - data["subtotal"] - data["serviceCharge"], 2)
 
+    if data["serviceCharge"] == 0 and data["total"] > 0:
+        data["serviceCharge"] = round(data["total"] - data["subtotal"] - data["tax"], 2)
+
     expected_total = data["subtotal"] + data["tax"] + data["serviceCharge"]
 
     if data["total"] == 0 or abs(data["total"] - expected_total) > 1:
         data["total"] = round(expected_total, 2)
 
+    print("FINAL ITEMS:", data["items"])
+
     return data
 
 def clean_name(name: str) -> str:
-    from app.services.replace_service import clean_common_ocr
+    from replace_service import clean_common_ocr
     name = re.sub(r'[^a-zA-Z\s]', ' ', name)
     name = re.sub(r'[^\w\s\-\(\)\/]', ' ', name)
     name = re.sub(r'\s{2,}', ' ', name).strip()
@@ -412,10 +420,10 @@ def clean_name(name: str) -> str:
     return name.title() 
 
 # Used for debugging
-# if __name__ == "__main__":
-#     from ocr_service import run_ocr
-#     with open("backend/uploads/Images/receipt1.jpeg", "rb") as f:
-#         raw_text = run_ocr(f.read())
+if __name__ == "__main__":
+    from ocr_service import run_ocr
+    with open("backend/uploads/Images/ai_receipt.jpeg", "rb") as f:
+        raw_text = run_ocr(f.read())
 
-#     result = parse_receipt(raw_text)
-#     print(json.dumps(result, indent=4))
+    result = parse_receipt(raw_text)
+    print(json.dumps(result, indent=4))

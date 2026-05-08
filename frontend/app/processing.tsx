@@ -74,7 +74,7 @@ export default function Processing() {
         } as any);
 
         // ✅ Start backend call in parallel
-        const fetchPromise = fetch("http://192.168.1.106:8000/upload", {
+        const fetchPromise = fetch("http://10.176.1.196:8000/upload", {
           method: "POST",
           body: formData,
           headers: {

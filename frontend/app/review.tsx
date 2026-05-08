@@ -399,7 +399,7 @@ export default function Review() {
 					Alert.alert("No items", "Please add at least one item.");
 					return;
 					}
-
+					
 					router.push({
 					pathname: "/groupInput",
 					params: {

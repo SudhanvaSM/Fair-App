@@ -1,5 +1,5 @@
 # cd backend
-# uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+# 
 
 from fastapi import APIRouter, UploadFile, File
 import os
@@ -19,11 +19,11 @@ async def upload(file: UploadFile = File(...)):
         raw_text = run_ocr(contents)
         raw_json = parse_receipt(raw_text)
 
+        print("RETURNING:", raw_json)
+
         return {
             "raw": raw_json,
         }
 
     except Exception as e:
         return{"error": str(e)}
-
-    
