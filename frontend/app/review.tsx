@@ -128,7 +128,6 @@ export default function Review() {
 
 	let tax = 0;
 	let taxRate = 0;
-	let tip = 0;
 
 	if (subtotalDiff > 5) {
 		taxRate = 0.05

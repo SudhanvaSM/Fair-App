@@ -2,7 +2,7 @@ import re
 import json
 
 # Set this is to True to print parsing results along with confidence scoring
-DEBUG = True 
+DEBUG = False 
 
 PRICE_REGEX = re.compile(r'\d+(?:[.,]\d{1,2})?\s*$')
 #PRICE_REGEX = re.compile(r'(\d+(?:[.,]\d{1,2})?)\D*$')
@@ -292,6 +292,11 @@ def parse_receipt(result):
     i = 1
 
     for words in lines:
+        price = None
+        total = None
+        name = None
+        qty = None
+
         line = line_to_text(words)
         line = normalize_price_spaces(line)
         line = fix_merged_words(line)
@@ -301,6 +306,14 @@ def parse_receipt(result):
         name = parsed["name"]
         qty = parsed["qty"]
         total = parsed["total"]
+
+        if total:
+            try:
+                total = parse_price(total)
+                if total <= 0 or total > 10000:
+                    total = None
+            except:
+                total = None
 
         # fallback to regex parser if spatial parsing failed
         if not total:
@@ -373,8 +386,12 @@ def parse_receipt(result):
         name = clean_name(name)
 
         if DEBUG:
-            print("Line: ", line, ", Qty: ", qty, ", Rate: ", total)
-            print("Score: ", score_data["score"])
+            print({
+                "FINAL_NAME": name,
+                "FINAL_TOTAL": total,
+                "FINAL_QTY": qty,
+                "LINE": line
+            })
 
         data["items"].append({
             "confidence": score_data["score"],
@@ -404,12 +421,10 @@ def parse_receipt(result):
     if data["total"] == 0 or abs(data["total"] - expected_total) > 1:
         data["total"] = round(expected_total, 2)
 
-    print("FINAL ITEMS:", data["items"])
-
     return data
 
 def clean_name(name: str) -> str:
-    from replace_service import clean_common_ocr
+    from app.services.replace_service import clean_common_ocr
     name = re.sub(r'[^a-zA-Z\s]', ' ', name)
     name = re.sub(r'[^\w\s\-\(\)\/]', ' ', name)
     name = re.sub(r'\s{2,}', ' ', name).strip()
@@ -420,10 +435,10 @@ def clean_name(name: str) -> str:
     return name.title() 
 
 # Used for debugging
-if __name__ == "__main__":
-    from ocr_service import run_ocr
-    with open("backend/uploads/Images/ai_receipt.jpeg", "rb") as f:
-        raw_text = run_ocr(f.read())
+# if __name__ == "__main__":
+#     from ocr_service import run_ocr
+#     with open("backend/uploads/Images/ai_receipt.jpeg", "rb") as f:
+#         raw_text = run_ocr(f.read())
 
-    result = parse_receipt(raw_text)
-    print(json.dumps(result, indent=4))
+#     result = parse_receipt(raw_text)
+#     print(json.dumps(result, indent=4))
