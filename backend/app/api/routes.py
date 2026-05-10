@@ -7,6 +7,9 @@ import os
 from app.services.ocr_service import run_ocr
 from app.services.parser import parse_receipt
 
+# Set this is to True to print parsing results along with confidence scoring
+DEBUG = False
+
 router = APIRouter()
 
 UPLOAD_DIR = "uploads"
@@ -19,7 +22,8 @@ async def upload(file: UploadFile = File(...)):
         raw_text = run_ocr(contents)
         raw_json = parse_receipt(raw_text)
 
-        print("RETURNING:", raw_json)
+        if DEBUG:
+            print("RETURNING:", raw_json)
 
         return {
             "raw": raw_json,
