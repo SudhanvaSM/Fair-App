@@ -63,6 +63,8 @@ Fair-App/
 │   ├── app/           # Screens & navigation
 │   ├── components/    # Reusable UI components
 │   ├── utils/         # Core logic (splitting, assignment)
+|   ├── src/db         # SQLite entry and schema 
+|   ├── src/services   # SQLite queries to handle app calls and CRUD work
 │
 ├── backend/           # FastAPI backend
 │   ├── app/
