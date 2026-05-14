@@ -6,14 +6,17 @@ import { ItemWithSelection, ItemPerPerson } from "@/types/item";
 import React from "react";
 import { buildAssignments } from "@/utils/buildAssignment";
 import { splitBill } from "@/utils/splitBill";
+import { getGroupById } from "@/src/services/group.service";
+import { getMembersByGroupId } from "@/src/services/member.service";
 
 export default function Assignment() {
 
-	const { data, group } = useLocalSearchParams();
+	const { data, groupId } = useLocalSearchParams();
 	const parsedParam = Array.isArray(data) ? data[0] : data;
 	const parsedData = parsedParam ? JSON.parse(parsedParam) : null;
 
-	const parsedGroup = group ? JSON.parse(Array.isArray(group) ? group[0] : group) : null;
+	const parsedGroupId = Number(groupId);
+	const members = getMembersByGroupId(parsedGroupId);
 	
 	if (!parsedData || !parsedData.raw) {
 		console.log("BROKEN DATA:", parsedData);
@@ -26,9 +29,7 @@ export default function Assignment() {
 
 	const [thing, setThing] = useState(
 		items.map((item: ItemWithSelection) => ({
-			item_id: item.item_id,
-			name: item.name,
-			total_price: item.total_price,
+			...item,
 			selectedPeople: [],
 		}))
 	);
@@ -45,7 +46,7 @@ export default function Assignment() {
 		})
 	}
 
-	const people = parsedGroup.members;
+	const people = members.map((m) => m.name);
 	people.sort();
 
 	const showAlert = (name: string) => {
@@ -103,15 +104,14 @@ export default function Assignment() {
 			data: JSON.stringify({
 				result,
 				raw: {
-					items: raw.items,
+					items: thing,
 					subtotal: parsedData.raw.subtotal,
 					tax: parsedData.raw.tax,
 					total: parsedData.raw.total,
 					serviceCharge: parsedData.raw.serviceCharge,
 					finalTip: parsedData.raw.finalTip
 				},
-				assignedItems: thing,
-				group: parsedGroup,
+				groupId: parsedGroupId,
 			})
 			}
 		});

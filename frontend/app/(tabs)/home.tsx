@@ -2,42 +2,35 @@ import { View, Text, StyleSheet, Image, ScrollView, } from "react-native";
 import { useRouter, Link, useFocusEffect } from "expo-router";
 import Button from "@/components/Button";
 import * as ImagePicker from "expo-image-picker";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useActionSheet } from '@expo/react-native-action-sheet';
 import IconButton from "@/components/IconButton";
 import Card from "@/components/Card";
-import { SplitHistory } from "@/types/item";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { RecentSplit, SplitHistory } from "@/types/item";
+import { initializeDatabase } from "@/src/db/schema";
+import { getRecentReceipts } from "@/src/services/receipt.service";
+
+const LIMIT_RECENT_SPLITS_IN_HOME_SCREEN = 5;
 
 export default function Home() {
+  useEffect(() => {
+    initializeDatabase();
+  }, []);
   const router = useRouter();
 
   const [selectedImage, setSelectedImage] = useState<string> ();
 
   const [showAppOptions, setShowAppOptions] = useState<boolean>(false);
 
-  const [history, setHistory] = useState<SplitHistory[]>([]);
+  const [history, setHistory] = useState<RecentSplit[]>([]);
 
   useFocusEffect(
 		useCallback(() => {
-			const fetch = async () => {
-			// await AsyncStorage.clear();
-			const data = await AsyncStorage.getItem("history");
-			const parsed = data ? JSON.parse(data) : [];
-			setHistory(parsed);
-			};
+			const receipts = getRecentReceipts(LIMIT_RECENT_SPLITS_IN_HOME_SCREEN);
 
-			fetch();
+      setHistory(receipts);
 		}, [])
 	);
-
-  const getMealLabel = (hour: number) => {
-
-		if (hour >= 5 && hour < 11) return "Breakfast";
-		if (hour >= 11 && hour < 15) return "Lunch";
-		if (hour >= 15 && hour < 19) return "Snacks";
-		return "Dinner";
-	}
 
   const pickImageAsync = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -115,11 +108,11 @@ export default function Home() {
     );
   };
 
-  const openDetails = (item: SplitHistory) => {
+  const openDetails = (item: RecentSplit) => {
       router.push({
         pathname: "/detailedHistory",
         params: {
-          data: JSON.stringify(item),
+          receiptId: item.id,
         },
       });
     };
@@ -168,25 +161,30 @@ export default function Home() {
 
           {!showAppOptions && history.length !== 0 && (
             <>
-            <View style={{marginTop: 10, paddingHorizontal: 10}}>
+            <View style={{ marginTop: 10, paddingHorizontal: 10, justifyContent: "center" }}>
               <Text style={styles.recent}> 
                 Recent Splits
               </Text>
               {history.map((item) => {
-                const label = getMealLabel(new Date(item.createdAt).getHours());
-                const mins = new Date(item.createdAt).getMinutes();
+                const createdAt = new Date(item.date);
+                const today = new Date();
+                let date;
+                if (createdAt.toDateString() === today.toDateString()) date = "Today"
+                else {
+                  const yesterday = new Date(today.getDate() - 1);
+                  if (createdAt.toDateString() === yesterday.toDateString()) date = "Yesterday";
+                  else date = createdAt.toLocaleDateString([], { day: "2-digit", month: "short" });
+                }
                 return (
-                  <View key={item.id}>
-                    <View style={{ alignItems: "center" }}>
-                      <Card
-                      title={label}
-                      people={Object.keys(item.result.perPerson).length}
-                      date={String(new Date(item.createdAt).toDateString())}
-                      price={Number(item.raw?.total?.toFixed(2)) || 0}
-                      onPress={() => openDetails(item)}
-                      variant={mins % 2 !== 0 ? "1" : "2"}
-                      />
-                    </View>
+                  <View key={item.id}style={{ alignItems: "center" }}>
+                    <Card
+                    title={item.title}
+                    people={item.people}
+                    date={date}
+                    price={Number(item.price.toFixed(2)) || 0}
+                    onPress={() => openDetails(item)}
+                    variant={(createdAt.getMinutes()) % 2 !== 0 ? "1" : "2"}
+                    />
                   </View>
                 );
               })}

@@ -1,18 +1,39 @@
 import {Text, View, StyleSheet, ScrollView, Pressable, Alert} from "react-native"
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import { Item, ItemWithSelection, SplitHistory } from "@/types/item";
+import { AssignmentList, DebtDetails, Item, Receipt, SplitHistory } from "@/types/item";
 import React from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getDetailedReceipt, getItemsList, getDebtsList, getAssignmentsList, clearReceipt } from "@/src/services/receipt.service";
+import { getMemberName } from "@/src/services/member.service";
 
 export default function DetailedHistory() {
-	const { data } = useLocalSearchParams();
-	const parsed = data ? JSON.parse(data as string) : null;
+	const { receiptId } = useLocalSearchParams();
+	const id = Number(receiptId);
 
-	if (!parsed || !parsed.result?.perPerson) {
-  		return <Text style={{ color: "white" }}>No Data</Text>;
-	}	
+	const receipt: Receipt = getDetailedReceipt(id);
+	const items: Item[] = getItemsList(id);
+	const debts: DebtDetails[] = getDebtsList(id);
+	const assignments: AssignmentList[] = getAssignmentsList(id);
 
-	const result = parsed.result;
+	const totalDebts = debts.reduce((sum: number, debt: DebtDetails) => sum + debt.amount, 0);
+
+	const payer = getMemberName(receipt.payerMemberId);
+	const payerTotal = receipt.total - totalDebts;
+
+	const date = new Date(receipt.createdAt);
+
+	const grouped = new Map();
+	for (const item of assignments) {
+		if (!grouped.has(item.itemId)) {
+			grouped.set(item.itemId, {
+				item_id: item.itemId,
+				name: item.name,
+				selectedPeople: [],
+			});
+		}
+		grouped.get(item.itemId).selectedPeople.push(item.memberName);
+	}
+	const peopleSelections = Array.from(grouped.values());
 
 	const removeItem = (id: number) => {
 		Alert.alert (
@@ -28,10 +49,7 @@ export default function DetailedHistory() {
 					style: "destructive",
 					onPress: async () => {
 						try {
-							const stored = await AsyncStorage.getItem("history");
-							const parsed = stored ? JSON.parse(stored) : [];
-							const updated = parsed.filter((item: SplitHistory) => item.id !== id);
-							await AsyncStorage.setItem("history", JSON.stringify(updated));
+							clearReceipt(id);
 							router.back();
 						} 
 						catch (e) {
@@ -64,27 +82,35 @@ export default function DetailedHistory() {
 				<View style ={{ alignItems: "center", marginTop: 40, }}>
 					<View style={[styles.container, { backgroundColor: "#2B3648" }]}>
 						<Text style={[styles.text, { fontWeight: "600", fontSize: 18, textDecorationLine: "underline" }]}>Breakdown</Text>
-						{Object.entries(result.breakdown as Record<string, number>).map(([person, subtotal]) => {
-							const total = result.perPerson?.[person] ?? 0;
+						{debts.map((debt) => {
 							return (
-							<View key={person} style={styles.row}>
+							<View key={debt.id} style={styles.row}>
 								<View style={{ alignItems: "center", justifyContent: "center" }}>
-									<Text style={styles.text}>{person}</Text>
+									<Text style={styles.text}>{debt.from_member}</Text>
 								</View>
 								<View style={{ flexDirection: "column", justifyContent: "center", alignItems: "flex-end" }}>
-									<Text style={[styles.text, { color: "#b3acac" }]}>Subtotal: ₹{subtotal.toFixed(2)}</Text>
-									<Text style={[styles.text, { fontWeight: "700" }]}>Total: ₹{total.toFixed(2)}</Text>
+									<Text style={[styles.text, { fontWeight: "700" }]}>₹{debt.amount.toFixed(2)}</Text>
+									<Text style={styles.text}>Owes {debt.to_member}</Text>
 								</View>
 							</View>
 							);
 						})}
+						<View style={styles.row}>
+							<View style={{ alignItems: "center", justifyContent: "center" }}>
+								<Text style={[styles.text, { fontWeight: "700", color: "#FFD700" }]}>{payer?.name}</Text>
+							</View>
+							<View style={{ flexDirection: "column", justifyContent: "center", alignItems: "flex-end" }}>
+								<Text style={[styles.text, { fontWeight: "700", color: "#FFD700" }]}>₹{payerTotal.toFixed(2)}</Text>
+								<Text style={styles.text}>Paid upfront</Text>
+							</View>
+						</View>
 					</View>
 				</View>
 
 				<View style ={{ alignItems: "center", marginTop: 40}}>
 					<View style={[styles.container, { backgroundColor: "#334155" }]}>
 						<Text style={[styles.text, { fontWeight: "600", fontSize: 18, textDecorationLine: "underline" }]}>Items</Text>
-						{parsed.raw.items.map((item: Item) => {
+						{items.map((item: Item) => {
 							return (
 								<View key={item.item_id} style={styles.row}>
 									<Text style={styles.text}>{item.qty} x {item.name}</Text>
@@ -100,7 +126,7 @@ export default function DetailedHistory() {
 				<View style ={{ alignItems: "center", marginTop: 40}}>
 					<View style={[styles.container, { backgroundColor: "#2B3648" }]}>
 						<Text style={[styles.text, { fontWeight: "600", fontSize: 18, textDecorationLine: "underline" }]}>Who Ate What</Text>
-						{parsed.thing?.map((item: ItemWithSelection) => {
+						{peopleSelections.map((item) => {
 							return (
 							<View key={item.item_id} style={styles.row}>
 								<View style={{ alignItems: "flex-start", justifyContent: "center" }}>
@@ -118,27 +144,27 @@ export default function DetailedHistory() {
 						<Text style={[styles.text, { fontWeight: "600", fontSize: 18, textDecorationLine: "underline" }]}>Bill Details</Text>
 							<View style={styles.row}>
 								<Text style={styles.text}>Subtotal:</Text>
-								<Text style={styles.text}>₹{parsed.raw.subtotal.toFixed(2) ?? 0}</Text>
+								<Text style={styles.text}>₹{receipt.subtotal.toFixed(2) ?? 0}</Text>
 							</View>
 
 							<View style={styles.row}>
 								<Text style={styles.text}>Tax:</Text>
-								<Text style={styles.text}>₹{parsed.raw.tax.toFixed(2) ?? 0}</Text>
+								<Text style={styles.text}>₹{receipt.tax.toFixed(2) ?? 0}</Text>
 							</View>
 
 							<View style={styles.row}>
 								<Text style={styles.text}>Service Charge:</Text>
-								<Text style={styles.text}>₹{parsed.raw.serviceCharge ?? 0}</Text>
+								<Text style={styles.text}>₹{receipt.serviceCharge ?? 0}</Text>
 							</View>
 
 							<View style={styles.row}>
 								<Text style={styles.text}>Tips:</Text>
-								<Text style={styles.text}>₹{parsed.raw.finalTip ?? 0}</Text>
+								<Text style={styles.text}>₹{receipt.finalTip ?? 0}</Text>
 							</View>
 
 							<View style={styles.row}>
 								<Text style={styles.text}>Total:</Text>
-								<Text style={styles.text}>₹{parsed.raw.total.toFixed(2) ?? 0}</Text>
+								<Text style={styles.text}>₹{receipt.total.toFixed(2) ?? 0}</Text>
 							</View>
 					</View>
 				</View>
@@ -147,18 +173,18 @@ export default function DetailedHistory() {
 					<View style={[styles.container, { backgroundColor: "#2B3648" }]}>
 						<Text style={[styles.text, { fontWeight: "600", fontSize: 18, textDecorationLine: "underline" }]}>Other</Text>
 							<View style={styles.row}>
-								<Text style={styles.text}>ID:</Text>
-								<Text style={styles.text}>{parsed.id ?? 0}</Text>
+								<Text style={styles.text}>Receipt ID:</Text>
+								<Text style={styles.text}>{receipt.id ?? 0}</Text>
 							</View>
 
 							<View style={styles.row}>
 								<Text style={styles.text}>Date:</Text>
-								<Text style={styles.text}>{new Date(parsed.createdAt).toLocaleDateString([], { day:"2-digit", month: "2-digit", year: "numeric" }) ?? 0}</Text>
+								<Text style={styles.text}>{date.toLocaleDateString([], { day:"2-digit", month: "long", year: "numeric" }) ?? 0}</Text>
 							</View>
 
 							<View style={styles.row}>
 								<Text style={styles.text}>Time:</Text>
-								<Text style={styles.text}>{new Date(parsed.createdAt).toLocaleTimeString([], { hour:"2-digit", minute: "2-digit" }) ?? 0}</Text>
+								<Text style={styles.text}>{date.toLocaleTimeString([], { hour:"2-digit", minute: "2-digit" }) ?? 0}</Text>
 							</View>
 					</View>
 
@@ -166,7 +192,7 @@ export default function DetailedHistory() {
 						hitSlop={20}
 						onPress={(e) => {
 							e.stopPropagation();
-							removeItem(parsed.id)}}
+							removeItem(receipt.id || -1)}}
 						style={{justifyContent: "center", marginTop: 20}}
 						>
 							<Text style={[styles.text, { textDecorationLine: "underline", color: "red", fontSize: 18 }]}>Remove Split</Text>

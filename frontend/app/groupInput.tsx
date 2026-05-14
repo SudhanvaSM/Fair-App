@@ -1,9 +1,10 @@
 import {Text, View, StyleSheet, ScrollView, Pressable, Alert, TextInput, KeyboardAvoidingView, Platform} from "react-native";
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
-import { Group } from "@/types/item";
+import { useEffect, useState } from "react";
+import { GroupDraft } from "@/types/item";
 import { MaterialIcons } from "@expo/vector-icons";
 import React from "react";
+import { createGroupWithMembers, getGroupsWithMembers } from "@/src/services/group.service";
 
 const AddItemBlock = React.memo((props: any) => {
   const { showInput, setShowInput, newItemName, setNewItemName, addItem, members, setMembers, memberInput, setMemberInput } = props;
@@ -45,7 +46,8 @@ const AddItemBlock = React.memo((props: any) => {
 					<Pressable
 						onPress={() => {
 							if (!memberInput.trim()) return;
-							setMembers((prev: any) => [...prev, memberInput]);
+							if (members.includes(memberInput.trim())) return;
+							setMembers((prev: any) => [...prev, memberInput.trim()]);
 							setMemberInput("");
 						}}
 						style={{
@@ -117,18 +119,16 @@ export default function GroupInput() {
 		return <Text style={{ color: "white" }}>No Data</Text>;
 	}
 
-	const group : Group[] = [
-		{
-			name: "Trip Friends",
-			members: ["Ankit", "Rahul", "Sneha", "You"],
-		},
-	]
-
 	const [showInput, setShowInput] = React.useState(false);
 	const [newItemName, setNewItemName] = React.useState("");
 	const [memberInput, setMemberInput] = useState("");
 	const [members, setMembers] = useState<string[]>(["You"]);
-	const [itemsState, setItemsState] = React.useState(group);
+	const [itemsState, setItemsState] = React.useState<GroupDraft[]>([]);
+
+	useEffect(() => {
+		const groups = getGroupsWithMembers();
+		setItemsState(groups);
+	}, []);
 
 	const addItem = (name: string) => {
 		if (!name.trim() || members.length === 0) {
@@ -136,25 +136,25 @@ export default function GroupInput() {
 			return;
 		}
 		
-		const newItem: Group = {
+		createGroupWithMembers({
 			name,
-			members,
-		};
-		setItemsState((prev: Group[]) => [...prev, newItem]);
+			members: members.map((m) => m.trim()),
+		});
+		setItemsState(getGroupsWithMembers());
 		setMemberInput("");
-		setMembers([]);
+		setMembers(["You"]);
 		setNewItemName("");
 		setShowInput(false);
 	};
 
 	const [pressedIndex, setPressedIndex] = useState<number | null>(null);
 
-	const handleNext = (group: Group) => {
+	const handleNext = (group: GroupDraft) => {
 		router.push({
 			pathname: "/assignment",
 			params: {
 				data: JSON.stringify(parsedData),
-				group: JSON.stringify(group),
+				groupId: String(group.id),
 			},
 		});
 	};

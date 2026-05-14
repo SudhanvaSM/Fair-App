@@ -1,39 +1,24 @@
 import {Text, View, StyleSheet, ScrollView, Pressable, Alert} from "react-native"
-import  AsyncStorage  from "@react-native-async-storage/async-storage";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { SplitHistory } from "@/types/item";
+import { RecentSplit } from "@/types/item";
 import Card from "@/components/Card";
+import { clearReceiptHistory, getRecentReceipts } from "@/src/services/receipt.service";
 
-export default function ProfileScreen() {
-	const [history, setHistory] = useState<SplitHistory[]>([]);
-
-	const getMealLabel = (hour: number) => {
-
-		if (hour >= 5 && hour < 11) return "Breakfast";
-		if (hour >= 11 && hour < 15) return "Lunch";
-		if (hour >= 15 && hour < 19) return "Snacks";
-		return "Dinner";
-	}
+export default function History() {
+	const [history, setHistory] = useState<RecentSplit[]>([]);
 	
 	useFocusEffect(
 		useCallback(() => {
-			const fetch = async () => {
-			// await AsyncStorage.clear();
-			const data = await AsyncStorage.getItem("history");
-			const parsed = data ? JSON.parse(data) : [];
-			setHistory(parsed);
-			};
-
-			fetch();
+			setHistory(getRecentReceipts());
 		}, [])
 	);
 
-	const openDetails = (item: SplitHistory) => {
+	const openDetails = (item: RecentSplit) => {
 		router.push({
 			pathname: "/detailedHistory",
 			params: {
-				data: JSON.stringify(item),
+				receiptId: item.id,
 			},
 		});
 	};
@@ -48,7 +33,7 @@ export default function ProfileScreen() {
 			>
 				{!history.length ? (
 					<View style={styles.container}>
-						<Text style={styles.text}> NO HISTORY TO SHOW </Text>
+						<Text style={styles.text}> Your previous splits will appear here </Text>
 					</View>
 				)
 				:
@@ -56,21 +41,28 @@ export default function ProfileScreen() {
 					<>
 					<View style ={{ justifyContent: "center" }}>
 						{history.map((item) => {
-							const label = getMealLabel(new Date(item.createdAt).getHours());
-							const mins = new Date(item.createdAt).getMinutes();
+							const createdAt = new Date(item.date);
+							const today = new Date();
+							let date;
+							if (createdAt.toDateString() === today.toDateString()) date = "Today"
+							else {
+								const yesterday = new Date(today.getDate() - 1);
+								if (createdAt.toDateString() === yesterday.toDateString()) date = "Yesterday";
+								else date = createdAt.toLocaleDateString([], { day: "2-digit", month: "short" });
+							}
 							return (
 								<View key={item.id}style={{ alignItems: "center" }}>
-									<Card
-									title={label}
-									people={Object.keys(item.result.perPerson).length}
-									date={String(new Date(item.createdAt).toDateString())}
-									price={Number(item.raw?.total?.toFixed(2)) || 0}
-									onPress={() => openDetails(item)}
-									variant={mins % 2 !== 0 ? "1" : "2"}
-									/>
+								<Card
+								title={item.title}
+								people={item.people}
+								date={date}
+								price={Number(item.price.toFixed(2)) || 0}
+								onPress={() => openDetails(item)}
+								variant={(createdAt.getMinutes()) % 2 !== 0 ? "1" : "2"}
+								/>
 								</View>
 							);
-						})}
+							})}
 					</View>
 
 					<View style={styles.container}>
@@ -89,8 +81,8 @@ export default function ProfileScreen() {
 											style: "destructive",
 											onPress: async() => {
 												try {
-													await AsyncStorage.clear();
-													router.back();
+													clearReceiptHistory();
+													setHistory([]);
 												}
 												catch (e) {
 													console.error("Remove all splits failed: ", e);

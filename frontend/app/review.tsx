@@ -149,7 +149,7 @@ export default function Review() {
 	const parsedTip = parseFloat(tipInput)
 	const finalTip = !isNaN(parsedTip) ? parsedTip : 0;
 
-	const serviceCharge = includeServiceCharge ? (raw.serviceCharge ?? raw.serviceCharge ?? 0) : 0;
+	const serviceCharge = includeServiceCharge ? (raw.serviceCharge ?? 0) : 0;
 
 	const total = computedSubtotal + finalTax + finalTip + serviceCharge;	
 

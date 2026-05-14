@@ -1,11 +1,16 @@
-import { View, Text, StyleSheet, ScrollView, Pressable, } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Pressable, Alert, } from "react-native";
 import { Stack, useLocalSearchParams, router } from "expo-router";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SplitHistory } from "@/types/item";
+import { Receipt, Item, ItemWithSelection } from "@/types/item";
+import { createItemAssignment, createReceipt, createReceiptItem } from "@/src/services/receipt.service";
+import { getMembersByGroupId } from "@/src/services/member.service";
+import { createDebt } from "@/src/services/debt.service";
+import { useState } from "react";
+import { db } from "@/src/db/database";
 
 export default function Summary() {
 
-	const { data, group } = useLocalSearchParams();
+	const { data } = useLocalSearchParams();
 	const parsedParam = Array.isArray(data) ? data[0] : data;
 	const parsedData = parsedParam ? JSON.parse(parsedParam) : null;
 	
@@ -14,34 +19,73 @@ export default function Summary() {
 		return <Text style={{ color: "white" }}>No Data</Text>;
 	}
 
-	const parsedGroup = group ? JSON.parse(Array.isArray(group) ? group[0] : group) : null;
+	const groupId = parsedData.groupId;
+	const members = getMembersByGroupId(groupId);
+
+	const payer = members.find((m) => m.name === 'You');
 
 	const result = parsedData.result;
 
-	const saveHistory = async(data: SplitHistory) => {
-		const existing = await AsyncStorage.getItem("history");
-		const parsed = existing ? JSON.parse(existing) : [];
-		const updated = [data, ...parsed].slice(0, 10);
-		await AsyncStorage.setItem("history", JSON.stringify(updated));
+	const receipt: Receipt = {
+		groupId,
+		payerMemberId: payer?.id ?? members[0].id,
+		subtotal: parsedData.raw?.subtotal ?? 0,
+		tax: parsedData.raw?.tax ?? 0,
+		finalTip: parsedData.raw?.finalTip ?? 0,
+		serviceCharge: parsedData.raw?.serviceCharge ?? 0,
+		createdAt: new Date().toISOString(),
+		total: parsedData.raw?.total ?? 0,
 	};
 
-	const handleSaveAndGoHome = async () => {
-		await saveHistory({
-			id: Date.now(),
-			result: parsedData.result,
-			createdAt: new Date().toISOString(),
-			raw: {
-				items: parsedData.raw?.items,
-				subtotal: parsedData.raw?.subtotal,
-				tax: parsedData.raw?.tax,
-				total: parsedData.raw?.total,
-				serviceCharge: parsedData.raw?.serviceCharge,
-				finalTip: parsedData.raw?.finalTip
-			},
-			thing: parsedData.assignedItems,
-		});
+	const items: ItemWithSelection[] = parsedData.raw?.items ?? [];
 
-		router.replace("/(tabs)/home");
+	const [saving, setSaving] = useState(false);
+
+	const handleSaveAndGoHome = async () => {
+		if (saving) return;
+		setSaving(true);
+
+		try {
+			db.withTransactionSync(() => {
+				const receiptId = createReceipt(receipt);
+				for (const item of items) {
+					const itemId = createReceiptItem(item, receiptId);
+
+					for (const personName of item.selectedPeople) {
+						const member = members.find((m) => m.name === personName);
+						if (!member) continue;
+						createItemAssignment(itemId, member.id);
+					}
+				}
+				
+				for (const [personName, amount] of Object.entries(result.perPerson as Record<string, number>)) {
+					if (personName === payer?.name) continue;
+
+					const member = members.find((m) => m.name === personName);
+
+					if (!member) continue;
+
+					createDebt({
+						receiptId,
+						groupId,
+						fromMemberId: member.id,
+						toMemberId: receipt.payerMemberId,
+						amount,
+						status: 'pending'
+					})
+					
+				}
+			});
+
+			router.replace("/(tabs)/home");
+		} catch (e) {
+			console.error(e);
+			Alert.alert(
+				"Error",
+				"Failed to save receipt"
+			);
+			setSaving(false);
+		}
 	};
 
 	return (
@@ -100,12 +144,12 @@ export default function Summary() {
 				</View>
 
 				<View style={{alignItems: "center", marginTop: 20}}>
-					<View style={styles.next}>
+					<View style={[styles.next, saving && { opacity: 0.6 }]}>
 						<Pressable
 							onPress={() => handleSaveAndGoHome()}
 						>
 							<Text style={styles.nextText}>
-								Return to Home {"\n"} →
+								{!saving ? ("Return to Home \n →") : "Saving..."}
 							</Text>
 						</Pressable>
 					</View>

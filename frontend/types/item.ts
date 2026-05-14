@@ -37,6 +37,7 @@ export type ParsedData = {
 }
 
 export type RecentSplit = {
+  id: number;
   title: string;
   people: number;
   date: string;
@@ -62,6 +63,53 @@ export type SplitHistory = {
 }
 
 export type Group = {
+  id: number;
+  name: string;
+  createdAt?: string;
+}
+
+export type Member = {
+  id: number;
+  groupId: number;
+  name: string;
+}
+
+export type GroupDraft = {
+  id?: number;
   name: string;
   members: string[];
+}
+
+export type Receipt = {
+  id?: number;
+  groupId: number;
+	payerMemberId: number;
+	subtotal: number;
+	tax: number;
+  finalTip: number;
+	serviceCharge: number;
+  createdAt: string;
+	total: number;
+}
+
+export type Debt = {
+  receiptId: number;
+  groupId: number;
+  fromMemberId: number;
+  toMemberId: number;
+  amount: number;
+  status: string;
+}
+
+export type DebtDetails = {
+  id: number;
+  amount: number;
+  from_member: string;
+  to_member: string;
+}
+
+export type AssignmentList = {
+  itemId: number;
+  name: string;
+  memberName: string;
 }

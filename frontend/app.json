@@ -45,7 +45,8 @@
           "photosPermission": "Allow access to your photos",
           "cameraPermission": "Allow access to your camera"
         }
-      ]
+      ],
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true,
