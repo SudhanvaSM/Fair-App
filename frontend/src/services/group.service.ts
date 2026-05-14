@@ -67,3 +67,20 @@ export function getGroupById(groupId: number) {
 	`, [groupId]);
 	return group;
 }
+
+export function getGroupExpenses(groupId: number) {
+	return db.getFirstSync<{ total: number }>(`
+		SELECT COALESCE(SUM(total), 0) AS total
+		FROM receipts
+		WHERE group_id = ?
+	`, [groupId]);
+}
+
+export function getAmountYouAreOwed(groupId: number) {
+	return db.getFirstSync<{ amount: number }>(`
+		SELECT COALESCE(SUM(amount - settled_amount), 0) AS amount
+		FROM debts
+		WHERE to_member_id = ?
+		AND status = 'pending'
+	`, [groupId]);
+}

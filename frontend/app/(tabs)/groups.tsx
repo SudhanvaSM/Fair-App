@@ -1,25 +1,28 @@
-import { MaterialIcons } from "@expo/vector-icons";
-import {Text, View, StyleSheet, ScrollView} from "react-native";
-import  AsyncStorage  from "@react-native-async-storage/async-storage";
-import { useCallback, useState } from "react";
-import { SplitHistory } from "@/types/item";
-import { useFocusEffect } from "expo-router";
+import { View, StyleSheet, ScrollView} from "react-native";
+import { useEffect, useState } from "react";
+import { GroupDraft } from "@/types/item";
+import Groups from "@/components/Groups";
+import { getAmountYouAreOwed, getGroupExpenses, getGroupsWithMembers } from "@/src/services/group.service";
+import React from "react";
+import { router } from "expo-router";
 
-export default function ProfileScreen() {
-	const [history, setHistory] = useState<SplitHistory[]>([]);
+export default function GroupsScreen() {
 
-	useFocusEffect(
-		useCallback(() => {
-			const fetch = async () => {
-			// await AsyncStorage.clear();
-			const data = await AsyncStorage.getItem("history");
-			const parsed = data ? JSON.parse(data) : [];
-			setHistory(parsed);
-			};
+	const [itemsState, setItemsState] = React.useState<GroupDraft[]>([]);
 
-			fetch();
-		}, [])
-	);
+	useEffect(() => {
+		const groups = getGroupsWithMembers();
+		setItemsState(groups);
+	}, []);
+
+	const openGroupDetails = (group: GroupDraft) => {
+		router.push({
+			pathname: "/detailedGroups",
+			params: {
+			  groupId: group.id,
+			},
+		});
+	};
 
 	return (
 		<ScrollView
@@ -28,115 +31,30 @@ export default function ProfileScreen() {
 			showsVerticalScrollIndicator={false}
 			keyboardShouldPersistTaps="handled"
 		>
-			<View style={{ alignItems: "center" }}>
-				<View style={styles.container}>
-					<View style={styles.avatar}>
-						<MaterialIcons
-							name="person"
-							size={60}
-							color="#000"
+			<View style={{ marginTop: 10, paddingHorizontal: 10, justifyContent: "center" }}>
+				{itemsState.map((group, i) => {
+					const totalExpense = getGroupExpenses(group.id || -1)?.total ?? 0;
+					const youAreOwed = getAmountYouAreOwed(group.id || -1)?.amount ?? 0;
+					return (
+						<View key={group.id}style={{ alignItems: "center" }}>
+						<Groups
+						title={group.name}
+						people={group.members.length}
+						total={totalExpense}
+						youAreOwed={youAreOwed === 0 ? "Settled up" : youAreOwed.toFixed(2)}
+						onPress={() => openGroupDetails(group)}
+						variant={(group?.id ?? 0 % 2 !== 0) ? "1" : "2"}
 						/>
-					</View>
-					<View style={{ flexDirection: "column" }}>
-						<View style={styles.textContainer}>
-							<Text style={{ color: "white", fontSize: 18, fontWeight: "600", marginHorizontal: 10, }}>Sudhanva S M</Text>
 						</View>
-						<View style={styles.chipContainer}>
-							<View style={styles.chip}>
-								<Text style={styles.textType}>Bills scanned: </Text>
-								<Text style={styles.text}>10</Text>
-							</View>
-							<View style={styles.chip}>
-								<Text style={styles.textType}>Total split: </Text>
-								<Text style={styles.text}>₹1255.56</Text>
-							</View>
-							<View style={styles.chip}>
-								<Text style={styles.textType}>Groups: </Text>
-								<Text style={styles.text}>3</Text>
-							</View>
-						</View>
-					</View>
+					);
+				})}
 				</View>
-			</View>
-
-			<View style={{ alignItems: "center" }}>
-				<View style={[styles.container, { flexDirection: "column", alignItems: "center", }]}>
-					<Text 
-						style={{ color: "white", fontSize: 20, fontWeight: "600", marginHorizontal: 10, textAlign: "center" }}>
-						Groups
-					</Text>
-
-					<View style={{ width: "75%", marginTop: 10 }}>
-						{history.map((h) => {
-							const members = Object.keys(h.result.perPerson);
-							return (
-							<View key={h.id} style={[styles.chip, { justifyContent: "center", }]}>
-								<Text style={styles.text}>
-								{members.join(", ")}
-								</Text>
-							</View>
-							);
-						})}
-						</View>
-				</View>
-			</View>
 		</ScrollView>
 	);
 }
 
 const styles = StyleSheet.create({
-	container: {
-		width: "90%",
-		backgroundColor: "#334155",
-		padding: 14,
-		borderRadius: 30,
-		marginBottom: 12,
-		marginTop: 20,
-		elevation: 2,
-		borderWidth: 1,
-		borderColor: "#fff",
-		flexDirection: "row",
-	},
-	text: {
-		color: "#000",
-		fontSize: 16,
-		fontWeight: "600",
-	},
-	textType: {
-		color: "#000",
-		fontSize: 16,
-	},
 	scrollView: {
 		backgroundColor: '#0F172A',
-	},
-	avatar: {
-		width: 70,
-		height: 70,
-		borderWidth: 2,
-		borderColor: "#fff",
-		borderRadius: 35,
-		backgroundColor: "#fff",
-		alignItems: "center",
-		justifyContent: "center",
-		marginTop: 50,
-		marginLeft: 10,
-	},
-	textContainer: {
-		paddingHorizontal: 10,
-		flexDirection: "row",
-	},
-	chipContainer: {
-		flexDirection: "column",
-		paddingHorizontal: 10,
-	},
-	chip: {	
-		paddingVertical: 6,
-		paddingHorizontal: 12,
-		borderRadius: 20,
-		backgroundColor: "#eee",
-		margin: 4,
-		marginTop: 10,
-		flexDirection: "row",
-		width: "100%",
 	},
 });

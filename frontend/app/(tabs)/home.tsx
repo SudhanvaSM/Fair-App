@@ -108,7 +108,7 @@ export default function Home() {
     );
   };
 
-  const openDetails = (item: RecentSplit) => {
+  const openRecentSplitDetails = (item: RecentSplit) => {
       router.push({
         pathname: "/detailedHistory",
         params: {
@@ -182,7 +182,7 @@ export default function Home() {
                     people={item.people}
                     date={date}
                     price={Number(item.price.toFixed(2)) || 0}
-                    onPress={() => openDetails(item)}
+                    onPress={() => openRecentSplitDetails(item)}
                     variant={(createdAt.getMinutes()) % 2 !== 0 ? "1" : "2"}
                     />
                   </View>
