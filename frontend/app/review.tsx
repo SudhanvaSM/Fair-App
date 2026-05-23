@@ -104,8 +104,8 @@ export default function Review() {
 			item_id: Date.now(),
 			name: name,
 			qty: 1,
-			unit_price: 0,
-			total_price: 0,
+			unitPrice: 0,
+			totalPrice: 0,
 		};
 		setItemsState((prev: Item[]) => [...prev, newItem]);
 	};
@@ -113,7 +113,7 @@ export default function Review() {
 	const [includeServiceCharge, setIncludeServiceCharge] = React.useState(true);
 
 	const computedSubtotal = itemsState.reduce(
-  		(sum: number, item: Item) => sum + item.total_price, 0
+  		(sum: number, item: Item) => sum + item.totalPrice, 0
 	);
 
 	const subtotalDiff = Math.abs(raw.subtotal - computedSubtotal);
@@ -215,7 +215,7 @@ export default function Review() {
 							<Text style={styles.itemName}>
 								{item.qty} x {item.name}
 							</Text>
-							<Text style={styles.price}>₹{item.total_price.toFixed(2)}</Text>
+							<Text style={styles.price}>₹{item.totalPrice.toFixed(2)}</Text>
 							<Pressable 
 							onPress={(e) => {
 								e.stopPropagation();

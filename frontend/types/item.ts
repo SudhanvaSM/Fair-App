@@ -2,8 +2,8 @@ export type Item = {
 	item_id: number;
 	name: string;
 	qty: number;
-	unit_price: number;
-	total_price: number;
+	unitPrice: number;
+	totalPrice: number;
 };
 
 export type ItemPerPerson = {

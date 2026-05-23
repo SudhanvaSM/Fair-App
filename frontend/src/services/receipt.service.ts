@@ -49,8 +49,8 @@ export function createReceiptItem(item: Item, receipt_id: number) {
 			receipt_id,
 			item.name,
 			item.qty,
-			item.unit_price,
-			item.total_price
+			item.unitPrice,
+			item.totalPrice
 		]
 	);
 
@@ -75,7 +75,13 @@ export function createItemAssignment(
 export function getRecentReceipts(limit?: number): RecentSplit[] {
 	const result = db.getAllSync<RecentSplit>
 	(`
-			SELECT r.id AS id, r.title AS title, count(DISTINCT m.id) AS people, r.created_at AS date, r.total AS price
+			SELECT 
+				r.id AS id, 
+				g.id AS groupID,
+				r.title AS title, 
+				count(DISTINCT m.id) AS people, 
+				r.created_at AS date, 
+				r.total AS price
 			FROM receipts r
 			JOIN groups g ON r.group_id = g.id
 			JOIN members m ON m.group_id = g.id

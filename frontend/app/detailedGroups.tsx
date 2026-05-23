@@ -1,7 +1,7 @@
-import { Text, View, StyleSheet, ScrollView, Pressable, Alert } from "react-native"
+import { Text, View, StyleSheet, ScrollView, Pressable, Alert, TextInput } from "react-native"
 import { Link, router, Stack, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
-import { deleteGroup, getLatestDate } from "@/src/services/group.service";
+import { changeGroupName, deleteGroup, getLatestDate } from "@/src/services/group.service";
 import { DebtDetails, DetailedGroup, MemberBalance } from "@/types/item";
 import { getMemberBalances} from "@/src/services/member.service";
 import Transaction from "@/components/Transaction";
@@ -73,7 +73,29 @@ export default function DetailedGroups() {
 	const openMenu = () => setVisible(true);
 	const closeMenu = () => setVisible(false);
 
+	const [groupTitle, setGroupTitle] = useState(groups.group.name);
+	const [tempGroupTitle, setTempGroupTitle] = useState("");
+	const [editing, setEditing] = useState(false);
+
+	const editGroupName = () => {
+		closeMenu();
+		setEditing(true);
+	}
+
+	const onSave = () => {
+		const updatedTitle = tempGroupTitle.trim() || groups.group.name
+		setGroupTitle(updatedTitle);
+		changeGroupName(id, updatedTitle);
+		setEditing(false);
+    };
+
+	const onCancel = () => {
+		setGroupTitle(groupTitle);
+		setEditing(false);
+	}
+
 	const handleDeleteGroup = () => {
+		closeMenu();
 		Alert.alert (
 			"Confirm Action",
 			`Are you sure you want to delete ${groups?.group.name}group?`,
@@ -110,7 +132,7 @@ export default function DetailedGroups() {
 			<Stack.Screen
 				options={{
 					headerStyle: { backgroundColor: "#1E293B" },
-					headerTitle: groups.group.name,
+					headerTitle: groupTitle,
 					headerTitleAlign: "left",
 					headerShadowVisible: false,
 					headerTintColor: "#ffffff",
@@ -135,12 +157,14 @@ export default function DetailedGroups() {
 							}
 						>
 							<Menu.Item
-								onPress={() => handleDeleteGroup}
+								onPress={editGroupName}
 								title="Edit Group Title"
+								titleStyle={{ color: "#fff" }}
 							/>
 							<Menu.Item
 								onPress={handleDeleteGroup}
 								title="Delete Group"
+								titleStyle={{ color: "red" }}
 							/>
 						</Menu>
 						)
@@ -152,6 +176,31 @@ export default function DetailedGroups() {
 				showsVerticalScrollIndicator={false}
 				keyboardShouldPersistTaps="handled"
 			>
+				{editing && (
+					<View style={{ justifyContent: "center", alignItems: "center" }}>
+						<View style={styles.groupContainer}>
+							<TextInput
+								keyboardType="default"
+								autoCapitalize="words"
+								placeholder="Enter group name..."
+								placeholderTextColor={"#888"}
+								value={tempGroupTitle}
+								onChangeText={setTempGroupTitle}
+								style={styles.input}
+							/>
+
+							<View style={styles.actions}>
+								<Pressable onPress={onCancel}>
+									<Text style={styles.cancel}>Cancel</Text>
+								</Pressable>
+						
+								<Pressable onPress={onSave}>
+									<Text style={styles.save}>Save</Text>
+									</Pressable>
+							</View>
+						</View>
+					</View>
+				)}
 				<View style ={{ alignItems: "center", marginTop: 28, }}>
 					<View style={[styles.container, { backgroundColor: "#2B3648", paddingHorizontal: 20 }]}>
 						<Text style={styles.title}>Group Overview</Text>
@@ -326,11 +375,36 @@ const styles = StyleSheet.create({
 		fontWeight: "500",
 		textDecorationLine: "underline",
 	},
-	deleteContainer: {
-		backgroundColor: "#3b1f25",
-		borderRadius: 18,
-		paddingVertical: 14,
-		paddingHorizontal: 14,
+	input: {
+		width: "90%",
+		backgroundColor: "#111827",
+		color: "#fff",
+		paddingHorizontal: 15,
+		borderRadius: 30,
+		marginTop: 20,
+	},
+	groupContainer: {
+		width: "90%",
+		backgroundColor: "#334155",
+		borderRadius: 30,
+		marginTop: 20,
 		alignItems: "center",
+		marginBottom: 10,
+	},
+	actions: {
+		flexDirection: "row",
+		justifyContent: "space-between",
+		marginTop: 10,
+		gap: 80,
+		marginBottom: 20,
+	},
+	cancel: {
+		color: "#f87171",
+		fontSize: 14,
+	},
+	save: {
+		color: "#34d399",
+		fontWeight: "600",
+		fontSize: 14,
 	},
 });

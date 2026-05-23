@@ -13,7 +13,7 @@ type Props = {
 export default function Edit({ item, onSave, onCancel }: Props) {
 
   const [qty, setQty] = React.useState(String(item.qty));
-  const [price, setPrice] = React.useState(String(item.unit_price));
+  const [price, setPrice] = React.useState(String(item.unitPrice));
   const [name, setName] = React.useState(String(item.name));
   const parsedQty = parseInt(qty);
   const parsedPrice = parseFloat(price);
@@ -37,8 +37,8 @@ export default function Edit({ item, onSave, onCancel }: Props) {
       ...item,
       name: trimmedName,
       qty: safeQty,
-      unit_price: safePrice,
-      total_price: safeQty * safePrice,
+      unitPrice: safePrice,
+      totalPrice: safeQty * safePrice,
     });
   };
 

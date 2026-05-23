@@ -170,6 +170,27 @@ export function getLatestDate(groupId: number) {
 	return result.date;
 }
 
+export function getGroupName(groupId: number) {
+	const result = db.getFirstSync<{ title: string }>(`
+		SELECT name AS title
+		FROM groups
+		WHERE id = ?
+	`, [groupId]);
+
+	if (!result) {
+		return "";
+	}
+	return result.title;
+}
+
+export function changeGroupName(groupId: number, groupName: string) {
+	db.runSync(`
+		UPDATE groups
+		SET name = ?
+		WHERE id = ?
+	`, [groupName, groupId]);
+}
+
 export function deleteGroup(groupId: number) {
 	return db.runSync(`
 		DELETE FROM groups

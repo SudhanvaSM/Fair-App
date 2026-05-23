@@ -1,9 +1,12 @@
 import {Text, View, StyleSheet, ScrollView, Pressable, Alert} from "react-native"
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { AssignmentList, DebtDetails, Item, Receipt } from "@/types/item";
-import React from "react";
+import React, { useState } from "react";
 import { getDetailedReceipt, getItemsList, getDebtsList, getAssignmentsList, clearReceipt } from "@/src/services/receipt.service";
 import { getMemberName } from "@/src/services/member.service";
+import { Menu } from "react-native-paper";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { getDetailedGroup, getGroupName } from "@/src/services/group.service";
 
 export default function DetailedHistory() {
 	const { receiptId } = useLocalSearchParams();
@@ -13,6 +16,8 @@ export default function DetailedHistory() {
 	const items: Item[] = getItemsList(id);
 	const debts: DebtDetails[] = getDebtsList(id);
 	const assignments: AssignmentList[] = getAssignmentsList(id);
+
+	const groupTtile = getGroupName(receipt.groupId);
 
 	const totalDebts = debts.reduce((sum: number, debt: DebtDetails) => sum + debt.amount, 0);
 
@@ -34,7 +39,24 @@ export default function DetailedHistory() {
 	}
 	const peopleSelections = Array.from(grouped.values());
 
+	const [visible, setVisible] = useState(false);
+	
+	const openMenu = () => setVisible(true);
+	const closeMenu = () => setVisible(false);
+
+	const goToGroup = (groupId: number) => {
+		closeMenu();
+		const detailedGroup = getDetailedGroup(groupId);
+		router.push({
+			pathname: "/detailedGroups",
+			params: {
+				groupData: JSON.stringify(detailedGroup),
+			}
+		})
+	}
+
 	const removeItem = (id: number) => {
+		closeMenu();
 		Alert.alert (
 			"Confirm Action",
 			"Are you sure you want to delete this split?",
@@ -70,6 +92,37 @@ export default function DetailedHistory() {
 					headerShadowVisible: false,
 					headerTintColor: "#ffffff",
 					animation: "slide_from_right",
+					headerRight: () => (
+						<Menu
+							contentStyle={{ marginTop: 35, borderRadius: 20, backgroundColor: "#334155" }}
+							visible={visible}
+							onDismiss={closeMenu}
+							anchor={
+								<Pressable 
+									style={{ justifyContent: "center", alignItems: "center" }}
+									hitSlop={10} 
+									onPress={openMenu}
+								>
+									<MaterialCommunityIcons
+										name={"dots-vertical"}
+										color={"white"}
+										size={24}
+									/>
+								</Pressable>
+							}
+						>
+							<Menu.Item
+								onPress={() => goToGroup(receipt.groupId)}
+								title="Group info"
+								titleStyle={{ color: "#fff" }}
+							/>
+							<Menu.Item
+								onPress={() => removeItem(id)}
+								title="Remove Split"
+								titleStyle={{ color: "red" }}
+							/>
+						</Menu>
+					)
 				}}
 			/>
 			<ScrollView
@@ -78,6 +131,36 @@ export default function DetailedHistory() {
 				showsVerticalScrollIndicator={false}
 				keyboardShouldPersistTaps="handled"
 			>
+				<View style ={{ alignItems: "center", marginTop: 40}}>
+					<View style={[styles.container, { backgroundColor: "#334155" }]}>
+						<Text style={[styles.text, { fontWeight: "600", fontSize: 18, textDecorationLine: "underline" }]}>Bill Details</Text>
+							<View style={styles.row}>
+								<Text style={styles.text}>Subtotal:</Text>
+								<Text style={styles.text}>₹{receipt.subtotal.toFixed(2) ?? 0}</Text>
+							</View>
+
+							<View style={styles.row}>
+								<Text style={styles.text}>Tax:</Text>
+								<Text style={styles.text}>₹{receipt.tax.toFixed(2) ?? 0}</Text>
+							</View>
+
+							<View style={styles.row}>
+								<Text style={styles.text}>Service Charge:</Text>
+								<Text style={styles.text}>₹{receipt.serviceCharge ?? 0}</Text>
+							</View>
+
+							<View style={styles.row}>
+								<Text style={styles.text}>Tips:</Text>
+								<Text style={styles.text}>₹{receipt.finalTip ?? 0}</Text>
+							</View>
+
+							<View style={styles.row}>
+								<Text style={styles.totalText}>Total:</Text>
+								<Text style={styles.totalText}>₹{receipt.total.toFixed(2) ?? 0}</Text>
+							</View>
+					</View>
+				</View>
+
 				<View style ={{ alignItems: "center", marginTop: 40, }}>
 					<View style={[styles.container, { backgroundColor: "#2B3648" }]}>
 						<Text style={[styles.text, { fontWeight: "600", fontSize: 18, textDecorationLine: "underline" }]}>Breakdown</Text>
@@ -139,41 +222,11 @@ export default function DetailedHistory() {
 				</View>
 
 				<View style ={{ alignItems: "center", marginTop: 40}}>
-					<View style={[styles.container, { backgroundColor: "#334155" }]}>
-						<Text style={[styles.text, { fontWeight: "600", fontSize: 18, textDecorationLine: "underline" }]}>Bill Details</Text>
-							<View style={styles.row}>
-								<Text style={styles.text}>Subtotal:</Text>
-								<Text style={styles.text}>₹{receipt.subtotal.toFixed(2) ?? 0}</Text>
-							</View>
-
-							<View style={styles.row}>
-								<Text style={styles.text}>Tax:</Text>
-								<Text style={styles.text}>₹{receipt.tax.toFixed(2) ?? 0}</Text>
-							</View>
-
-							<View style={styles.row}>
-								<Text style={styles.text}>Service Charge:</Text>
-								<Text style={styles.text}>₹{receipt.serviceCharge ?? 0}</Text>
-							</View>
-
-							<View style={styles.row}>
-								<Text style={styles.text}>Tips:</Text>
-								<Text style={styles.text}>₹{receipt.finalTip ?? 0}</Text>
-							</View>
-
-							<View style={styles.row}>
-								<Text style={styles.text}>Total:</Text>
-								<Text style={styles.text}>₹{receipt.total.toFixed(2) ?? 0}</Text>
-							</View>
-					</View>
-				</View>
-
-				<View style ={{ alignItems: "center", marginTop: 40}}>
 					<View style={[styles.container, { backgroundColor: "#2B3648" }]}>
 						<Text style={[styles.text, { fontWeight: "600", fontSize: 18, textDecorationLine: "underline" }]}>Other</Text>
 							<View style={styles.row}>
 								<Text style={styles.text}>Receipt ID:</Text>
-								<Text style={styles.text}>{receipt.id ?? 0}</Text>
+								<Text style={styles.text}>{receipt.id}</Text>
 							</View>
 
 							<View style={styles.row}>
@@ -185,17 +238,12 @@ export default function DetailedHistory() {
 								<Text style={styles.text}>Time:</Text>
 								<Text style={styles.text}>{date.toLocaleTimeString([], { hour:"2-digit", minute: "2-digit" }) ?? 0}</Text>
 							</View>
-					</View>
 
-					<Pressable 
-						hitSlop={20}
-						onPress={(e) => {
-							e.stopPropagation();
-							removeItem(receipt.id || -1)}}
-						style={{justifyContent: "center", marginTop: 20}}
-						>
-							<Text style={[styles.text, { textDecorationLine: "underline", color: "red", fontSize: 18 }]}>Remove Split</Text>
-					</Pressable>
+							<View style={styles.row}>
+								<Text style={styles.text}>Group Name:</Text>
+								<Text style={styles.text}>{groupTtile}</Text>
+							</View>
+					</View>
 			</View>
 			</ScrollView>
 		</>
@@ -248,5 +296,11 @@ const styles = StyleSheet.create({
 		borderBottomWidth: 0.5,
 		borderBottomColor: "#aaa",
 		paddingBottom: 8,
+	},
+	totalText: {
+		fontSize: 18,
+		fontWeight: "700",
+		color: "#22c55e",
+		paddingVertical: 4,
 	}
 });

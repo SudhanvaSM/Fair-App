@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
 		fontWeight: "400",
 	},
 	price: {
-		color: "#22c55e",
+		color: "#00fe0d",
 		fontSize: 16,
 		fontWeight: "400",
 	},
