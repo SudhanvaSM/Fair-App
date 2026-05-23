@@ -33,7 +33,12 @@ export default function Group({
 		onPressOut={() => setPressed(false)}
 		>
 			<View style={styles.topRow}>
-				<Text style={styles.title}>{title}</Text>
+				<Text 
+					numberOfLines={1}
+					ellipsizeMode="tail"
+					style={styles.title}>
+						{title}
+					</Text>
 				<Text style={styles.memberTitle}>{people} members</Text>
 			</View>
 			
@@ -73,6 +78,7 @@ const styles = StyleSheet.create({
 		color: "#fff",
 		fontSize: 20,
 		fontWeight: "600",
+		flexShrink: 1,
 	},
 	memberTitle: {
 		fontSize: 16,

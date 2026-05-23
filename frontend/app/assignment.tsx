@@ -144,7 +144,7 @@ export default function Assignment() {
 						<View key={index} style={{width: "90%"}}>
 							<ItemBox
 								name={item.name}
-								price={item.total_price}
+								price={item.totalPrice}
 								people={people}
 								selectedPeople={item.selectedPeople}
 								onTogglePerson={(person) => togglePerson(index, person)}

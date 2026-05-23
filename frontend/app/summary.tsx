@@ -28,9 +28,9 @@ export default function Summary() {
 
 	const getTime = (date: Date) => {
 			const time = date.getHours();
-			if (time > 4 && time <= 12) return "Breakfast";
-			if (time > 12 && time <= 16) return "Lunch";
-			if (time > 16 && time <= 20) return "Snacks";
+			if (time >= 4 && time < 12) return "Breakfast";
+			if (time >= 12 && time < 16) return "Lunch";
+			if (time >= 16 && time < 20) return "Snacks";
 			return "Dinner";
 	}
 

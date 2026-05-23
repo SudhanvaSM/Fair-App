@@ -1,25 +1,41 @@
+import { getProfileDetails } from "@/src/services/user.services";
+import { ProfileDetails } from "@/types/item";
 import { MaterialIcons } from "@expo/vector-icons";
-import {Text, View, StyleSheet, ScrollView} from "react-native";
-import  AsyncStorage  from "@react-native-async-storage/async-storage";
-import { useCallback, useState } from "react";
 import { useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
+import {Text, View, StyleSheet, ScrollView} from "react-native";
+import { Menu } from "react-native-paper";
 
 export default function ProfileScreen() {
-	//<SplitHistory[]>
-	const [history, setHistory] = useState([]);
+	const [profileDetails, setProfileDetails] = useState<ProfileDetails>();
 
 	useFocusEffect(
 		useCallback(() => {
-			const fetch = async () => {
-			// await AsyncStorage.clear();
-			const data = await AsyncStorage.getItem("history");
-			const parsed = data ? JSON.parse(data) : [];
-			setHistory(parsed);
-			};
-
-			fetch();
+			setProfileDetails(getProfileDetails());
 		}, [])
 	);
+
+	if (!profileDetails) {
+		return (
+			<View style={{ flex: 1, backgroundColor: "#0F172A" }} />
+		);
+	}
+
+	const latestDate = new Date(profileDetails.recentActivity);
+	const today = new Date();
+	let recentActivity;
+	if (!isNaN(latestDate.getTime())) {
+		if (latestDate.toDateString() === today.toDateString()) recentActivity = "Today"
+		else {
+			const yesterday = new Date(today);
+			yesterday.setDate(today.getDate() - 1);
+			if (latestDate.toDateString() === yesterday.toDateString()) recentActivity = "Yesterday";
+			else recentActivity = latestDate.toLocaleDateString([], { day: "2-digit", month: "short" });
+		}
+	}
+	else {
+		recentActivity = "No Activity"
+	}
 
 	return (
 		<ScrollView
@@ -29,7 +45,7 @@ export default function ProfileScreen() {
 			keyboardShouldPersistTaps="handled"
 		>
 			<View style={{ alignItems: "center" }}>
-				<View style={styles.container}>
+				<View style={[styles.container, { flexDirection: "row" }]}>
 					<View style={styles.avatar}>
 						<MaterialIcons
 							name="person"
@@ -37,47 +53,61 @@ export default function ProfileScreen() {
 							color="#000"
 						/>
 					</View>
-					<View style={{ flexDirection: "column" }}>
-						<View style={styles.textContainer}>
-							<Text style={{ color: "white", fontSize: 18, fontWeight: "600", marginHorizontal: 10, }}>Sudhanva S M</Text>
-						</View>
-						<View style={styles.chipContainer}>
-							<View style={styles.chip}>
-								<Text style={styles.textType}>Bills scanned: </Text>
-								<Text style={styles.text}>10</Text>
-							</View>
-							<View style={styles.chip}>
-								<Text style={styles.textType}>Total split: </Text>
-								<Text style={styles.text}>₹1255.56</Text>
-							</View>
-							<View style={styles.chip}>
-								<Text style={styles.textType}>Groups: </Text>
-								<Text style={styles.text}>3</Text>
-							</View>
-						</View>
+					<View style={styles.textContainer}>
+						<Text style={{ color: "white", fontSize: 18, fontWeight: "600", marginHorizontal: 10, }}>Sudhanva S M</Text>
+						<Text style={{ color: "white", fontSize: 14, fontWeight: "400", marginHorizontal: 10, }}>+91 9663825393</Text>
+						<Text style={{ color: "white", fontSize: 12, fontWeight: "400", marginHorizontal: 10, }}>sudhanva.madhusudhan@gmail.com</Text>
 					</View>
 				</View>
-			</View>
 
-			<View style={{ alignItems: "center" }}>
-				<View style={[styles.container, { flexDirection: "column", alignItems: "center", }]}>
-					<Text 
-						style={{ color: "white", fontSize: 20, fontWeight: "600", marginHorizontal: 10, textAlign: "center" }}>
-						Groups
+				<View style={[styles.container, { marginVertical: 10 }]}>
+					<Text style={[styles.text, { marginBottom: 15, fontSize: 20, textDecorationLine: "underline", textAlign: "center" }]}>
+						Statistics
 					</Text>
+					<View style={styles.row}>
+						<Text style={styles.textType}>Total Spent</Text>
+						<Text style={styles.text}>₹{profileDetails.totalSpent}</Text>
+					</View>
 
-					<View style={{ width: "75%", marginTop: 10 }}>
-						{history.map((h) => {
-							const members = Object.keys(h.result.perPerson);
-							return (
-							<View key={h.id} style={[styles.chip, { justifyContent: "center", }]}>
-								<Text style={styles.text}>
-								{members.join(", ")}
-								</Text>
-							</View>
-							);
-						})}
-						</View>
+					<View style={styles.row}>
+						<Text style={styles.textType}>Groups</Text>
+						<Text style={styles.text}>#{profileDetails.totalGroups}</Text>
+					</View>
+
+					<View style={styles.row}>
+						<Text style={styles.textType}>Bills Scanned</Text>
+						<Text style={styles.text}>#{profileDetails.totalBillsScanned}</Text>
+					</View>
+
+					<View style={styles.row}>
+						<Text style={styles.textType}>Pending Balance</Text>
+						<Text style={styles.text}>₹{profileDetails.pendingBalance.toFixed(2)}</Text>
+					</View>
+				</View>
+
+				<View style={[styles.container, { marginVertical: 10 }]}>
+					<Text style={[styles.text, { marginBottom: 15, fontSize: 20, textDecorationLine: "underline", textAlign: "center" }]}>
+						Activity Insights
+					</Text>
+					<View style={styles.row}>
+						<Text
+							numberOfLines={1}
+							ellipsizeMode="tail"
+							style={[styles.textType, { flexShrink: 1 }]}>
+								Most Active Group
+						</Text>
+						<Text style={styles.text}>{profileDetails.activeGroup}</Text>
+					</View>
+
+					<View style={styles.row}>
+						<Text style={styles.textType}>Largest Split</Text>
+						<Text style={styles.text}>₹{profileDetails.highestExpense}</Text>
+					</View>
+
+					<View style={styles.row}>
+						<Text style={styles.textType}>Recent Activity</Text>
+						<Text style={styles.text}>{recentActivity}</Text>
+					</View>
 				</View>
 			</View>
 		</ScrollView>
@@ -92,18 +122,17 @@ const styles = StyleSheet.create({
 		borderRadius: 30,
 		marginBottom: 12,
 		marginTop: 20,
-		elevation: 2,
-		borderWidth: 1,
-		borderColor: "#fff",
-		flexDirection: "row",
+		gap: 10,
+		justifyContent: "center",
+		alignItems: "center",
     },
 	text: {
-		color: "#000",
+		color: "#fff",
 		fontSize: 16,
 		fontWeight: "600",
 	},
 	textType: {
-		color: "#000",
+		color: "#fff",
 		fontSize: 16,
 	},
 	scrollView: {
@@ -118,12 +147,11 @@ const styles = StyleSheet.create({
 		backgroundColor: "#fff",
 		alignItems: "center",
 		justifyContent: "center",
-		marginTop: 50,
 		marginLeft: 10,
 	},
 	textContainer: {
 		paddingHorizontal: 10,
-		flexDirection: "row",
+		gap: 5,
 	},
 	chipContainer: {
 		flexDirection: "column",
@@ -139,4 +167,13 @@ const styles = StyleSheet.create({
 		flexDirection: "row",
 		width: "100%",
 	},
+	row: {
+		width: "90%",
+		flexDirection: "row",
+		justifyContent: "space-between",
+		alignItems: "center",
+		borderBottomColor: "#aaa",
+		borderBottomWidth: 0.5,
+		paddingVertical: 8,
+	}
 });

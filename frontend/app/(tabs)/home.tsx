@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, Image, ScrollView, } from "react-native";
-import { useRouter, Link, useFocusEffect } from "expo-router";
+import { useRouter, Link, useFocusEffect, router } from "expo-router";
 import Button from "@/components/Button";
 import * as ImagePicker from "expo-image-picker";
 import { useCallback, useEffect, useState } from "react";
@@ -16,11 +16,6 @@ export default function Home() {
   useEffect(() => {
     initializeDatabase();
   }, []);
-  const router = useRouter();
-
-  const [selectedImage, setSelectedImage] = useState<string> ();
-
-  const [showAppOptions, setShowAppOptions] = useState<boolean>(false);
 
   const [history, setHistory] = useState<RecentSplit[]>([]);
 
@@ -39,25 +34,20 @@ export default function Home() {
     });
 
     if (!result.canceled) {
-      setSelectedImage(result.assets[0].uri);
-      setShowAppOptions(true);
       console.log(result);
+      const uri = result.assets[0].uri;
+      onContinueImageAsync(uri);
     } else {
       alert("You did not select any image.");
     }
   }
 
-  const onReset = () => {
-    setShowAppOptions(false);
-    setSelectedImage(undefined);
-  };
-
-  const onContinueImageAsync = async() => {
-    if (!selectedImage) return;
+  const onContinueImageAsync = async(imageUri: string) => {
     router.push({
-      pathname: "/processing",
+      pathname: "/preview",
       params: {
-        imageUri: selectedImage,
+        imageUri,
+        groupId: "-1",
       },
   });
   };
@@ -81,8 +71,9 @@ export default function Home() {
     });
 
     if (!result.canceled) {
-      setSelectedImage(result.assets[0].uri);
-      setShowAppOptions(true);
+      console.log(result);
+      const uri = result.assets[0].uri;
+      onContinueImageAsync(uri);
     }
   };
   const { showActionSheetWithOptions } = useActionSheet();
@@ -127,39 +118,17 @@ export default function Home() {
       <View style={{backgroundColor: "#0F172A"}}>
         <View style={{ justifyContent: "center" }}>
 
-          {!showAppOptions && (
-            <View style={{alignItems: "center"}}>
-              <Button
-                variant="photo"
-                title="Scan receipt"
-                subtitle="Take a photo or upload from gallery"
-                onPress={handleScan}
-              />
-            </View>
-          )}
+          
+          <View style={{alignItems: "center"}}>
+            <Button
+              variant="photo"
+              title="Scan receipt"
+              subtitle="Take a photo or upload from gallery"
+              onPress={handleScan}
+            />
+          </View>
 
-          {selectedImage && (
-            <View style={{ marginTop: 20 }}>
-              <Text style={{ color: "#9ca3af", marginBottom: 8, fontSize: 16, fontWeight: 500, paddingHorizontal: 15 }}>
-                Preview:
-              </Text>
-              <View style={{alignItems: "center"}}>
-                <Image
-                  source={{ uri: selectedImage }}
-                  style={{ width: 350, height: 450, borderRadius: 12, }}
-                />
-              </View>
-            </View>
-          )}
-
-          {showAppOptions && (
-            <View style={{ marginTop: 20, flexDirection: "row"}}>
-              <IconButton icon="refresh" label="Reset" size={36} color={"#60A5FA"} onPress={onReset} />
-              <IconButton icon="send" label="Continue" size={36} color={"#10B981"} onPress={onContinueImageAsync}/>
-            </View>
-          )}
-
-          {!showAppOptions && history.length !== 0 && (
+          {history.length !== 0 && (
             <>
             <View style={{ justifyContent: "center" }}>
               <Text style={styles.recent}> 

@@ -1,9 +1,9 @@
-import { Stack } from "expo-router";
+import { router, Stack } from "expo-router";
 import { useLocalSearchParams, useRouter} from "expo-router";
 import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Alert } from "react-native";
 import Edit from "@/components/Edit";
 import React, { useState } from "react";
-import { Item } from "@/types/item";
+import { GroupDraft, Item } from "@/types/item";
 import { MaterialIcons } from "@expo/vector-icons";
 
 const AddItemBlock = React.memo((props: any) => {
@@ -77,7 +77,7 @@ const AddItemBlock = React.memo((props: any) => {
 });
 
 export default function Review() {
-	const { items } = useLocalSearchParams();
+	const { items, groupId } = useLocalSearchParams();
 	const parsedParam = Array.isArray(items) ? items[0] : items;
 	const data = parsedParam ? JSON.parse(parsedParam) : null;
 
@@ -93,7 +93,7 @@ export default function Review() {
 
 	const removeItem = (id: number) => {
 		setItemsState((prev: Item[]) =>
-			prev.filter(item => item.item_id !== id)
+			prev.filter(item => item.itemId !== id)
 		);
 	};
 
@@ -101,7 +101,7 @@ export default function Review() {
 	const [newItemName, setNewItemName] = React.useState("");
 	const addItem = (name: string) => {
 		const newItem: Item = {
-			item_id: Date.now(),
+			itemId: Date.now(),
 			name: name,
 			qty: 1,
 			unitPrice: 0,
@@ -151,9 +151,21 @@ export default function Review() {
 
 	const serviceCharge = includeServiceCharge ? (raw.serviceCharge ?? 0) : 0;
 
-	const total = computedSubtotal + finalTax + finalTip + serviceCharge;	
-
-	const router = useRouter();
+	const total = computedSubtotal + finalTax + finalTip + serviceCharge;
+	
+	const updatedData = {
+		...data,
+		raw: {
+			...raw,
+			items: itemsState,
+			subtotal: computedSubtotal,
+			tax: finalTax,
+			total: total,
+			serviceCharge: serviceCharge,
+			includeServiceCharge: includeServiceCharge,
+			finalTip: finalTip,
+		},
+	};
 
   return (
 	<>
@@ -192,15 +204,15 @@ export default function Review() {
 			<View style={{alignItems: "center"}}>
 				<View style={styles.card}>
 					{itemsState.map((item: Item) =>
-						editingId === item.item_id ? (
+						editingId === item.itemId ? (
 							<Edit
-							key={item.item_id}
+							key={item.itemId}
 							item={item}
 							onCancel={() => setEditingId(null)}
 							onSave={(updatedItem: Item) => {
 								setItemsState((prev: Item[]) =>
 								prev.map(i =>
-									i.item_id === updatedItem.item_id ? updatedItem : i
+									i.itemId === updatedItem.itemId ? updatedItem : i
 								)
 								);
 								setEditingId(null);
@@ -208,9 +220,9 @@ export default function Review() {
 							/>
 						) : (
 							<Pressable
-							key={item.item_id}
+							key={item.itemId}
 							style={styles.row}
-							onPress={() => setEditingId(item.item_id)}
+							onPress={() => setEditingId(item.itemId)}
 							>
 							<Text style={styles.itemName}>
 								{item.qty} x {item.name}
@@ -219,7 +231,7 @@ export default function Review() {
 							<Pressable 
 							onPress={(e) => {
 								e.stopPropagation();
-								removeItem(item.item_id)}}
+								removeItem(item.itemId)}}
 							style={{justifyContent: "center"}}
 							>
 								<MaterialIcons 
@@ -399,24 +411,23 @@ export default function Review() {
 					return;
 					}
 					
-					router.push({
-					pathname: "/groupInput",
-					params: {
-						data: JSON.stringify({
-						...data,
-						raw: {
-							...raw,
-							items: itemsState,
-							subtotal: computedSubtotal,
-							tax: finalTax,
-							total: total,
-							serviceCharge: serviceCharge,
-							includeServiceCharge: includeServiceCharge,
-							finalTip: finalTip
-						},
-						}),
-					},
-					});
+					if (Number(groupId) === -1) {
+						router.push({
+							pathname: "/groupInput",
+							params: {
+								data: JSON.stringify(updatedData),
+							},
+							});
+					}
+					else {
+						router.push({
+							pathname: "/assignment",
+							params: {
+								data: JSON.stringify(updatedData),
+								groupId: String(groupId),
+							},
+						});
+					}
 				}}
 				style={{
 					...styles.next,

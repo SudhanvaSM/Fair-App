@@ -12,167 +12,182 @@ export default function Processing() {
 		label: string;
 		status: StepStatus;
 	};
-  const router = useRouter();
+  	const router = useRouter();
 
-  const translateY = React.useRef(new Animated.Value(0)).current;
+	const translateY = React.useRef(new Animated.Value(0)).current;
 
-  const { imageUri } = useLocalSearchParams();
-  const uri = Array.isArray(imageUri) ? imageUri[0] : imageUri;
+	const { imageUri, groupId } = useLocalSearchParams();
+	const uri = Array.isArray(imageUri) ? imageUri[0] : imageUri;
 
-  const [steps, setSteps] = React.useState<Step[]>([
-    { label: "Image Captured", status: "active" as const },
-    { label: "OCR Extraction", status: "waiting" as const },
-    { label: "Parsing Items", status: "waiting" as const },
-  ]);
-  
-  const delay = (ms: number) =>
-    new Promise(resolve => setTimeout(resolve, ms));
+	const [steps, setSteps] = React.useState<Step[]>([
+		{ label: "Image Captured", status: "active" as const },
+		{ label: "OCR Extraction", status: "waiting" as const },
+		{ label: "Parsing Items", status: "waiting" as const },
+	]);
+	
+	const delay = (ms: number) =>
+		new Promise(resolve => setTimeout(resolve, ms));
 
-  const updateStep = (activeIndex: number) => {
-    setSteps(prev =>
-      prev.map((step, i) => ({
-        ...step,
-        status:
-          i < activeIndex
-            ? "done"
-            : i === activeIndex
-            ? "active"
-            : "waiting",
-      }))
-    );
-  };
+	const updateStep = (activeIndex: number) => {
+		setSteps(prev =>
+		prev.map((step, i) => ({
+			...step,
+			status:
+			i < activeIndex
+				? "done"
+				: i === activeIndex
+				? "active"
+				: "waiting",
+		}))
+		);
+	};
 
-  React.useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(translateY, {
-          toValue: 200,
-          duration: 2000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(translateY, {
-          toValue: -10,
-          duration: 2000,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  }, []);
+	React.useEffect(() => {
+		Animated.loop(
+		Animated.sequence([
+			Animated.timing(translateY, {
+			toValue: 200,
+			duration: 2000,
+			useNativeDriver: true,
+			}),
+			Animated.timing(translateY, {
+			toValue: -10,
+			duration: 2000,
+			useNativeDriver: true,
+			}),
+		])
+		).start();
+	}, []);
 
-  React.useEffect(() => {
-    const run = async () => {
-      try {
-        const formData = new FormData();
+	React.useEffect(() => {
+		const run = async () => {
+		try {
+			const formData = new FormData();
 
-        formData.append("file", {
-          uri,
-          name: "receipt.jpg",
-          type: "image/jpg",
-        } as any);
+			formData.append("file", {
+			uri,
+			name: "receipt.jpg",
+			type: "image/jpg",
+			} as any);
 
-        const fetchPromise = fetch("http://192.168.1.101:8000/upload", {
-          method: "POST",
-          body: formData,
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
+			const fetchPromise = fetch("http://192.168.1.101:8000/upload", {
+			method: "POST",
+			body: formData,
+			headers: {
+				"Content-Type": "multipart/form-data",
+			},
+			});
 
-        await delay(500);
-        updateStep(1);
+			await delay(500);
+			updateStep(1);
 
-        await delay(500);
-        updateStep(2);
+			await delay(500);
+			updateStep(2);
 
-		await delay(500);
+			await delay(500);
 
-    const res = await fetchPromise;
-    const data = await res.json();
+		const res = await fetchPromise;
+		const data = await res.json();
 
-    updateStep(3);
+		const normalisedData = {
+			...data,
+			raw: {
+				...data.raw,
+				items: data.raw.items.map((item: any) => ({
+					itemId: item.item_id,
+					name: item.name,
+					qty: item.qty,
+					unitPrice: item.unit_price ?? 0,
+					totalPrice: item.total_price ?? 0,
+				})),
+			}
+		};
 
-		router.replace({
-		pathname: "../review",
-		params: {
-			items: JSON.stringify(data),
-		},
-		});
+		updateStep(3);
 
-      } catch (err) {
-        console.error("Processing error:", err);
-      }
-    };
+			router.replace({
+			pathname: "../review",
+			params: {
+				items: JSON.stringify(normalisedData),
+				groupId: String(groupId),
+			},
+			});
 
-    run();
-  }, []);
+		} catch (err) {
+			console.error("Processing error:", err);
+		}
+		};
 
-  return (
-    <>
-      <Stack.Screen
-        options={{
-          headerStyle: { backgroundColor: "#1E293B" },
-          headerTitle: "Processing",
-          headerTitleAlign: "left",
-          headerShadowVisible: false,
-          headerTintColor: "#ffffff",
-		      animation: "slide_from_right",
-        }}
-      />
+		run();
+	}, []);
 
-      <ScrollView style={styles.scrollView}>
-        <View style={styles.card}>
-          <View style={styles.scan}>
-            <MaterialIcons
-              name="receipt-long"
-              size={150}
-              color="#cbd5f5"
-            />
+	return (
+		<>
+		<Stack.Screen
+			options={{
+			headerStyle: { backgroundColor: "#1E293B" },
+			headerTitle: "Processing",
+			headerTitleAlign: "left",
+			headerShadowVisible: false,
+			headerTintColor: "#ffffff",
+				animation: "slide_from_right",
+			}}
+		/>
 
-            <Animated.View
-              style={[
-                styles.scanLine,
-                { transform: [{ translateY }] },
-              ]}
-            >
-              <LinearGradient
-                colors={[
-                  "transparent",
-                  "rgb(99, 101, 241)",
-                  "transparent",
-                ]}
-                start={{ x: 0, y: 0.5 }}
-                end={{ x: 1, y: 0.5 }}
-                style={StyleSheet.absoluteFill}
-              />
-            </Animated.View>
-          </View>
-        </View>
+		<ScrollView style={styles.scrollView}>
+			<View style={styles.card}>
+			<View style={styles.scan}>
+				<MaterialIcons
+				name="receipt-long"
+				size={150}
+				color="#cbd5f5"
+				/>
 
-        <View style={{ gap: 16, marginTop: 24 }}>
-          {steps.map((step, index) => (
-            <View key={index} style={styles.status}>
-              <Text
-			  	style={[
-					styles.text,
-					step.status === "waiting" && styles.textWaiting,
-    				step.status === "active" && styles.textActive,
-    				step.status === "done" && styles.textDone,
-				]}>
-					{step.label}
-				</Text>
-              <Status title={step.status} subtle={false} variant={step.status} />
-            </View>
-          ))}
-        </View>
+				<Animated.View
+				style={[
+					styles.scanLine,
+					{ transform: [{ translateY }] },
+				]}
+				>
+				<LinearGradient
+					colors={[
+					"transparent",
+					"rgb(99, 101, 241)",
+					"transparent",
+					]}
+					start={{ x: 0, y: 0.5 }}
+					end={{ x: 1, y: 0.5 }}
+					style={StyleSheet.absoluteFill}
+				/>
+				</Animated.View>
+			</View>
+			</View>
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            Usually takes 2-3 seconds
-          </Text>
-        </View>
-      </ScrollView>
-    </>
-  );
+			<View style={{ gap: 16, marginTop: 24 }}>
+			{steps.map((step, index) => (
+				<View key={index} style={styles.status}>
+				<Text
+					style={[
+						styles.text,
+						step.status === "waiting" && styles.textWaiting,
+						step.status === "active" && styles.textActive,
+						step.status === "done" && styles.textDone,
+					]}>
+						{step.label}
+					</Text>
+				<Status title={step.status} subtle={false} variant={step.status} />
+				</View>
+			))}
+			</View>
+
+			<View style={styles.footer}>
+			<Text style={styles.footerText}>
+				Usually takes 2-3 seconds
+			</Text>
+			</View>
+		</ScrollView>
+		</>
+	);
 }
 
 const styles = StyleSheet.create({

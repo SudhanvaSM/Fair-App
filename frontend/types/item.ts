@@ -1,5 +1,5 @@
 export type Item = {
-	item_id: number;
+	itemId: number;
 	name: string;
 	qty: number;
 	unitPrice: number;
@@ -8,7 +8,7 @@ export type Item = {
 
 export type ItemPerPerson = {
 	name: string;
-	total_price: number;
+	totalPrice: number;
 	selectedPeople: string[];
 }
 
@@ -25,8 +25,8 @@ export type Assignments = Record<number, Assignment>;
 
 export type ParsedData = {
   items: {
-    item_id: number;
-    total_price: number;
+    itemId: number;
+    totalPrice: number;
   }[];
   subtotal: number;
   tax: number;
@@ -124,3 +124,15 @@ export type MemberBalance = {
 	name: string;
 	balance: number;
 };
+
+export type ProfileDetails = {
+	totalSpent: number;
+	totalGroups: number;
+	totalBillsScanned: number;
+	pendingBalance: number;
+	pendingCount: number;
+	settledCount: number;
+	activeGroup: string;
+	highestExpense: number;
+	recentActivity: string;
+}

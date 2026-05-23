@@ -4,14 +4,14 @@ export function buildAssignments(items: ItemWithSelection[]): Assignments {
   const assignments: Assignments = {};
 
   for (const item of items) {
-    const { item_id, selectedPeople } = item;
+    const { itemId, selectedPeople } = item;
 
     // Validation
     if (!selectedPeople || selectedPeople.length === 0) {
       throw new Error(`Item "${item.name}" has no assigned users`);
     }
     
-    assignments[item_id] = {
+    assignments[itemId] = {
       type: "equal",
       users: selectedPeople
     };

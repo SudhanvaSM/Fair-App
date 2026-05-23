@@ -32,7 +32,12 @@ export default function Card({
 			onPressOut={() => setPressed(false)}
 			>
 			<View style={styles.topRow}>
-				<Text style={styles.title}>{title}</Text>
+				<Text 
+					numberOfLines={1}
+					ellipsizeMode="tail"
+					style={styles.title}>
+						{title}
+				</Text>
 				<Text style={styles.price}>₹{price.toFixed(2)}</Text>
 			</View>
 
@@ -70,6 +75,7 @@ const styles = StyleSheet.create({
 		color: "#fff",
 		fontSize: 18,
 		fontWeight: "600",
+		flexShrink: 1,
 	},
 	price: {
 		color: "#00fe0d",

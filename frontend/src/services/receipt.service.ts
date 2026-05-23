@@ -23,8 +23,8 @@ export function createReceipt (data: Receipt) {
 			data.payerMemberId,
 			data.subtotal,
 			data.tax,
-			data.serviceCharge,
 			data.finalTip,
+			data.serviceCharge,
 			data.createdAt,
 			data.total,
 		]
@@ -123,11 +123,11 @@ export function getDetailedReceipt(receiptId: number): Receipt {
 export function getItemsList (receiptId: number): Item[] {
 	const items = db.getAllSync<Item>(`
 		SELECT 
-			id AS item_id,
+			id AS itemId,
 			name,
 			qty,
-			unit_price,
-			total_price 
+			unit_price AS unitPrice,
+			total_price AS totalPrice
 		FROM items
 		WHERE receipt_id = ?	
 	`, [receiptId]);

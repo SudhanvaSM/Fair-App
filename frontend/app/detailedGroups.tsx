@@ -1,5 +1,6 @@
 import { Text, View, StyleSheet, ScrollView, Pressable, Alert, TextInput } from "react-native"
-import { Link, router, Stack, useLocalSearchParams } from "expo-router";
+import * as ImagePicker from "expo-image-picker";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
 import { changeGroupName, deleteGroup, getLatestDate } from "@/src/services/group.service";
 import { DebtDetails, DetailedGroup, MemberBalance } from "@/types/item";
@@ -8,6 +9,7 @@ import Transaction from "@/components/Transaction";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { settleDebt } from "@/src/services/debt.service";
 import { Menu } from "react-native-paper";
+import { useActionSheet } from "@expo/react-native-action-sheet";
 
 export default function DetailedGroups() {
 	const { groupData } = useLocalSearchParams();
@@ -51,6 +53,9 @@ export default function DetailedGroups() {
 	else {
 		lastActivity = "No Activity"
 	}
+
+	const createdOn = new Date(groups?.group.createdAt || 0);
+	const dateCreatedOn = createdOn.toLocaleDateString([], { day: "2-digit", month: "short", year: "numeric" })
 
 	const changeStatus = (debt: DebtDetails, groupId: number, fromMemberId: number, toMemberId: number) => {
 		const newStatus = debt.status === "pending" ? "settled" : "pending";
@@ -121,6 +126,75 @@ export default function DetailedGroups() {
 		);
 	}
 
+	const pickImageAsync = async () => {
+		let result = await ImagePicker.launchImageLibraryAsync({
+		  	allowsEditing: false,
+		  	quality: 1,
+		});
+	
+		if (!result.canceled) {
+		  	console.log(result);
+		  	const uri = result.assets[0].uri;
+		  	onContinueImageAsync(uri);
+		} else {
+		  	alert("You did not select any image.");
+		}
+	}
+	
+	const onContinueImageAsync = async(imageUri: string) => {
+		router.push({
+			pathname: "/preview",
+			params: {
+			imageUri,
+			groupId: id,
+			},
+		});
+	};
+	
+	const requestPermission = async () => {
+		const { status } = await ImagePicker.requestCameraPermissionsAsync();
+		if (status !== 'granted') {
+			alert('Camera permission is required');
+			return false;
+		}
+		return true;
+	};
+	
+	const openCamera = async () => {
+		const hasPermission = await requestPermission();
+		if (!hasPermission) return;
+
+		let result = await ImagePicker.launchCameraAsync({
+			allowsEditing: false,
+			quality: 1,
+		});
+
+		if (!result.canceled) {
+			console.log(result);
+			const uri = result.assets[0].uri;
+			onContinueImageAsync(uri);
+		}
+	};
+
+	const { showActionSheetWithOptions } = useActionSheet();
+	
+	const handleScan = () => {
+		const options = ['Take Photo', 'Choose from Gallery', 'Cancel'];
+		const cancelButtonIndex = 2;
+
+		showActionSheetWithOptions({ options, cancelButtonIndex, },
+			async (selectedIndex) => {
+				if (selectedIndex === 0) {
+					// Camera
+					await openCamera();
+				} else if (selectedIndex === 1) {
+					// Gallery
+					await pickImageAsync();
+				}
+			}
+		);
+	};
+
 	if (!groups || !balances) {
 		return (
     		<View style={{ flex: 1, backgroundColor: "#0F172A" }} />
@@ -132,7 +206,15 @@ export default function DetailedGroups() {
 			<Stack.Screen
 				options={{
 					headerStyle: { backgroundColor: "#1E293B" },
-					headerTitle: groupTitle,
+					headerTitle: () => (
+						<Text
+							style={styles.headerTitle}
+							numberOfLines={1}
+							ellipsizeMode="tail"
+						>
+							{groupTitle}
+						</Text>
+					),
 					headerTitleAlign: "left",
 					headerShadowVisible: false,
 					headerTintColor: "#ffffff",
@@ -157,11 +239,13 @@ export default function DetailedGroups() {
 							}
 						>
 							<Menu.Item
+								hitSlop={10}
 								onPress={editGroupName}
 								title="Edit Group Title"
 								titleStyle={{ color: "#fff" }}
 							/>
 							<Menu.Item
+								hitSlop={10}
 								onPress={handleDeleteGroup}
 								title="Delete Group"
 								titleStyle={{ color: "red" }}
@@ -208,10 +292,17 @@ export default function DetailedGroups() {
 							<Text style={styles.text}>Total Spent</Text>
 							<Text style={styles.text}>₹{groups?.totalExpenses}</Text>
 						</View>
+
 						<View style={styles.row}>
 							<Text style={styles.text}>Last Split</Text>
 							<Text style={styles.text}>{lastActivity}</Text>
 						</View>
+
+						<View style={styles.row}>
+							<Text style={styles.text}>Created On</Text>
+							<Text style={styles.text}>{dateCreatedOn}</Text>
+						</View>
+
 						<View style={{ width: "90%" }}>
 							<Text style={styles.text}>Group Members</Text>
 							<View style={styles.chipContainer}>
@@ -305,9 +396,11 @@ export default function DetailedGroups() {
 					</View>
 					
 					<View style={{ justifyContent: "center", alignItems: "center", marginTop: 20 }}>
-						<Link href={"/home"} style={styles.emptyText}>
-							Click to add your first split.
-						</Link>
+						<Pressable
+							onPress={handleScan}
+						>
+							<Text style={styles.emptyText}>Click to add your first split</Text>
+						</Pressable>
 					</View>
 				</>
 				}
@@ -346,7 +439,7 @@ const styles = StyleSheet.create({
 	chipContainer: {
 		flexDirection: "row",
 		flexWrap: "wrap",
-		marginTop: 10,
+		marginTop: 15,
 		gap: 10,
 		justifyContent: "center",
 	},
@@ -407,4 +500,10 @@ const styles = StyleSheet.create({
 		fontWeight: "600",
 		fontSize: 14,
 	},
+	headerTitle: {
+		color: "#fff",
+		fontSize: 18,
+		fontWeight: "600",
+		flexShrink: 1,
+  	},
 });

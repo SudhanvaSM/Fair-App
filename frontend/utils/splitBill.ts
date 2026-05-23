@@ -5,11 +5,11 @@ export function splitBill(parsedData: ParsedData, assignments: Assignments, incl
 
   // Split item costs
 	for (const item of parsedData.items) {
-		const { item_id, total_price } = item;
-		const assignment = assignments[item_id];
+		const { itemId, totalPrice } = item;
+		const assignment = assignments[itemId];
 
 		if (!assignment) {
-			throw new Error(`Missing assignment for item ${item_id}`);
+			throw new Error(`Missing assignment for item ${itemId}`);
 		}
 
 		// Equal split
@@ -17,10 +17,10 @@ export function splitBill(parsedData: ParsedData, assignments: Assignments, incl
 			const users = assignment.users;
 
 			if (users.length === 0) {
-				throw new Error(`No users for item ${item_id}`);
+				throw new Error(`No users for item ${itemId}`);
 			}
 
-			const splitAmount = total_price / users.length;
+			const splitAmount = totalPrice / users.length;
 
 			for (const user of users) {
 				personSubtotals[user] = (personSubtotals[user] || 0) + splitAmount;
@@ -41,7 +41,7 @@ export function splitBill(parsedData: ParsedData, assignments: Assignments, incl
 
 			for (const user in users) {
 				const share =
-				(users[user] / totalWeight) * total_price;
+				(users[user] / totalWeight) * totalPrice;
 
 				personSubtotals[user] =
 				(personSubtotals[user] || 0) + share;

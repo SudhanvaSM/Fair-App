@@ -30,7 +30,7 @@ export default function DetailedHistory() {
 	for (const item of assignments) {
 		if (!grouped.has(item.itemId)) {
 			grouped.set(item.itemId, {
-				item_id: item.itemId,
+				itemId: item.itemId,
 				name: item.name,
 				selectedPeople: [],
 			});
@@ -87,7 +87,13 @@ export default function DetailedHistory() {
 			<Stack.Screen
 				options={{
 					headerStyle: { backgroundColor: "#1E293B" },
-					headerTitle: "Detailed History",
+					headerTitle: () => (
+						<Text
+							style={styles.title}
+							numberOfLines={1}
+							ellipsizeMode="tail"
+						>{receipt.title}</Text>
+					),
 					headerTitleAlign: "left",
 					headerShadowVisible: false,
 					headerTintColor: "#ffffff",
@@ -112,11 +118,13 @@ export default function DetailedHistory() {
 							}
 						>
 							<Menu.Item
+								hitSlop={10}
 								onPress={() => goToGroup(receipt.groupId)}
 								title="Group info"
 								titleStyle={{ color: "#fff" }}
 							/>
 							<Menu.Item
+								hitSlop={10}
 								onPress={() => removeItem(id)}
 								title="Remove Split"
 								titleStyle={{ color: "red" }}
@@ -194,10 +202,10 @@ export default function DetailedHistory() {
 						<Text style={[styles.text, { fontWeight: "600", fontSize: 18, textDecorationLine: "underline" }]}>Items</Text>
 						{items.map((item: Item) => {
 							return (
-								<View key={item.item_id} style={styles.row}>
+								<View key={item.itemId} style={styles.row}>
 									<Text style={styles.text}>{item.qty} x {item.name}</Text>
 									<Text style={[styles.text, { flex: 1, textAlign: "right" }]}>
-										₹{item.total_price}
+										₹{item.totalPrice.toFixed(2)}
 									</Text>
 								</View>
 							);
@@ -210,7 +218,7 @@ export default function DetailedHistory() {
 						<Text style={[styles.text, { fontWeight: "600", fontSize: 18, textDecorationLine: "underline" }]}>Who Ate What</Text>
 						{peopleSelections.map((item) => {
 							return (
-							<View key={item.item_id} style={styles.row}>
+							<View key={item.itemId} style={styles.row}>
 								<View style={{ alignItems: "flex-start", justifyContent: "center" }}>
 									<Text style={styles.text}>{item.name}</Text>
 									<Text style={styles.people}>{item.selectedPeople.join(", ")}</Text>
@@ -302,5 +310,11 @@ const styles = StyleSheet.create({
 		fontWeight: "700",
 		color: "#22c55e",
 		paddingVertical: 4,
-	}
+	},
+	title: {
+		color: "#fff",
+		fontSize: 18,
+		fontWeight: "600",
+		flexShrink: 1,
+  	},
 });
