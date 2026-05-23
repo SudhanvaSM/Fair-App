@@ -6,7 +6,6 @@ export function createGroupWithMembers (group: GroupDraft) {
 	let groupId = -1;
 	db.withTransactionSync(() => {
 
-    // Insert group
     const groupResult = db.runSync(
       `
       INSERT INTO groups (name)
@@ -17,7 +16,6 @@ export function createGroupWithMembers (group: GroupDraft) {
 
     groupId = Number(groupResult.lastInsertRowId);
 
-    // Insert members
     for (const memberName of group.members) {
     	createMember(groupId, memberName)
     }
