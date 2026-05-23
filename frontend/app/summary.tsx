@@ -1,12 +1,12 @@
-import { View, Text, StyleSheet, ScrollView, Pressable, Alert, } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Pressable, Alert, TextInput, } from "react-native";
 import { Stack, useLocalSearchParams, router } from "expo-router";
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Receipt, Item, ItemWithSelection } from "@/types/item";
+import { Receipt, ItemWithSelection } from "@/types/item";
 import { createItemAssignment, createReceipt, createReceiptItem } from "@/src/services/receipt.service";
 import { getMembersByGroupId } from "@/src/services/member.service";
 import { createDebt } from "@/src/services/debt.service";
 import { useState } from "react";
 import { db } from "@/src/db/database";
+import React from "react";
 
 export default function Summary() {
 
@@ -26,14 +26,43 @@ export default function Summary() {
 
 	const result = parsedData.result;
 
+	const getTime = (date: Date) => {
+			const time = date.getHours();
+			if (time > 4 && time <= 12) return "Breakfast";
+			if (time > 12 && time <= 16) return "Lunch";
+			if (time > 16 && time <= 20) return "Snacks";
+			return "Dinner";
+	}
+
+	const createdAt = new Date();
+	const defaultTitle = getTime(createdAt);
+
+	const [receiptName, setReceiptName] = React.useState("");
+
+	if (receiptName.length > 20) {
+		Alert.alert(
+			"Invalid Title", "Title name is too long. Maximum limit is 20 characters.",
+			[
+				{
+					text: "OK",
+					style: "default"
+				}
+			]
+		)
+		setReceiptName("");
+	}
+
+	const receiptTitle = receiptName ? receiptName : defaultTitle;
+	
 	const receipt: Receipt = {
+		title: receiptTitle,
 		groupId,
 		payerMemberId: payer?.id ?? members[0].id,
 		subtotal: parsedData.raw?.subtotal ?? 0,
 		tax: parsedData.raw?.tax ?? 0,
 		finalTip: parsedData.raw?.finalTip ?? 0,
 		serviceCharge: parsedData.raw?.serviceCharge ?? 0,
-		createdAt: new Date().toISOString(),
+		createdAt: createdAt.toISOString(),
 		total: parsedData.raw?.total ?? 0,
 	};
 
@@ -106,6 +135,27 @@ export default function Summary() {
 				showsVerticalScrollIndicator={false}
 				keyboardShouldPersistTaps="handled"
 			>
+				<View style={{ alignItems: "center", marginTop: 20 }}>
+					<View style={styles.container}>
+						<View style={{ marginBottom: -5 }}>
+							<Text style={[styles.titleText, { fontSize: 18, textDecorationLine: "underline" }]}>Receipt Name</Text>
+						</View>
+						<TextInput
+							keyboardType="default"
+							autoCapitalize="words"
+							placeholder="Enter receipt name..."
+							placeholderTextColor="#888"
+							value={receiptName}
+							onChangeText={setReceiptName}
+							style={styles.input}
+						/>
+						<View style={[styles.row, { borderBottomWidth: 0, paddingBottom: 0, marginTop: -5 }]}>
+							<Text style={styles.titleText}>Current Title</Text>
+							<Text style={styles.titleText}>{receiptTitle}</Text>
+						</View>
+					</View>
+				</View>
+
 				<View style={{ alignItems: "center", marginTop: 20, }}>
 					<View style={styles.container}>
 						{Object.entries(result.perPerson as Record<string, number>).sort(([, a], [, b]) => b - a).map(([person, amount]) => (
@@ -164,7 +214,7 @@ const styles = StyleSheet.create({
 		backgroundColor: '#0F172A',
 	},
 	container: {
-		width: "90%",
+		width: "80%",
 		backgroundColor: "#334155",
 		borderRadius: 30,
 		elevation: 2,
@@ -201,5 +251,19 @@ const styles = StyleSheet.create({
 		borderBottomWidth: 0.5,
 		borderBottomColor: "#aaa",
 		paddingBottom: 8,
+	},
+	input: {
+		width: "80%",
+		backgroundColor: "#111827",
+		color: "#fff",
+		paddingHorizontal: 15,
+		borderRadius: 18,
+		marginTop: 5,
+	},
+	titleText: {
+		fontSize: 16,
+		fontWeight: "500",
+		color: "#fff",
+		textAlign: "center",
 	}
 });

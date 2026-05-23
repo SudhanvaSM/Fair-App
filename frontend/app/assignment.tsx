@@ -6,7 +6,6 @@ import { ItemWithSelection, ItemPerPerson } from "@/types/item";
 import React from "react";
 import { buildAssignments } from "@/utils/buildAssignment";
 import { splitBill } from "@/utils/splitBill";
-import { getGroupById } from "@/src/services/group.service";
 import { getMembersByGroupId } from "@/src/services/member.service";
 
 export default function Assignment() {

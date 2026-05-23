@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useActionSheet } from '@expo/react-native-action-sheet';
 import IconButton from "@/components/IconButton";
 import Card from "@/components/Card";
-import { RecentSplit, SplitHistory } from "@/types/item";
+import { RecentSplit } from "@/types/item";
 import { initializeDatabase } from "@/src/db/schema";
 import { getRecentReceipts } from "@/src/services/receipt.service";
 
@@ -125,7 +125,7 @@ export default function Home() {
         keyboardShouldPersistTaps="handled"
       >
       <View style={{backgroundColor: "#0F172A"}}>
-        <View style={{ justifyContent: "center", paddingHorizontal: 20,}}>
+        <View style={{ justifyContent: "center" }}>
 
           {!showAppOptions && (
             <View style={{alignItems: "center"}}>
@@ -161,7 +161,7 @@ export default function Home() {
 
           {!showAppOptions && history.length !== 0 && (
             <>
-            <View style={{ marginTop: 10, paddingHorizontal: 10, justifyContent: "center" }}>
+            <View style={{ justifyContent: "center" }}>
               <Text style={styles.recent}> 
                 Recent Splits
               </Text>
@@ -214,6 +214,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "500",
     marginTop: 24,
+    paddingHorizontal: 33,
   },
   scrollView: {
     backgroundColor: '#0F172A',

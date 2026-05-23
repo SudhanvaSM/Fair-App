@@ -323,9 +323,9 @@ export default function Review() {
 								<TextInput 
 									style={[{ color: "#fff", borderBottomWidth: 1, borderColor: "#888" }]}
 									onChangeText={setTempTipInput}
-									value={tempTipInput}
 									placeholder="Enter tip value"
 									placeholderTextColor="#888"
+									value={tempTipInput}
 									keyboardType="numeric"
 									autoFocus
 								/>

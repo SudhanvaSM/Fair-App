@@ -2,11 +2,11 @@ import { MaterialIcons } from "@expo/vector-icons";
 import {Text, View, StyleSheet, ScrollView} from "react-native";
 import  AsyncStorage  from "@react-native-async-storage/async-storage";
 import { useCallback, useState } from "react";
-import { SplitHistory } from "@/types/item";
 import { useFocusEffect } from "expo-router";
 
 export default function ProfileScreen() {
-	const [history, setHistory] = useState<SplitHistory[]>([]);
+	//<SplitHistory[]>
+	const [history, setHistory] = useState([]);
 
 	useFocusEffect(
 		useCallback(() => {

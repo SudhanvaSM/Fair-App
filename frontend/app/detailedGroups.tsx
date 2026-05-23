@@ -1,43 +1,82 @@
-import {Text, View, StyleSheet, ScrollView, Pressable, Alert} from "react-native"
-import { router, Stack, useLocalSearchParams } from "expo-router";
-import { AssignmentList, DebtDetails, Item, Receipt, SplitHistory } from "@/types/item";
-import React from "react";
-import { getDetailedReceipt, getItemsList, getDebtsList, getAssignmentsList, clearReceipt } from "@/src/services/receipt.service";
-import { getMemberName } from "@/src/services/member.service";
+import { Text, View, StyleSheet, ScrollView, Pressable, Alert } from "react-native"
+import { Link, router, Stack, useLocalSearchParams } from "expo-router";
+import React, { useState } from "react";
+import { deleteGroup, getLatestDate } from "@/src/services/group.service";
+import { DebtDetails, DetailedGroup, MemberBalance } from "@/types/item";
+import { getMemberBalances} from "@/src/services/member.service";
+import Transaction from "@/components/Transaction";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { settleDebt } from "@/src/services/debt.service";
+import { Menu } from "react-native-paper";
 
-export default function DetailedGroup() {
-	const { groupId } = useLocalSearchParams();
-	const id = Number(groupId);
+export default function DetailedGroups() {
+	const { groupData } = useLocalSearchParams();
+	const parsedGroup = Array.isArray(groupData) ? groupData[0] : groupData;
 
-	const receipt: Receipt = getDetailedReceipt(id);
-	const items: Item[] = getItemsList(id);
-	const debts: DebtDetails[] = getDebtsList(id);
-	const assignments: AssignmentList[] = getAssignmentsList(id);
-
-	const totalDebts = debts.reduce((sum: number, debt: DebtDetails) => sum + debt.amount, 0);
-
-	const payer = getMemberName(receipt.payerMemberId);
-	const payerTotal = receipt.total - totalDebts;
-
-	const date = new Date(receipt.createdAt);
-
-	const grouped = new Map();
-	for (const item of assignments) {
-		if (!grouped.has(item.itemId)) {
-			grouped.set(item.itemId, {
-				item_id: item.itemId,
-				name: item.name,
-				selectedPeople: [],
-			});
-		}
-		grouped.get(item.itemId).selectedPeople.push(item.memberName);
+	if (!parsedGroup) {
+		return <Text style={{ color: "white" }}>No Data</Text>;
 	}
-	const peopleSelections = Array.from(grouped.values());
 
-	const removeItem = (id: number) => {
+	const [groups, setGroups] = useState<DetailedGroup>(JSON.parse(parsedGroup));
+
+	const id = Number(groups?.group.id);
+
+	const [balances, setBalances] = useState<MemberBalance[]>(getMemberBalances(id));
+	
+	const memberMap = React.useMemo(() => {
+		return new Map(groups?.members.map(member => [member.id, member.name]));
+	}, [groups]);
+
+	const redirectToDetailedHistory = (receiptId: number) => (
+		router.push({
+			pathname: "/detailedHistory",
+			params: {
+				receiptId,
+			}
+		})
+	)
+	
+	const latestDate = new Date(getLatestDate(id));
+	const today = new Date();
+	let lastActivity;
+	if (!isNaN(latestDate.getTime())) {
+		if (latestDate.toDateString() === today.toDateString()) lastActivity = "Today"
+		else {
+			const yesterday = new Date(today);
+			yesterday.setDate(today.getDate() - 1);
+			if (latestDate.toDateString() === yesterday.toDateString()) lastActivity = "Yesterday";
+			else lastActivity = latestDate.toLocaleDateString([], { day: "2-digit", month: "short" });
+		}
+	}
+	else {
+		lastActivity = "No Activity"
+	}
+
+	const changeStatus = (debt: DebtDetails, groupId: number, fromMemberId: number, toMemberId: number) => {
+		const newStatus = debt.status === "pending" ? "settled" : "pending";
+		settleDebt(groupId, fromMemberId, toMemberId, newStatus);
+
+		setGroups(prev => ({
+			...prev,
+			debts: prev.debts.map(d => 
+				d.id === debt.id ? { ...d, status: newStatus} : d
+			),
+		}))
+
+		setBalances(getMemberBalances(id));
+	}
+
+	const hasTransactions = (groups?.receipts.length ?? 0) > 0;
+
+	const [visible, setVisible] = useState(false);
+
+	const openMenu = () => setVisible(true);
+	const closeMenu = () => setVisible(false);
+
+	const handleDeleteGroup = () => {
 		Alert.alert (
 			"Confirm Action",
-			"Are you sure you want to delete this split?",
+			`Are you sure you want to delete ${groups?.group.name}group?`,
 			[
 				{
 					text: "Cancel",
@@ -46,157 +85,183 @@ export default function DetailedGroup() {
 				{
 					text: "Delete",
 					style: "destructive",
-					onPress: async () => {
+					onPress: async() => {
 						try {
-							clearReceipt(id);
+							deleteGroup(id);
 							router.back();
-						} 
+						}
 						catch (e) {
-							console.error("Delete failed:", e);
+							console.error("Delete group failed: ", e);
 						}
 					}
 				}
 			]
 		);
-	};
+	}
+
+	if (!groups || !balances) {
+		return (
+    		<View style={{ flex: 1, backgroundColor: "#0F172A" }} />
+  		);
+	}
 
 	return (
 		<>
 			<Stack.Screen
 				options={{
 					headerStyle: { backgroundColor: "#1E293B" },
-					headerTitle: "Detailed History",
+					headerTitle: groups.group.name,
 					headerTitleAlign: "left",
 					headerShadowVisible: false,
 					headerTintColor: "#ffffff",
 					animation: "slide_from_right",
+					headerRight: () => (
+						<Menu
+							contentStyle={{ marginTop: 35, borderRadius: 20, backgroundColor: "#334155" }}
+							visible={visible}
+							onDismiss={closeMenu}
+							anchor={
+								<Pressable 
+									style={{ justifyContent: "center", alignItems: "center" }}
+									hitSlop={10} 
+									onPress={openMenu}
+								>
+									<MaterialCommunityIcons
+										name={"dots-vertical"}
+										color={"white"}
+										size={24}
+									/>
+								</Pressable>
+							}
+						>
+							<Menu.Item
+								onPress={() => handleDeleteGroup}
+								title="Edit Group Title"
+							/>
+							<Menu.Item
+								onPress={handleDeleteGroup}
+								title="Delete Group"
+							/>
+						</Menu>
+						)
 				}}
 			/>
 			<ScrollView
 				style={styles.scrollView}
-				contentContainerStyle={{ paddingBottom: 40 }}
+				contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
 				showsVerticalScrollIndicator={false}
 				keyboardShouldPersistTaps="handled"
 			>
-				<View style ={{ alignItems: "center", marginTop: 40, }}>
-					<View style={[styles.container, { backgroundColor: "#2B3648" }]}>
-						<Text style={[styles.text, { fontWeight: "600", fontSize: 18, textDecorationLine: "underline" }]}>Breakdown</Text>
-						{debts.map((debt) => {
-							return (
-							<View key={debt.id} style={styles.row}>
-								<View style={{ alignItems: "center", justifyContent: "center" }}>
-									<Text style={styles.text}>{debt.from_member}</Text>
-								</View>
-								<View style={{ flexDirection: "column", justifyContent: "center", alignItems: "flex-end" }}>
-									<Text style={[styles.text, { fontWeight: "700" }]}>₹{debt.amount.toFixed(2)}</Text>
-									<Text style={styles.text}>Owes {debt.to_member}</Text>
-								</View>
-							</View>
-							);
-						})}
+				<View style ={{ alignItems: "center", marginTop: 28, }}>
+					<View style={[styles.container, { backgroundColor: "#2B3648", paddingHorizontal: 20 }]}>
+						<Text style={styles.title}>Group Overview</Text>
 						<View style={styles.row}>
-							<View style={{ alignItems: "center", justifyContent: "center" }}>
-								<Text style={[styles.text, { fontWeight: "700", color: "#FFD700" }]}>{payer?.name}</Text>
-							</View>
-							<View style={{ flexDirection: "column", justifyContent: "center", alignItems: "flex-end" }}>
-								<Text style={[styles.text, { fontWeight: "700", color: "#FFD700" }]}>₹{payerTotal.toFixed(2)}</Text>
-								<Text style={styles.text}>Paid upfront</Text>
+							<Text style={styles.text}>Total Spent</Text>
+							<Text style={styles.text}>₹{groups?.totalExpenses}</Text>
+						</View>
+						<View style={styles.row}>
+							<Text style={styles.text}>Last Split</Text>
+							<Text style={styles.text}>{lastActivity}</Text>
+						</View>
+						<View style={{ width: "90%" }}>
+							<Text style={styles.text}>Group Members</Text>
+							<View style={styles.chipContainer}>
+							{groups.members.map((member) => (
+								<View key={member.id} style={styles.chip}>
+									<Text style={styles.chipText}>
+										{member.name}
+									</Text>
+								</View>
+							))}
 							</View>
 						</View>
 					</View>
 				</View>
 
-				<View style ={{ alignItems: "center", marginTop: 40}}>
-					<View style={[styles.container, { backgroundColor: "#334155" }]}>
-						<Text style={[styles.text, { fontWeight: "600", fontSize: 18, textDecorationLine: "underline" }]}>Items</Text>
-						{items.map((item: Item) => {
-							return (
-								<View key={item.item_id} style={styles.row}>
-									<Text style={styles.text}>{item.qty} x {item.name}</Text>
-									<Text style={[styles.text, { flex: 1, textAlign: "right" }]}>
-										₹{item.total_price}
-									</Text>
+				{hasTransactions ? (
+					<>
+					<View style ={{ alignItems: "center", marginTop: 28, }}>
+						<View style={[styles.container, { backgroundColor: "#334155" }]}>
+							<Text style={styles.title}>Balances</Text>
+							{balances?.map((member) => {
+								const balance = member.balance;
+								return (
+									<View style={[styles.row, { width: "80%" }]} key={member.memberId}>
+									<View style={{ alignItems: "flex-start" }}>
+										<Text style={styles.text}>{member.name}</Text>
+									</View>
+									<View style={{ alignItems: "flex-end" }}>
+										<Text style={[styles.text, { color: balance > 0 ? "#00fe0d" : balance < 0 ? "red" : "gray" }]}>
+											{balance > 0 ? `+₹${balance.toFixed(2)}` : balance < 0 ? `-₹${Math.abs(balance).toFixed(2)}` : "Settled"}</Text>
+									</View>
 								</View>
-							);
-						})}
+								);
+							})}
+						</View>
 					</View>
-				</View>
 
-				<View style ={{ alignItems: "center", marginTop: 40}}>
-					<View style={[styles.container, { backgroundColor: "#2B3648" }]}>
-						<Text style={[styles.text, { fontWeight: "600", fontSize: 18, textDecorationLine: "underline" }]}>Who Ate What</Text>
-						{peopleSelections.map((item) => {
-							return (
-							<View key={item.item_id} style={styles.row}>
-								<View style={{ alignItems: "flex-start", justifyContent: "center" }}>
-									<Text style={styles.text}>{item.name}</Text>
-									<Text style={styles.people}>{item.selectedPeople.join(", ")}</Text>
+					<View style ={{ alignItems: "center", marginTop: 28, }}>
+						<View style={[styles.container, { backgroundColor: "#2B3648" }]}>
+							<Text style={styles.title}>Who Owes Whom?</Text>
+							{groups?.debts?.map((debt) => {
+								const amount = debt.amount;
+								return (
+									<View style={[styles.row, { width: "80%" }]} key={debt.id}>
+										<Text style={[styles.text, debt.status === 'settled' && { color: "#888", textDecorationLine: "line-through" }]}>{debt.fromMember} owes {debt.toMember}</Text>
+									<View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
+										<Text style={[styles.text, debt.status === 'settled' && { color: "#888", textDecorationLine: "line-through" }]}>₹{amount.toFixed(2)}</Text>
+										<Pressable
+											style={{ width: 24 }}
+											hitSlop={10}
+											onPress={() => changeStatus(debt, groups.group.id, debt.fromMemberId, debt.toMemberId)}
+										>
+											<MaterialCommunityIcons 
+												name={debt.status === 'settled' ? "checkbox-marked-circle-outline" : "checkbox-blank-circle-outline"}
+												color={debt.status === 'settled' ? "#00fe0d" : "red"}
+												size={20}
+											/>
+										</Pressable>
+									</View>
 								</View>
-							</View>
-							);
-						})}
-					</View>
-				</View>
-
-				<View style ={{ alignItems: "center", marginTop: 40}}>
-					<View style={[styles.container, { backgroundColor: "#334155" }]}>
-						<Text style={[styles.text, { fontWeight: "600", fontSize: 18, textDecorationLine: "underline" }]}>Bill Details</Text>
-							<View style={styles.row}>
-								<Text style={styles.text}>Subtotal:</Text>
-								<Text style={styles.text}>₹{receipt.subtotal.toFixed(2) ?? 0}</Text>
-							</View>
-
-							<View style={styles.row}>
-								<Text style={styles.text}>Tax:</Text>
-								<Text style={styles.text}>₹{receipt.tax.toFixed(2) ?? 0}</Text>
-							</View>
-
-							<View style={styles.row}>
-								<Text style={styles.text}>Service Charge:</Text>
-								<Text style={styles.text}>₹{receipt.serviceCharge ?? 0}</Text>
-							</View>
-
-							<View style={styles.row}>
-								<Text style={styles.text}>Tips:</Text>
-								<Text style={styles.text}>₹{receipt.finalTip ?? 0}</Text>
-							</View>
-
-							<View style={styles.row}>
-								<Text style={styles.text}>Total:</Text>
-								<Text style={styles.text}>₹{receipt.total.toFixed(2) ?? 0}</Text>
-							</View>
-					</View>
-				</View>
-
-				<View style ={{ alignItems: "center", marginTop: 40}}>
-					<View style={[styles.container, { backgroundColor: "#2B3648" }]}>
-						<Text style={[styles.text, { fontWeight: "600", fontSize: 18, textDecorationLine: "underline" }]}>Other</Text>
-							<View style={styles.row}>
-								<Text style={styles.text}>Receipt ID:</Text>
-								<Text style={styles.text}>{receipt.id ?? 0}</Text>
-							</View>
-
-							<View style={styles.row}>
-								<Text style={styles.text}>Date:</Text>
-								<Text style={styles.text}>{date.toLocaleDateString([], { day:"2-digit", month: "long", year: "numeric" }) ?? 0}</Text>
-							</View>
-
-							<View style={styles.row}>
-								<Text style={styles.text}>Time:</Text>
-								<Text style={styles.text}>{date.toLocaleTimeString([], { hour:"2-digit", minute: "2-digit" }) ?? 0}</Text>
-							</View>
+								);
+							})}
+						</View>
 					</View>
 
-					<Pressable 
-						hitSlop={20}
-						onPress={(e) => {
-							e.stopPropagation();
-							removeItem(receipt.id || -1)}}
-						style={{justifyContent: "center", marginTop: 20}}
-						>
-							<Text style={[styles.text, { textDecorationLine: "underline", color: "red", fontSize: 18 }]}>Remove Split</Text>
-					</Pressable>
-			</View>
+					<View style ={{ alignItems: "center", marginTop: 28 }}>
+						<View style={[styles.container, { backgroundColor: "#334155", gap: 10 }]}>
+							<Text style={styles.title}>Transaction History</Text>
+							{groups?.receipts.map((receipt) => {
+								const title = receipt.title;
+								const payerName = memberMap.get(receipt.payerMemberId) ?? "Unknown";
+								return (
+									<View key={receipt.id} style={[styles.row, { justifyContent: "center", borderBottomWidth: 0 }]}>
+										<Transaction
+											title={title}
+											paidBy={payerName}
+											date={new Date(receipt.createdAt)}
+											price={receipt.total}
+											onPress={() => redirectToDetailedHistory(receipt.id || -1)}
+										/>
+									</View>
+								);
+							})}
+						</View>
+					</View>
+				</>
+				) :
+				<>	
+					<View style={{ justifyContent: "center", alignItems: "center", marginTop: 20 }}>
+						<Text style={styles.text}>No expenses yet</Text>
+					</View>
+					
+					<View style={{ justifyContent: "center", alignItems: "center", marginTop: 20 }}>
+						<Link href={"/home"} style={styles.emptyText}>
+							Click to add your first split.
+						</Link>
+					</View>
+				</>
+				}
 			</ScrollView>
 		</>
 	);
@@ -219,34 +284,53 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		fontWeight: "500",
 		color: "#fff",
-		paddingVertical: 4,
-	},
-	people: {
-		fontSize: 16,
-		fontWeight: "300",
-		color: "#fff",
-	},
-	next: {
-		width: "50%",
-		backgroundColor: "#7C3AED",
-		borderRadius: 20,
-		overflow: "hidden",
-		paddingHorizontal: 20,
-		paddingVertical: 10,
-		marginTop: 20,
-	},
-	nextText: {
-		color: "#fff", 
-		fontSize: 20,
-		fontWeight: "600",
-		textAlign: "center",
 	},
 	row: {
+		width: "90%",
 		flexDirection: "row",
 		justifyContent: "space-between",
-		width: "80%",
 		borderBottomWidth: 0.5,
 		borderBottomColor: "#aaa",
-		paddingBottom: 8,
-	}
+		paddingVertical: 8,
+		alignItems: "center",
+	},
+	chipContainer: {
+		flexDirection: "row",
+		flexWrap: "wrap",
+		marginTop: 10,
+		gap: 10,
+		justifyContent: "center",
+	},
+	chip: {
+		paddingHorizontal: 12,
+		paddingVertical: 6,
+		borderRadius: 20,
+		backgroundColor: "#475569",
+	},
+	chipText: {
+		fontSize: 14,
+		color: "#fff",
+		fontWeight: "500",
+		textAlign: "center",
+	},
+	title: {
+		fontSize: 20,
+		fontWeight: "700",
+		color: "#fff",
+		textDecorationLine: "underline",
+	},
+	emptyText: {
+		color: "#fff",
+		textAlign: "center",
+		fontSize: 18,
+		fontWeight: "500",
+		textDecorationLine: "underline",
+	},
+	deleteContainer: {
+		backgroundColor: "#3b1f25",
+		borderRadius: 18,
+		paddingVertical: 14,
+		paddingHorizontal: 14,
+		alignItems: "center",
+	},
 });

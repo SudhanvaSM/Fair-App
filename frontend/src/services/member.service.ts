@@ -1,3 +1,4 @@
+import { MemberBalance } from "@/types/item";
 import { db } from "../db/database";
 
 export function createMember(
@@ -29,9 +30,42 @@ export function getMembersByGroupId(groupId: number) {
 }
 
 export function getMemberName(memberId: number) {
-	return db.getFirstSync<{ name: String }>(`
+	const memberName = db.getFirstSync<{ name: string }>(`
 		SELECT m.name
 		FROM members m
 		WHERE m.id = ?
 	`, [memberId]);
+
+	if (!memberName) {
+		throw new Error("Member not found!");
+	}
+	return memberName;
+}
+
+export function getMemberBalances(groupId: number): MemberBalance[] {
+	return db.getAllSync<MemberBalance>(`
+		SELECT 
+			m.id as memberId, 
+			m.name as name,
+			COALESCE(
+				(
+					SELECT sum(d.amount)
+					FROM debts d
+					WHERE d.to_member_id = m.id
+					AND d.status = 'pending'
+				), 0
+			)
+				-
+			COALESCE(
+				(
+					SELECT sum(d.amount)
+					FROM debts d
+					WHERE d.from_member_id = m.id
+					AND d.status = 'pending'
+				), 0
+			)
+				AS balance
+			FROM members m
+			WHERE m.group_id = ?
+	`, [groupId]);
 }

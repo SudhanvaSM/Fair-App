@@ -1,10 +1,11 @@
 import { db } from "../db/database";
-import { AssignmentList, Debt, DebtDetails, Item, Receipt, RecentSplit } from "@/types/item";
+import { AssignmentList, DebtDetails, Item, Receipt, RecentSplit } from "@/types/item";
 
 export function createReceipt (data: Receipt) {
 	const result = db.runSync(
 		`
 			INSERT INTO receipts (
+				title,
 				group_id,
 				payer_member_id,
 				subtotal,
@@ -14,9 +15,10 @@ export function createReceipt (data: Receipt) {
 				created_at,
 				total
 			)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 		`,
 		[
+			data.title,
 			data.groupId,
 			data.payerMemberId,
 			data.subtotal,
@@ -73,7 +75,7 @@ export function createItemAssignment(
 export function getRecentReceipts(limit?: number): RecentSplit[] {
 	const result = db.getAllSync<RecentSplit>
 	(`
-			SELECT r.id AS id, g.name AS title, count(DISTINCT m.id) AS people, r.created_at AS date, r.total AS price
+			SELECT r.id AS id, r.title AS title, count(DISTINCT m.id) AS people, r.created_at AS date, r.total AS price
 			FROM receipts r
 			JOIN groups g ON r.group_id = g.id
 			JOIN members m ON m.group_id = g.id
@@ -90,6 +92,7 @@ export function getDetailedReceipt(receiptId: number): Receipt {
 		`
 		SELECT 
 			id,
+			title,
 			group_id as groupId,
 			payer_member_id AS payerMemberId,
 			subtotal,
@@ -131,8 +134,10 @@ export function getDebtsList (receiptId: number): DebtDetails[] {
 		SELECT
 			d.id AS id,
 			d.amount AS amount,
-			from_member.name AS from_member,
-			to_member.name AS to_member
+			from_member.id AS fromMemberId,
+			from_member.name AS fromMember,
+			to_member.name AS toMember,
+			to_member.id AS toMemberId
 		FROM debts d
 
 		JOIN members from_member
@@ -181,4 +186,12 @@ export function clearReceiptHistory() {
 		DELETE FROM items;
 		DELETE FROM receipts;
 	`);
+}
+
+export function getReceiptTitle() {
+	return db.execSync(`
+		SELECT title
+		FROM receipts
+		WHERE id = 2
+	`)
 }

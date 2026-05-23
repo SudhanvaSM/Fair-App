@@ -1,24 +1,24 @@
 export type Item = {
-  item_id: number;
-  name: string;
-  qty: number;
-  unit_price: number;
-  total_price: number;
+	item_id: number;
+	name: string;
+	qty: number;
+	unit_price: number;
+	total_price: number;
 };
 
 export type ItemPerPerson = {
-  name: string;
-  total_price: number;
-  selectedPeople: string[];
+	name: string;
+	total_price: number;
+	selectedPeople: string[];
 }
 
 export type ItemWithSelection = Item & {
-  selectedPeople: string[];
+  	selectedPeople: string[];
 }
 
 type Assignment = {
-  type: "equal" | "weighted";
-  users: string[] | Record<string, number>;
+  	type: "equal" | "weighted";
+  	users: string[] | Record<string, number>;
 };
 
 export type Assignments = Record<number, Assignment>;
@@ -32,84 +32,95 @@ export type ParsedData = {
   tax: number;
   serviceCharge?: number;
   rounding?: number;
+  finalTip?: number,
   total: number;
-  finalTip?: number;
 }
 
 export type RecentSplit = {
-  id: number;
-  title: string;
-  people: number;
-  date: string;
-  price: number;
-}
-
-export type SplitHistory = {
-  id: number;
-  result: {
-    perPerson: Record<string, number>;
-    breakdown: Record<string, number>;
-  }
-  createdAt: string;
-  raw?: {
-    total?: number;
-    subtotal?: number;
-    tax?: number;
-    serviceCharge?: number;
-    items?: Item[];
-    finalTip?: number;
-  }
-  thing: ItemWithSelection[];
+	id: number;
+	title: string;
+	people: number;
+	date: string;
+	price: number;
 }
 
 export type Group = {
-  id: number;
-  name: string;
-  createdAt?: string;
+  	id: number;
+  	name: string;
+  	createdAt?: string;
 }
 
 export type Member = {
-  id: number;
-  groupId: number;
-  name: string;
+  	id: number;
+  	groupId: number;
+  	name: string;
 }
 
 export type GroupDraft = {
-  id?: number;
-  name: string;
-  members: string[];
+  	id?: number;
+  	name: string;
+  	members: string[];
 }
 
 export type Receipt = {
-  id?: number;
-  groupId: number;
+  	id?: number;
+	title: string;
+	groupId: number;
 	payerMemberId: number;
 	subtotal: number;
 	tax: number;
-  finalTip: number;
+	finalTip: number;
 	serviceCharge: number;
-  createdAt: string;
+	createdAt: string;
 	total: number;
 }
 
 export type Debt = {
-  receiptId: number;
-  groupId: number;
-  fromMemberId: number;
-  toMemberId: number;
-  amount: number;
-  status: string;
+	receiptId: number;
+	groupId: number;
+	fromMemberId: number;
+	toMemberId: number;
+	amount: number;
+	status: "pending" | "settled";
 }
 
 export type DebtDetails = {
-  id: number;
-  amount: number;
-  from_member: string;
-  to_member: string;
+	id: number;
+	amount: number;
+	fromMember: string;
+	toMember: string;
+	fromMemberId: number;
+	toMemberId: number;
+	status: "pending" | "settled";
 }
 
 export type AssignmentList = {
-  itemId: number;
-  name: string;
-  memberName: string;
+	itemId: number;
+	name: string;
+	memberName: string;
 }
+
+export type GroupSummaryRow = {
+    id: number;
+	name: string;
+	members: string;
+	totalExpenses: number;
+}
+
+export type GroupSummary = GroupDraft & {
+	totalExpenses: number;
+}
+
+export type DetailedGroup = {
+	group: Group;
+	members: Member[];
+	receipts: Receipt[];
+	debts: DebtDetails[];
+	totalExpenses: number;
+}
+
+export type MemberBalance = {
+	memberId: number;
+	name: string;
+	balance: number;
+};

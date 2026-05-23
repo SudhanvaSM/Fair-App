@@ -46,7 +46,8 @@ export default function History() {
 							let date;
 							if (createdAt.toDateString() === today.toDateString()) date = "Today"
 							else {
-								const yesterday = new Date(today.getDate() - 1);
+								const yesterday = new Date(today);
+								yesterday.setDate(today.getDate() - 1);
 								if (createdAt.toDateString() === yesterday.toDateString()) date = "Yesterday";
 								else date = createdAt.toLocaleDateString([], { day: "2-digit", month: "short" });
 							}

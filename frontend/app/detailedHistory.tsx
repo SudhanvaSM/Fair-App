@@ -1,8 +1,7 @@
 import {Text, View, StyleSheet, ScrollView, Pressable, Alert} from "react-native"
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import { AssignmentList, DebtDetails, Item, Receipt, SplitHistory } from "@/types/item";
+import { AssignmentList, DebtDetails, Item, Receipt } from "@/types/item";
 import React from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getDetailedReceipt, getItemsList, getDebtsList, getAssignmentsList, clearReceipt } from "@/src/services/receipt.service";
 import { getMemberName } from "@/src/services/member.service";
 
@@ -86,11 +85,11 @@ export default function DetailedHistory() {
 							return (
 							<View key={debt.id} style={styles.row}>
 								<View style={{ alignItems: "center", justifyContent: "center" }}>
-									<Text style={styles.text}>{debt.from_member}</Text>
+									<Text style={styles.text}>{debt.fromMember}</Text>
 								</View>
 								<View style={{ flexDirection: "column", justifyContent: "center", alignItems: "flex-end" }}>
 									<Text style={[styles.text, { fontWeight: "700" }]}>₹{debt.amount.toFixed(2)}</Text>
-									<Text style={styles.text}>Owes {debt.to_member}</Text>
+									<Text style={styles.text}>Owes {debt.toMember}</Text>
 								</View>
 							</View>
 							);

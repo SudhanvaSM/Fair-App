@@ -24,8 +24,7 @@ export default function Processing() {
     { label: "OCR Extraction", status: "waiting" as const },
     { label: "Parsing Items", status: "waiting" as const },
   ]);
-
-  // 🔧 helpers
+  
   const delay = (ms: number) =>
     new Promise(resolve => setTimeout(resolve, ms));
 
@@ -43,7 +42,6 @@ export default function Processing() {
     );
   };
 
-  // 🔁 scan animation
   React.useEffect(() => {
     Animated.loop(
       Animated.sequence([
@@ -61,7 +59,6 @@ export default function Processing() {
     ).start();
   }, []);
 
-  // 🚀 processing flow
   React.useEffect(() => {
     const run = async () => {
       try {
@@ -73,8 +70,7 @@ export default function Processing() {
           type: "image/jpg",
         } as any);
 
-        // ✅ Start backend call in parallel
-        const fetchPromise = fetch("http://192.168.1.106:8000/upload", {
+        const fetchPromise = fetch("http://192.168.1.101:8000/upload", {
           method: "POST",
           body: formData,
           headers: {
@@ -82,21 +78,17 @@ export default function Processing() {
           },
         });
 
-        // ⏱ Step 1 → Image Captured
         await delay(500);
         updateStep(1);
 
-        // ⏱ Step 2 → OCR
         await delay(500);
         updateStep(2);
 
 		await delay(500);
 
-    // 📡 wait for backend
     const res = await fetchPromise;
     const data = await res.json();
 
-    // ⏱ Step 3 → Parsing
     updateStep(3);
 
 		router.replace({
@@ -128,7 +120,6 @@ export default function Processing() {
       />
 
       <ScrollView style={styles.scrollView}>
-        {/* 📦 Scan Card */}
         <View style={styles.card}>
           <View style={styles.scan}>
             <MaterialIcons
@@ -157,7 +148,6 @@ export default function Processing() {
           </View>
         </View>
 
-        {/* 📊 Steps */}
         <View style={{ gap: 16, marginTop: 24 }}>
           {steps.map((step, index) => (
             <View key={index} style={styles.status}>
@@ -175,7 +165,6 @@ export default function Processing() {
           ))}
         </View>
 
-        {/* ⏱ Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>
             Usually takes 2-3 seconds
@@ -238,12 +227,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   textWaiting: {
-	color: "#6b7280", // gray (subtle)
+	color: "#6b7280",
   },
   textActive: {
-	color: "#ffffff", // bright
+	color: "#ffffff", 
   },
   textDone: {
-		color: "#9ca3af", // soft gray
+		color: "#9ca3af", 
   },
 });

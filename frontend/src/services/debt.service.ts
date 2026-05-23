@@ -25,3 +25,24 @@ export function createDebt (data: Debt) {
 
 	return result.lastInsertRowId;
 }
+
+export function settleDebt(
+	groupId: number,
+	fromMemberId: number,
+	toMemberId: number,
+	status: "pending" | "settled"
+) {
+	db.runSync(`
+		UPDATE debts
+		SET status = ?
+		WHERE
+			group_id = ?
+			AND from_member_id = ?
+			AND to_member_id = ?
+	`, [
+		status,
+		groupId,
+		fromMemberId,
+		toMemberId
+	]);
+}

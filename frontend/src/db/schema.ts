@@ -12,6 +12,7 @@ members
 
 receipts
 - id
+- title
 - group_id
 - payer_member_id
 - subtotal
@@ -51,6 +52,7 @@ const DEBUG = false;
 
 export function initializeDatabase() {
 	if (DEBUG) {
+		console.log("Database tables dropped.")
 		db.execSync(`
 			DROP TABLE IF EXISTS item_assignments;
 			DROP TABLE IF EXISTS debts;
@@ -76,6 +78,7 @@ export function initializeDatabase() {
 
 		CREATE TABLE IF NOT EXISTS receipts (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			title VARCHAR(20) NOT NULL,
 			group_id INTEGER NOT NULL,
 			payer_member_id INTEGER NOT NULL,
 			subtotal REAL NOT NULL,
