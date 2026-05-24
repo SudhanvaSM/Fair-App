@@ -19,16 +19,32 @@ export function getProfileDetails(): ProfileDetails {
 		FROM groups
 	`);
 
-	const debts = db.getFirstSync<{ 
-		pendingBalance: number,
-		pending: number,
-		settled: number
-	}>(`
+	const debts = db.getFirstSync<{ pendingBalance: number }>(`
+		WITH self_members AS (
+			SELECT group_id, MIN(id) AS self_id
+			FROM members
+			GROUP BY group_id
+		)
+			
 		SELECT 
-			COALESCE(SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END), 0) AS pendingBalance,
-			COALESCE(SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END), 0) AS pending,
-			COALESCE(SUM(CASE WHEN status = 'settled' THEN 1 ELSE 0 END), 0) AS settled
-		FROM debts
+			COALESCE(
+				SUM(
+					CASE
+						WHEN d.to_member_id = sm.self_id
+						AND d.status = 'pending'
+						THEN d.amount
+
+						WHEN d.from_member_id = sm.self_id
+						AND d.status = 'pending'
+						THEN -(d.amount)
+
+						ELSE 0
+					END
+				), 0
+			) AS pendingBalance
+		FROM debts d
+		JOIN self_members sm
+			ON sm.group_id = d.group_id
 	`);
 
 	const activeGroup = db.getFirstSync<{ name: string }>(`
@@ -52,8 +68,6 @@ export function getProfileDetails(): ProfileDetails {
 		totalGroups: groups?.totalGroups ?? 0,
 		totalBillsScanned: receipt?.totalBillsScanned ?? 0,
 		pendingBalance: debts?.pendingBalance ?? 0,
-		pendingCount: debts?.pending ?? 0,
-		settledCount: debts?.settled ?? 0,
 		activeGroup: activeGroup?.name ?? "No Activity",
 		highestExpense: receipt?.highestExpense ?? 0,
 		recentActivity: recentActivity?.date ?? ""

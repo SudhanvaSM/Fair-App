@@ -301,7 +301,9 @@ export default function DetailedGroups() {
 								const amount = debt.amount;
 								return (
 									<View style={[styles.row, { width: "80%" }]} key={debt.id}>
-										<Text style={[styles.text, debt.status === 'settled' && { color: "#888", textDecorationLine: "line-through" }]}>{debt.fromMember} owes {debt.toMember}</Text>
+										<Text style={[styles.text, debt.status === 'settled' && { color: "#888", textDecorationLine: "line-through" }]}>
+											{debt.fromMember} {debt.fromMember === "You" ? "owe" : "owes" } {debt.toMember}
+										</Text>
 									<View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
 										<Text style={[styles.text, debt.status === 'settled' && { color: "#888", textDecorationLine: "line-through" }]}>₹{amount.toFixed(2)}</Text>
 										<Pressable
@@ -348,16 +350,15 @@ export default function DetailedGroups() {
 					<View style={{ justifyContent: "center", alignItems: "center", marginTop: 20 }}>
 						<Text style={styles.text}>No expenses yet</Text>
 					</View>
-					
-					<View style={{ justifyContent: "center", alignItems: "center", marginTop: 20 }}>
-						<Pressable
-							onPress={onContinueImageAsync}
-						>
-							<Text style={styles.emptyText}>Click to add your first split</Text>
-						</Pressable>
-					</View>
 				</>
 				}
+				<View style={{ justifyContent: "center", alignItems: "center", marginVertical: 20 }}>
+					<Pressable
+						onPress={onContinueImageAsync}
+					>
+						<Text style={styles.emptyText}>Click to add a split</Text>
+					</Pressable>
+				</View>
 			</ScrollView>
 		</>
 	);

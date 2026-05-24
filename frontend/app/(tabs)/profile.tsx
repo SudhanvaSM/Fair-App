@@ -41,8 +41,8 @@ export default function ProfileScreen() {
 
 	const deleteAllData = () => {
 		Alert.alert (
-			"Confirm Action",
-			"Are you sure you want to delete all data?\nTHIS ACTION CANNOT BE UNDONE.",
+			"Reset Data",
+			"Are you sure you want to reset all data? This action deletes existing groups and splits.\nTHIS ACTION CANNOT BE UNDONE.",
 			[
 				{
 					text: "Cancel",
@@ -147,7 +147,7 @@ export default function ProfileScreen() {
 							<Text style={styles.textType}>Pending Balance</Text>
 							<Text 
 								style={[styles.text, {color: pendingBalance > 0 ? "#00fe0d" : pendingBalance < 0 ? "red" : "gray"}]}>
-								₹{pendingBalance.toFixed(2)}
+								₹{Math.abs(pendingBalance).toFixed(2)}
 							</Text>
 						</View>
 					</View>

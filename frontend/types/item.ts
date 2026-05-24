@@ -131,8 +131,6 @@ export type ProfileDetails = {
 	totalGroups: number;
 	totalBillsScanned: number;
 	pendingBalance: number;
-	pendingCount: number;
-	settledCount: number;
 	activeGroup: string;
 	highestExpense: number;
 	recentActivity: string;

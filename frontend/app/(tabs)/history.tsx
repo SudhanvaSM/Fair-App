@@ -40,6 +40,7 @@ export default function History() {
 	};
 
 	const deleteAllSplits = () => {
+		closeMenu();
 		Alert.alert (
 			"Confirm Action",
 			"Are you sure you want to delete all splits?",

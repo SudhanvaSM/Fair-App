@@ -1,8 +1,8 @@
-import { View, Text, StyleSheet, ScrollView, Pressable, Alert, TextInput, } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Pressable, Alert, TextInput, ActivityIndicator } from "react-native";
 import { Stack, useLocalSearchParams, router } from "expo-router";
 import { useState } from "react";
-
 import { Receipt, ItemWithSelection } from "@/types/item";
+import { Picker } from "@react-native-picker/picker"
 
 import { db } from "@/src/db/database";
 import { createItemAssignment, createReceipt, createReceiptItem } from "@/src/services/receipt.service";
@@ -25,7 +25,8 @@ export default function Summary() {
 	const groupId = parsedData.groupId;
 	const members = getMembersByGroupId(groupId);
 
-	const payer = members.find((m) => m.name === 'You');
+	const [payerId, setPayerId] = useState<number>(members[0]?.id);
+	const payer = members.find((m) => m.id === payerId);
 
 	const result = parsedData.result;
 
@@ -77,9 +78,16 @@ export default function Summary() {
 
 	const [saving, setSaving] = useState(false);
 
+	const LoadingScreen = () => (
+		(saving && <View style={{ flex: 1, justifyContent: 'center' }}>
+			<ActivityIndicator size="large" color="#0000ff" />
+		</View>
+	));
+
 	const handleSaveAndGoHome = async () => {
 		if (saving) return;
 		setSaving(true);
+		LoadingScreen();
 
 		try {
 			db.withTransactionSync(() => {
@@ -112,7 +120,7 @@ export default function Summary() {
 					
 				}
 			});
-
+			setSaving(false);
 			router.replace("/(tabs)/home");
 		} catch (e) {
 			console.error(e);
@@ -180,23 +188,37 @@ export default function Summary() {
 								</Text>
 							</View>
 							))}
-							<View style={{ marginTop: 10 }}>
-								<View 
-								style={styles.row}
-								>
-									<Text style={[styles.text, { fontWeight: "700", fontSize: 20, }]}>Total</Text>
-									<Text style={[styles.text, { fontWeight: "700", fontSize: 20, }]}>₹{Object.values(result.perPerson as Record<string, number>).reduce((a, b) => a + b, 0).toFixed(2)}</Text>								
-								</View>
+						<View style={{ marginTop: 10 }}>
+							<View 
+							style={styles.row}
+							>
+								<Text style={[styles.text, { fontWeight: "700", fontSize: 20, }]}>Total</Text>
+								<Text style={[styles.text, { fontWeight: "700", fontSize: 20, }]}>₹{Object.values(result.perPerson as Record<string, number>).reduce((a, b) => a + b, 0).toFixed(2)}</Text>								
 							</View>
+						</View>
 
-							<View style={{ marginTop: 10 }}>
-								<View 
-								style={styles.row}
+						
+						<View style={[styles.row, { alignItems: "center", paddingBottom: 20 }]}>
+							<Text style={[styles.text, { fontWeight: "700" }]}>Paid By</Text>
+							<View style={{ width: 150, backgroundColor: "#1f2937", borderRadius: 12 }}>
+								<Picker
+									selectedValue={payerId}
+									onValueChange={(itemValue) =>
+										setPayerId(itemValue)
+									}
+									style={{ color: "white", marginLeft: 10 }}
+									dropdownIconColor="white"
 								>
-									<Text style={[styles.text, { fontWeight: "700" }]}>Paid By</Text>
-									<Text style={[styles.text, { fontWeight: "700" }]}>You</Text>							
-								</View>
-							</View>
+									{members.map(member => (
+										<Picker.Item
+											key={member.id}
+											label={member.name}
+											value={member.id}
+										/>
+									))}
+								</Picker>
+							</View>							
+						</View>
 					</View>
 				</View>
 

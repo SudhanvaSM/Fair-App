@@ -4,7 +4,7 @@ import { router, useFocusEffect } from "expo-router";
 
 import { GroupSummary } from "@/types/item";
 
-import { createGroupWithMembers, getDetailedGroup, getGroupSummary, getGroupsWithMembers} from "@/src/services/group.service";
+import { createGroupWithMembers, getDetailedGroup, getGroupSummary, getGroupsWithMembers, listGroup} from "@/src/services/group.service";
 
 import useScrollToTop from "../hooks/useScrollToTop";
 
