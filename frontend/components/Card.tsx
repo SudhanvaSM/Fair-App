@@ -1,4 +1,4 @@
-import React from "react";
+import { useState } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 
 type CardProps = {
@@ -18,7 +18,7 @@ export default function Card({
 	onPress,
 	variant = "1",
 	}: CardProps) {
-		const [pressed, setPressed] = React.useState(false);
+		const [pressed, setPressed] = useState(false);
 		return (
 			<Pressable
 			hitSlop={10}

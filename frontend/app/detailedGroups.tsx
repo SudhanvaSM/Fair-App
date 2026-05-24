@@ -1,15 +1,18 @@
 import { Text, View, StyleSheet, ScrollView, Pressable, Alert, TextInput } from "react-native"
-import * as ImagePicker from "expo-image-picker";
-import { router, Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
-import React, { useCallback, useRef, useState } from "react";
-import { changeGroupName, deleteGroup, getLatestDate } from "@/src/services/group.service";
-import { DebtDetails, DetailedGroup, MemberBalance } from "@/types/item";
-import { getMemberBalances} from "@/src/services/member.service";
-import Transaction from "@/components/Transaction";
+import { router, Stack, useLocalSearchParams } from "expo-router";
+import { useMemo, useState } from "react";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { settleDebt } from "@/src/services/debt.service";
 import { Menu } from "react-native-paper";
-import { useActionSheet } from "@expo/react-native-action-sheet";
+
+import { DebtDetails, DetailedGroup, MemberBalance } from "@/types/item";
+
+import { changeGroupName, deleteGroup, getLatestDate } from "@/src/services/group.service";
+import { getMemberBalances} from "@/src/services/member.service";
+import { settleDebt } from "@/src/services/debt.service";
+
+import Transaction from "@/components/Transaction";
+import useImagePicker from "./hooks/useImagePicker";
+import useScrollToTop from "./hooks/useScrollToTop";
 
 export default function DetailedGroups() {
 	const { groupData } = useLocalSearchParams();
@@ -18,16 +21,7 @@ export default function DetailedGroups() {
 	if (!parsedGroup) {
 		return <Text style={{ color: "white" }}>No Data</Text>;
 	}
-	const scrollRef = useRef<ScrollView>(null);
-
-	useFocusEffect(
-		useCallback(() => {
-			scrollRef.current?.scrollTo({
-				y: 0,
-				animated: false
-			});
-		}, [])
-	);
+	const scrollRef = useScrollToTop();
 
 	const [groups, setGroups] = useState<DetailedGroup>(JSON.parse(parsedGroup));
 
@@ -35,7 +29,7 @@ export default function DetailedGroups() {
 
 	const [balances, setBalances] = useState<MemberBalance[]>(getMemberBalances(id));
 	
-	const memberMap = React.useMemo(() => {
+	const memberMap = useMemo(() => {
 		return new Map(groups?.members.map(member => [member.id, member.name]));
 	}, [groups]);
 
@@ -136,73 +130,19 @@ export default function DetailedGroups() {
 		);
 	}
 
-	const pickImageAsync = async () => {
-		let result = await ImagePicker.launchImageLibraryAsync({
-		  	allowsEditing: false,
-		  	quality: 1,
-		});
+	const { handleScan } = useImagePicker();
 	
-		if (!result.canceled) {
-		  	console.log(result);
-		  	const uri = result.assets[0].uri;
-		  	onContinueImageAsync(uri);
-		} else {
-		  	alert("You did not select any image.");
-		}
-	}
-	
-	const onContinueImageAsync = async(imageUri: string) => {
+	const onContinueImageAsync = async() => {
+		const imageUri = await handleScan();
+		if (!imageUri) return;
+
 		router.push({
 			pathname: "/preview",
 			params: {
-			imageUri,
-			groupId: id,
+				imageUri,
+				groupId: id,
 			},
 		});
-	};
-	
-	const requestPermission = async () => {
-		const { status } = await ImagePicker.requestCameraPermissionsAsync();
-		if (status !== 'granted') {
-			alert('Camera permission is required');
-			return false;
-		}
-		return true;
-	};
-	
-	const openCamera = async () => {
-		const hasPermission = await requestPermission();
-		if (!hasPermission) return;
-
-		let result = await ImagePicker.launchCameraAsync({
-			allowsEditing: false,
-			quality: 1,
-		});
-
-		if (!result.canceled) {
-			console.log(result);
-			const uri = result.assets[0].uri;
-			onContinueImageAsync(uri);
-		}
-	};
-
-	const { showActionSheetWithOptions } = useActionSheet();
-	
-	const handleScan = () => {
-		const options = ['Take Photo', 'Choose from Gallery', 'Cancel'];
-		const cancelButtonIndex = 2;
-
-		showActionSheetWithOptions({ options, cancelButtonIndex, },
-			async (selectedIndex) => {
-				if (selectedIndex === 0) {
-					// Camera
-					await openCamera();
-				} else if (selectedIndex === 1) {
-					// Gallery
-					await pickImageAsync();
-				}
-			}
-		);
 	};
 
 	if (!groups || !balances) {
@@ -408,7 +348,7 @@ export default function DetailedGroups() {
 					
 					<View style={{ justifyContent: "center", alignItems: "center", marginTop: 20 }}>
 						<Pressable
-							onPress={handleScan}
+							onPress={onContinueImageAsync}
 						>
 							<Text style={styles.emptyText}>Click to add your first split</Text>
 						</Pressable>

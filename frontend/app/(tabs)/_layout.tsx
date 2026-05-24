@@ -8,7 +8,6 @@ import { Pressable, Text, StyleSheet } from 'react-native';
 
 export default function TabsLayout() {
 	const insets = useSafeAreaInsets();
-
 	const [visible, setVisible] = useState(false);
 	const openMenu = () => setVisible(true);
 	const closeMenu = () => setVisible(false);
@@ -50,7 +49,12 @@ export default function TabsLayout() {
 							ellipsizeMode="tail"
 						>Fair</Text>
 					),
-					tabBarIcon: ({ focused, color }) => <Ionicons name={ focused ? "home" : "home-outline" } size={24} color={color}/>,
+					tabBarIcon: ({ focused, color }) => 
+						<Ionicons 
+							name={ focused ? "home" : "home-outline" } 
+							size={24} 
+							color={color}
+						/>,
 					animation: 'shift',
 				}}
 			/>
@@ -66,7 +70,12 @@ export default function TabsLayout() {
 							ellipsizeMode="tail"
 						>Groups</Text>
 					),
-					tabBarIcon: ({ focused, color }) => <MaterialCommunityIcons name={ focused ? "account-group" : "account-group-outline" } size={24} color={color}/>,
+					tabBarIcon: ({ focused, color }) => 
+					<MaterialCommunityIcons 
+						name={ focused ? "account-group" : "account-group-outline" } 
+						size={24} 
+						color={color}
+					/>,
 					animation: 'shift'
 				}}
 				/>
@@ -82,7 +91,12 @@ export default function TabsLayout() {
 							ellipsizeMode="tail"
 						>History</Text>
 					),
-					tabBarIcon: ({ focused, color }) => <MaterialIcons name={ focused ? "history" : "history-toggle-off" } size={24} color={color}/>,
+					tabBarIcon: ({ focused, color }) => 
+					<MaterialIcons 
+						name={ focused ? "history" : "history-toggle-off" } 
+						size={24} 
+						color={color}
+					/>,
 					animation: 'shift'
 				}}
 				/>
@@ -98,7 +112,12 @@ export default function TabsLayout() {
 							ellipsizeMode="tail"
 						>Profile</Text>
 					),
-					tabBarIcon: ({ focused, color }) => <MaterialCommunityIcons name={focused ? "account-tie" : "account-tie-outline"} size={24} color={color}/>,
+					tabBarIcon: ({ focused, color }) => 
+					<MaterialCommunityIcons 
+						name={focused ? "account-tie" : "account-tie-outline"} 
+						size={24} 
+						color={color}
+					/>,
 					animation: 'shift',
 					headerRight: () => (
 						<Menu

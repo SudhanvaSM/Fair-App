@@ -56,11 +56,6 @@ export type Member = {
   	name: string;
 }
 
-export type GroupDraft = {
-  	id?: number;
-  	name: string;
-  	members: string[];
-}
 
 export type Receipt = {
   	id?: number;
@@ -108,6 +103,11 @@ export type GroupSummaryRow = {
 	totalExpenses: number;
 }
 
+export type GroupDraft = {
+  	id?: number;
+  	name: string;
+  	members: string[];
+}
 export type GroupSummary = GroupDraft & {
 	totalExpenses: number;
 }

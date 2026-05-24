@@ -1,27 +1,22 @@
 import {Text, View, StyleSheet, ScrollView, Pressable, Alert, Image } from "react-native"
-import { router, Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { AssignmentList, DebtDetails, Item, Receipt } from "@/types/item";
-import React, { useCallback, useRef, useState } from "react";
-import { getDetailedReceipt, getItemsList, getDebtsList, getAssignmentsList, clearReceipt } from "@/src/services/receipt.service";
-import { getMemberName } from "@/src/services/member.service";
+import { router, Stack, useLocalSearchParams } from "expo-router";
+import { useState } from "react";
 import { Menu } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+
+import { AssignmentList, DebtDetails, Item, Receipt } from "@/types/item";
+
+import { getDetailedReceipt, getItemsList, getDebtsList, getAssignmentsList, clearReceipt } from "@/src/services/receipt.service";
+import { getMemberName } from "@/src/services/member.service";
 import { getDetailedGroup, getGroupName } from "@/src/services/group.service";
+
+import useScrollToTop from "./hooks/useScrollToTop";
 
 export default function DetailedHistory() {
 	const { receiptId } = useLocalSearchParams();
 	const id = Number(receiptId);
 
-	const scrollRef = useRef<ScrollView>(null);
-
-	useFocusEffect(
-		useCallback(() => {
-			scrollRef.current?.scrollTo({
-				y: 0,
-				animated: false
-			});
-		}, [])
-	);
+	const scrollRef = useScrollToTop();
 
 	const receipt: Receipt = getDetailedReceipt(id);
 	const items: Item[] = getItemsList(id);

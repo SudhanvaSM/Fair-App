@@ -1,80 +1,13 @@
 import { router, Stack } from "expo-router";
-import { useLocalSearchParams, useRouter} from "expo-router";
-import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Alert } from "react-native";
-import Edit from "@/components/Edit";
-import React, { useState } from "react";
-import { GroupDraft, Item } from "@/types/item";
+import { useLocalSearchParams } from "expo-router";
+import { useState } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
+import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Alert } from "react-native";
 
-const AddItemBlock = React.memo((props: any) => {
-  const { showInput, setShowInput, newItemName, setNewItemName, addItem } = props;
+import { Item } from "@/types/item";
 
-  return (
-    <>
-      <Pressable
-        onPress={() => setShowInput(true)}
-        style={{ flexDirection: "row", marginTop: 20, gap: 5, alignItems: "center" }}
-      >
-        <MaterialIcons name={"add-circle-outline"} size={20} color="orange" />
-        <Text style={{ color: "#cbd5f5", fontWeight: "500", fontSize: 16 }}>
-          Add Item
-        </Text>
-      </Pressable>
-
-      {showInput && (
-			<View style={[{marginTop: 10}, styles.container]}>
-				<TextInput
-					keyboardType="default"
-					autoCapitalize="words"
-					placeholder="Enter dish name..."
-					placeholderTextColor="#888"
-					value={newItemName}
-					onChangeText={setNewItemName}
-					style={styles.input}
-				/>
-				<View style={styles.actions}>
-					<Pressable onPress={() => {
-						setShowInput(false)
-						setNewItemName("")
-					}}
-						style={{
-							width: "25%",
-							backgroundColor: "#EF4444",
-							padding: 10,
-							borderRadius: 10,
-							alignItems: "center",
-						}}
-					>
-						<Text style={{ color: "white" }}>Cancel</Text>
-					</Pressable>
-					<Pressable
-						onPress={() => {
-							if (!newItemName.trim()) {
-								Alert.alert(
-									"Invalid Name", "Item name cannot be empty."
-									)
-									return;
-							}
-							addItem(newItemName);
-							setNewItemName("");
-							setShowInput(false);
-						}}
-						style={{
-							width: "25%",
-							backgroundColor: "#10B981",
-							padding: 10,
-							borderRadius: 10,
-							alignItems: "center",
-						}}
-					>
-						<Text style={{ color: "white" }}>Add</Text>
-					</Pressable>
-				</View>
-			</View>
-		)}
-    </>
-  );
-});
+import Edit from "@/components/Edit";
+import AddBlock from "@/components/AddBlock";
 
 export default function Review() {
 	const { items, groupId, imageUri } = useLocalSearchParams();
@@ -88,8 +21,8 @@ export default function Review() {
 
 	const raw = data.raw;
 
-	const [itemsState, setItemsState] = React.useState(raw.items);
-	const [editingId, setEditingId] = React.useState<number | null>(null);
+	const [itemsState, setItemsState] = useState(raw.items);
+	const [editingId, setEditingId] = useState<number | null>(null);
 
 	const removeItem = (id: number) => {
 		setItemsState((prev: Item[]) =>
@@ -97,8 +30,8 @@ export default function Review() {
 		);
 	};
 
-	const [showInput, setShowInput] = React.useState(false);
-	const [newItemName, setNewItemName] = React.useState("");
+	const [showInput, setShowInput] = useState(false);
+	const [newItemName, setNewItemName] = useState("");
 	const addItem = (name: string) => {
 		const newItem: Item = {
 			itemId: Date.now(),
@@ -110,7 +43,7 @@ export default function Review() {
 		setItemsState((prev: Item[]) => [...prev, newItem]);
 	};
 	
-	const [includeServiceCharge, setIncludeServiceCharge] = React.useState(true);
+	const [includeServiceCharge, setIncludeServiceCharge] = useState(true);
 
 	const computedSubtotal = itemsState.reduce(
   		(sum: number, item: Item) => sum + item.totalPrice, 0
@@ -190,12 +123,12 @@ export default function Review() {
 				<Text style={{ color: "#fff", fontSize: 16 }}>
 				No items found
 				</Text>
-				<AddItemBlock
+				<AddBlock
 					showInput={showInput}
 					setShowInput={setShowInput}
-					newItemName={newItemName}
-      				setNewItemName={setNewItemName}
-      				addItem={addItem}
+					newName={newItemName}
+      				setNewName={setNewItemName}
+      				onAdd={addItem}
 				/>
 			</View>
 		)
@@ -244,12 +177,12 @@ export default function Review() {
 						)
 						)}
 
-						<AddItemBlock
+						<AddBlock
 							showInput={showInput}
 							setShowInput={setShowInput}
-							newItemName={newItemName}
-							setNewItemName={setNewItemName}
-							addItem={addItem}
+							newName={newItemName}
+							setNewName={setNewItemName}
+							onAdd={addItem}
 						/>
 
 					{/* Divider */}

@@ -1,5 +1,6 @@
 import { View, StyleSheet, Image, ScrollView, } from "react-native";
 import { router, Stack, useLocalSearchParams } from "expo-router";
+
 import IconButton from "@/components/IconButton";
 
 export default function Preview() {

@@ -1,22 +1,26 @@
 import {Text, View, StyleSheet, ScrollView, Pressable, Alert} from "react-native"
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
+
 import { RecentSplit } from "@/types/item";
+
+import useScrollToTop from "../hooks/useScrollToTop";
+
 import Card from "@/components/Card";
+
 import { clearReceiptHistory, getRecentReceipts } from "@/src/services/receipt.service";
+
+import DateFormat from "@/utils/dateFormat";
+
 
 export default function History() {
 	const [history, setHistory] = useState<RecentSplit[]>([]);
 
-	const scrollRef = useRef<ScrollView>(null);
+	const scrollRef = useScrollToTop();
 	
 	useFocusEffect(
 		useCallback(() => {
 			setHistory(getRecentReceipts());
-			scrollRef.current?.scrollTo({
-				y: 0,
-				animated: false
-			});
 		}, [])
 	);
 
@@ -48,16 +52,7 @@ export default function History() {
 					<>
 					<View style ={{ justifyContent: "center" }}>
 						{history.map((item) => {
-							const createdAt = new Date(item.date);
-							const today = new Date();
-							let date;
-							if (createdAt.toDateString() === today.toDateString()) date = "Today"
-							else {
-								const yesterday = new Date(today);
-								yesterday.setDate(today.getDate() - 1);
-								if (createdAt.toDateString() === yesterday.toDateString()) date = "Yesterday";
-								else date = createdAt.toLocaleDateString([], { day: "2-digit", month: "short" });
-							}
+							const date = DateFormat(item.date)
 							return (
 								<View key={item.id}style={{ alignItems: "center" }}>
 								<Card
@@ -66,7 +61,7 @@ export default function History() {
 								date={date}
 								price={Number(item.price.toFixed(2)) || 0}
 								onPress={() => openDetails(item)}
-								variant={(createdAt.getMinutes()) % 2 !== 0 ? "1" : "2"}
+								variant={(item.id) % 2 !== 0 ? "1" : "2"}
 								/>
 								</View>
 							);

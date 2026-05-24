@@ -1,9 +1,13 @@
 import { View, Text, StyleSheet, ScrollView, Animated } from "react-native";
 import { Stack, useRouter, useLocalSearchParams } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
-import React from "react";
+import { useEffect, useRef, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
+
 import Status from "@/components/Status";
+
+import { API_URL } from "@/src/config/api";
+
 
 export default function Processing() {
 	type StepStatus = "waiting" | "active" | "done";
@@ -14,12 +18,12 @@ export default function Processing() {
 	};
   	const router = useRouter();
 
-	const translateY = React.useRef(new Animated.Value(0)).current;
+	const translateY = useRef(new Animated.Value(0)).current;
 
 	const { imageUri, groupId } = useLocalSearchParams();
 	const uri = Array.isArray(imageUri) ? imageUri[0] : imageUri;
 
-	const [steps, setSteps] = React.useState<Step[]>([
+	const [steps, setSteps] = useState<Step[]>([
 		{ label: "Image Captured", status: "active" as const },
 		{ label: "OCR Extraction", status: "waiting" as const },
 		{ label: "Parsing Items", status: "waiting" as const },
@@ -42,7 +46,7 @@ export default function Processing() {
 		);
 	};
 
-	React.useEffect(() => {
+	useEffect(() => {
 		Animated.loop(
 		Animated.sequence([
 			Animated.timing(translateY, {
@@ -59,7 +63,7 @@ export default function Processing() {
 		).start();
 	}, []);
 
-	React.useEffect(() => {
+	useEffect(() => {
 		const run = async () => {
 		try {
 			const formData = new FormData();
@@ -70,7 +74,7 @@ export default function Processing() {
 			type: "image/jpg",
 			} as any);
 
-			const fetchPromise = fetch("http://192.168.1.101:8000/upload", {
+			const fetchPromise = fetch(`${API_URL}/upload`, {
 			method: "POST",
 			body: formData,
 			headers: {

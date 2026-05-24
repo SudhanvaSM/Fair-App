@@ -1,113 +1,12 @@
-import {Text, View, StyleSheet, ScrollView, Pressable, Alert, TextInput, KeyboardAvoidingView, Platform} from "react-native";
+import {Text, View, StyleSheet, ScrollView, Pressable, Alert, KeyboardAvoidingView, Platform} from "react-native";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
+
 import { GroupDraft } from "@/types/item";
-import { MaterialIcons } from "@expo/vector-icons";
-import React from "react";
+
 import { createGroupWithMembers, getGroupsWithMembers } from "@/src/services/group.service";
 
-const AddItemBlock = React.memo((props: any) => {
-  const { showInput, setShowInput, newItemName, setNewItemName, addItem, members, setMembers, memberInput, setMemberInput } = props;
-
-  return (
-    <>
-      <Pressable
-        onPress={() => setShowInput(true)}
-        style={{ flexDirection: "row", marginTop: 20, gap: 5, alignItems: "center" }}
-      >
-        <MaterialIcons name={"add-circle-outline"} size={20} color="orange" />
-        <Text style={{ color: "#cbd5f5", fontWeight: "500", fontSize: 16 }}>
-          Add New Group
-        </Text>
-      </Pressable>
-
-      {showInput && (
-			<View style={[{marginTop: 10}, styles.container]}>
-				<TextInput
-					keyboardType="default"
-					autoCapitalize="words"
-					autoFocus
-					placeholder="Enter group name..."
-					placeholderTextColor="#888"
-					value={newItemName}
-					onChangeText={setNewItemName}
-					style={styles.input}
-				/>
-				<TextInput
-					keyboardType="default"
-					autoCapitalize="words"
-					placeholder="Enter member name..."
-					placeholderTextColor="#888"
-					value={memberInput}
-					onChangeText={setMemberInput}
-					style={styles.input}
-				/>
-				<View style={styles.actions}>
-					<Pressable
-						onPress={() => {
-							if (!memberInput.trim()) return;
-							if (members.includes(memberInput.trim())) return;
-							setMembers((prev: any) => [...prev, memberInput.trim()]);
-							setMemberInput("");
-						}}
-						style={{
-							backgroundColor: "#10B981",
-							padding: 8,
-							borderRadius: 10,
-							marginTop: 5,
-						}}
-						hitSlop={100}
-						>
-						<Text style={{ color: "#fff" }}>Add Member</Text>
-					</Pressable>
-				</View>
-				<View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-					{members.map((member: string, i: number) => (
-						<Pressable
-						key={i}
-						onPress={() => {
-							setMembers((prev: string[]) => prev.filter((_, idx) => idx !== i));
-						}}
-						style={[styles.chip, { flexDirection: "row", alignItems: "center", gap: 5, }]}
-						>
-						<Text style={styles.chipText}>{member}</Text>
-						<Text style={{ color: "red", fontWeight: "bold" }}>✕</Text>
-						</Pressable>
-					))}
-				</View>
-				<View style={styles.actions}>
-					<Pressable onPress={() => {
-						setShowInput(false)
-						setNewItemName("")
-					}}
-						style={{
-							width: "25%",
-							backgroundColor: "#EF4444",
-							padding: 10,
-							borderRadius: 10,
-							alignItems: "center",
-						}}
-					>
-						<Text style={{ color: "white" }}>Cancel</Text>
-					</Pressable>
-					<Pressable
-						onPress={() => addItem(newItemName)}
-						style={{
-							width: "25%",
-							backgroundColor: "#10B981",
-							padding: 10,
-							borderRadius: 10,
-							alignItems: "center",
-						}}
-						>
-						<Text style={{ color: "white" }}>Add</Text>
-					</Pressable>
-				</View>
-			</View>
-		)}
-    </>
-  );
-});
+import AddBlock from "@/components/AddBlock";
 
 export default function GroupInput() {
 	const { data, imageUri } = useLocalSearchParams();
@@ -119,11 +18,11 @@ export default function GroupInput() {
 		return <Text style={{ color: "white" }}>No Data</Text>;
 	}
 
-	const [showInput, setShowInput] = React.useState(false);
-	const [newItemName, setNewItemName] = React.useState("");
+	const [showInput, setShowInput] = useState(false);
+	const [newItemName, setNewItemName] = useState("");
 	const [memberInput, setMemberInput] = useState("");
 	const [members, setMembers] = useState<string[]>(["You"]);
-	const [itemsState, setItemsState] = React.useState<GroupDraft[]>([]);
+	const [itemsState, setItemsState] = useState<GroupDraft[]>([]);
 
 	useEffect(() => {
 		const groups = getGroupsWithMembers();
@@ -179,7 +78,7 @@ export default function GroupInput() {
 				style={styles.scrollView}
 				contentContainerStyle={{ paddingBottom: 40 }}
 				showsVerticalScrollIndicator={false}
-				keyboardShouldPersistTaps="always"
+				keyboardShouldPersistTaps="handled"
 			>
 				<View style={{ alignItems: "center" }}>
 					{itemsState.map((group, i) => {
@@ -206,16 +105,16 @@ export default function GroupInput() {
 					})}
 					</View>
 					<View style={{ alignItems: "center" }}>
-						<AddItemBlock
+						<AddBlock
 							showInput={showInput}
 							setShowInput={setShowInput}
-							newItemName={newItemName}
-							setNewItemName={setNewItemName}
+							newName={newItemName}
+							setNewName={setNewItemName}
 							members={members}
 							setMembers={setMembers}
 							memberInput={memberInput}
 							setMemberInput={setMemberInput}
-							addItem={addItem}
+							onAdd={addItem}
 						/>
 					</View>
 			</ScrollView>

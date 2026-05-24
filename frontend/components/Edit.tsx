@@ -1,7 +1,7 @@
 import { View, Text, TextInput, Pressable, StyleSheet, Alert } from "react-native";
-import { Item } from "@/types/item";
+import { useState } from "react";
 
-import React from "react";
+import { Item } from "@/types/item";
 
 type Props = {
   item: Item;
@@ -12,9 +12,9 @@ type Props = {
 
 export default function Edit({ item, onSave, onCancel }: Props) {
 
-  const [qty, setQty] = React.useState(String(item.qty));
-  const [price, setPrice] = React.useState(String(item.unitPrice));
-  const [name, setName] = React.useState(String(item.name));
+  const [qty, setQty] = useState(String(item.qty));
+  const [price, setPrice] = useState(String(item.unitPrice));
+  const [name, setName] = useState(String(item.name));
   const parsedQty = parseInt(qty);
   const parsedPrice = parseFloat(price);
   const safeQty = !isNaN(parsedQty) && parsedQty > 0 ? parsedQty : 1;

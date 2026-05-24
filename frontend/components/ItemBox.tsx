@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 
 type Props = {
 	name: string;

@@ -1,22 +1,24 @@
-import { getProfileDetails } from "@/src/services/user.services";
-import { ProfileDetails } from "@/types/item";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import {Text, View, StyleSheet, ScrollView} from "react-native";
+
+import { ProfileDetails } from "@/types/item";
+
+import { getProfileDetails } from "@/src/services/user.services";
+
+import DateFormat from "@/utils/dateFormat";
+
+import useScrollToTop from "../hooks/useScrollToTop";
 
 export default function ProfileScreen() {
 	const [profileDetails, setProfileDetails] = useState<ProfileDetails>();
 
-	const scrollRef = useRef<ScrollView>(null);
+	const scrollRef = useScrollToTop();
 
 	useFocusEffect(
 		useCallback(() => {
 			setProfileDetails(getProfileDetails());
-			scrollRef.current?.scrollTo({
-				y: 0,
-				animated: false
-			});
 		}, [])
 	);
 
@@ -26,21 +28,7 @@ export default function ProfileScreen() {
 		);
 	}
 
-	const latestDate = new Date(profileDetails.recentActivity);
-	const today = new Date();
-	let recentActivity;
-	if (!isNaN(latestDate.getTime())) {
-		if (latestDate.toDateString() === today.toDateString()) recentActivity = "Today"
-		else {
-			const yesterday = new Date(today);
-			yesterday.setDate(today.getDate() - 1);
-			if (latestDate.toDateString() === yesterday.toDateString()) recentActivity = "Yesterday";
-			else recentActivity = latestDate.toLocaleDateString([], { day: "2-digit", month: "short" });
-		}
-	}
-	else {
-		recentActivity = "No Activity"
-	}
+	const recentActivity = DateFormat(profileDetails.recentActivity);
 	
 	const pendingBalance = profileDetails.pendingBalance;
 

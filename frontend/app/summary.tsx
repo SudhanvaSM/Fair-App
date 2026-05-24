@@ -1,12 +1,13 @@
 import { View, Text, StyleSheet, ScrollView, Pressable, Alert, TextInput, } from "react-native";
 import { Stack, useLocalSearchParams, router } from "expo-router";
+import { useState } from "react";
+
 import { Receipt, ItemWithSelection } from "@/types/item";
+
+import { db } from "@/src/db/database";
 import { createItemAssignment, createReceipt, createReceiptItem } from "@/src/services/receipt.service";
 import { getMembersByGroupId } from "@/src/services/member.service";
 import { createDebt } from "@/src/services/debt.service";
-import { useState } from "react";
-import { db } from "@/src/db/database";
-import React from "react";
 
 export default function Summary() {
 
@@ -39,7 +40,7 @@ export default function Summary() {
 	const createdAt = new Date();
 	const defaultTitle = getTime(createdAt);
 
-	const [receiptName, setReceiptName] = React.useState("");
+	const [receiptName, setReceiptName] = useState("");
 
 	if (receiptName.length > 20) {
 		Alert.alert(
