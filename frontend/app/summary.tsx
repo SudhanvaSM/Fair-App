@@ -50,7 +50,10 @@ export default function Summary() {
 					text: "OK",
 					style: "default"
 				}
-			]
+			],
+			{
+				cancelable: true,
+			}
 		)
 		setReceiptName("");
 	}

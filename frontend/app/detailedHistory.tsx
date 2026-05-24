@@ -84,7 +84,10 @@ export default function DetailedHistory() {
 						}
 					}
 				}
-			]
+			],
+			{
+				cancelable: true,
+			}
 		);
 	};
 

@@ -126,7 +126,10 @@ export default function DetailedGroups() {
 						}
 					}
 				}
-			]
+			],
+			{
+				cancelable: true,
+			}
 		);
 	}
 

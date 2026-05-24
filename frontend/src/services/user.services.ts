@@ -59,3 +59,10 @@ export function getProfileDetails(): ProfileDetails {
 		recentActivity: recentActivity?.date ?? ""
 	}
 }
+
+export function resetAppData() {
+	console.log("App Data Reset.");
+	db.execSync(`
+		DELETE FROM groups;
+	`)
+}

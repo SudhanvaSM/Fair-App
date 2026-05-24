@@ -1,20 +1,27 @@
-import { MaterialIcons } from "@expo/vector-icons";
-import { useFocusEffect } from "expo-router";
+import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
+import { Stack, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import {Text, View, StyleSheet, ScrollView} from "react-native";
+import {Text, View, StyleSheet, ScrollView, Pressable, Alert} from "react-native";
+import { Menu } from "react-native-paper";
 
 import { ProfileDetails } from "@/types/item";
 
-import { getProfileDetails } from "@/src/services/user.services";
+import { getProfileDetails, resetAppData } from "@/src/services/user.services";
 
 import DateFormat from "@/utils/dateFormat";
 
 import useScrollToTop from "../hooks/useScrollToTop";
 
+
 export default function ProfileScreen() {
-	const [profileDetails, setProfileDetails] = useState<ProfileDetails>();
+
+	const [visible, setVisible] = useState(false);
+	const openMenu = () => setVisible(true);
+	const closeMenu = () => setVisible(false);
 
 	const scrollRef = useScrollToTop();
+
+	const [profileDetails, setProfileDetails] = useState<ProfileDetails>();
 
 	useFocusEffect(
 		useCallback(() => {
@@ -32,84 +39,146 @@ export default function ProfileScreen() {
 	
 	const pendingBalance = profileDetails.pendingBalance;
 
+	const deleteAllData = () => {
+		Alert.alert (
+			"Confirm Action",
+			"Are you sure you want to delete all data?\nTHIS ACTION CANNOT BE UNDONE.",
+			[
+				{
+					text: "Cancel",
+					style: "cancel",
+				},
+				{
+					text: "Delete",
+					style: "destructive",
+					onPress: async() => {
+						try {
+							resetAppData();
+							setProfileDetails(getProfileDetails());
+						}
+						catch (e) {
+							console.error("Remove all splits failed: ", e);
+						}
+					}
+				}
+			],
+			{
+				cancelable: true,
+			}
+		);
+	}
+
 	return (
-		<ScrollView
-			style={styles.scrollView}
-			contentContainerStyle={{ paddingBottom: 40 }}
-			showsVerticalScrollIndicator={false}
-			keyboardShouldPersistTaps="handled"
-			ref={scrollRef}
-		>
-			<View style={{ alignItems: "center" }}>
-				<View style={[styles.container, { flexDirection: "row" }]}>
-					<View style={styles.avatar}>
-						<MaterialIcons
-							name="person"
-							size={60}
-							color="#000"
+		<>
+			<Stack.Screen
+				options={{
+					headerRight: () => (
+						<Menu
+							contentStyle={{ marginTop: 35, borderRadius: 20, backgroundColor: "#334155" }}
+							visible={visible}
+							onDismiss={closeMenu}
+							anchor={
+								<Pressable 
+									style={{ justifyContent: "center", alignItems: "center", paddingRight: 20 }}
+									hitSlop={10} 
+									onPress={openMenu}
+								>
+									<MaterialCommunityIcons
+										name={"dots-vertical"}
+										color={"white"}
+										size={24}
+									/>
+								</Pressable>
+							}
+						>
+						<Menu.Item
+							hitSlop={10}
+							onPress={() => deleteAllData()}
+							title="Reset App Data"
+							titleStyle={{ color: "red" }}
 						/>
+						</Menu>
+					)
+				}}
+			/>
+			<ScrollView
+				style={styles.scrollView}
+				contentContainerStyle={{ paddingBottom: 40 }}
+				showsVerticalScrollIndicator={false}
+				keyboardShouldPersistTaps="handled"
+				ref={scrollRef}
+			>
+				<View style={{ alignItems: "center" }}>
+					<View style={[styles.container, { flexDirection: "row" }]}>
+						<View style={styles.avatar}>
+							<MaterialIcons
+								name="person"
+								size={60}
+								color="#000"
+							/>
+						</View>
+						<View style={styles.textContainer}>
+							<Text style={{ color: "white", fontSize: 18, fontWeight: "600" }}>Sudhanva S M</Text>
+							<Text style={{ color: "white", fontSize: 14, fontWeight: "400" }}>+91 XXXXX XXXXX</Text>
+							<Text style={{ color: "white", fontSize: 12, fontWeight: "400" }}>genericemail@gmail.com</Text>
+						</View>
 					</View>
-					<View style={styles.textContainer}>
-						<Text style={{ color: "white", fontSize: 18, fontWeight: "600" }}>Sudhanva S M</Text>
-						<Text style={{ color: "white", fontSize: 14, fontWeight: "400" }}>+91 XXXXX XXXXX</Text>
-						<Text style={{ color: "white", fontSize: 12, fontWeight: "400" }}>genericemail@gmail.com</Text>
-					</View>
-				</View>
 
-				<View style={[styles.container, { marginVertical: 10 }]}>
-					<Text style={[styles.text, { marginBottom: 16, fontSize: 22, textAlign: "center" }]}>
-						Statistics
-					</Text>
-					<View style={styles.row}>
-						<Text style={styles.textType}>Total Spent</Text>
-						<Text style={styles.text}>₹{profileDetails.totalSpent.toFixed(2)}</Text>
-					</View>
-
-					<View style={styles.row}>
-						<Text style={styles.textType}>Groups</Text>
-						<Text style={styles.text}>{profileDetails.totalGroups}</Text>
-					</View>
-
-					<View style={styles.row}>
-						<Text style={styles.textType}>Bills Scanned</Text>
-						<Text style={styles.text}>{profileDetails.totalBillsScanned}</Text>
-					</View>
-
-					<View style={styles.row}>
-						<Text style={styles.textType}>Pending Balance</Text>
-						<Text 
-							style={[styles.text, {color: pendingBalance > 0 ? "#00fe0d" : pendingBalance < 0 ? "red" : "gray"}]}>
-							₹{pendingBalance.toFixed(2)}
+					<View style={[styles.container, { marginVertical: 10 }]}>
+						<Text style={[styles.text, { marginBottom: 16, fontSize: 22, textAlign: "center" }]}>
+							Statistics
 						</Text>
-					</View>
-				</View>
+						<View style={styles.row}>
+							<Text style={styles.textType}>Total Spent</Text>
+							<Text style={styles.text}>₹{profileDetails.totalSpent.toFixed(2)}</Text>
+						</View>
 
-				<View style={[styles.container, { marginVertical: 10 }]}>
-					<Text style={[styles.text, { marginBottom: 16, fontSize: 22, textAlign: "center" }]}>
-						Activity Insights
-					</Text>
-					<View style={styles.row}>
-						<Text
-							numberOfLines={1}
-							ellipsizeMode="tail"
-							style={[styles.textType, { flexShrink: 1 }]}>
-								Most Active Group
+						<View style={styles.row}>
+							<Text style={styles.textType}>Groups</Text>
+							<Text style={styles.text}>{profileDetails.totalGroups}</Text>
+						</View>
+
+						<View style={styles.row}>
+							<Text style={styles.textType}>Bills Scanned</Text>
+							<Text style={styles.text}>{profileDetails.totalBillsScanned}</Text>
+						</View>
+
+						<View style={styles.row}>
+							<Text style={styles.textType}>Pending Balance</Text>
+							<Text 
+								style={[styles.text, {color: pendingBalance > 0 ? "#00fe0d" : pendingBalance < 0 ? "red" : "gray"}]}>
+								₹{pendingBalance.toFixed(2)}
+							</Text>
+						</View>
+					</View>
+
+					<View style={[styles.container, { marginVertical: 10 }]}>
+						<Text style={[styles.text, { marginBottom: 16, fontSize: 22, textAlign: "center" }]}>
+							Activity Insights
 						</Text>
-						<Text numberOfLines={1} ellipsizeMode="tail" style={styles.text}>{profileDetails.activeGroup}</Text>
-					</View>
+						<View style={styles.row}>
+							<Text
+								numberOfLines={1}
+								ellipsizeMode="tail"
+								style={[styles.textType, { flexShrink: 1 }]}>
+									Most Active Group
+							</Text>
+							<Text numberOfLines={1} ellipsizeMode="tail" style={styles.text}>{profileDetails.activeGroup}</Text>
+						</View>
 
-					<View style={styles.row}>
-						<Text style={styles.textType}>Largest Split</Text>
-						<Text style={styles.text}>₹{profileDetails.highestExpense.toFixed(2)}</Text>
-					</View>
+						<View style={styles.row}>
+							<Text style={styles.textType}>Largest Split</Text>
+							<Text style={styles.text}>₹{profileDetails.highestExpense.toFixed(2)}</Text>
+						</View>
 
-					<View style={styles.row}>
-						<Text style={styles.textType}>Recent Activity</Text>
-						<Text style={styles.text}>{recentActivity}</Text>
+						<View style={styles.row}>
+							<Text style={styles.textType}>Recent Activity</Text>
+							<Text style={styles.text}>{recentActivity}</Text>
+						</View>
 					</View>
 				</View>
-			</View>
-		</ScrollView>
+			</ScrollView>
+		</>
 	);
 }
 

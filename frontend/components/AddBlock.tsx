@@ -27,7 +27,12 @@ const AddBlock = React.memo((props: Props) => {
 		setMemberInput,
 	} = props;
 
-	const showMembers = (members && setMembers && memberInput && setMemberInput);
+	const showMembers = (
+		members !== undefined &&
+		setMembers !== undefined &&
+		memberInput !== undefined &&
+		setMemberInput !== undefined
+	);
   return (
     <>
       <Pressable

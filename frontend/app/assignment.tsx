@@ -56,8 +56,11 @@ export default function Assignment() {
 			"Person Not Assigned",
 			`You did not select any person for \n${name.toUpperCase()}`,
 			[
-				{ text: "OK" }
-			]
+				{ text: "OK", style: "default" }
+			],
+			{
+				cancelable: true,
+			}
 		);
 	};
 

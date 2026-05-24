@@ -45,7 +45,7 @@ export default function Home() {
 			pathname: "/preview",
 			params: {
 				imageUri,
-				GROUP_ID,
+				groupId: GROUP_ID,
 			},
 		});
 	};
@@ -67,7 +67,7 @@ export default function Home() {
           	keyboardShouldPersistTaps="handled"
           	ref={scrollRef}
         >
-			<View style={{backgroundColor: "#0F172A"}}>
+			<View style={{ backgroundColor: "#0F172A", marginTop: 10 }}>
 				<View style={{ justifyContent: "center" }}>
 					<View style={{alignItems: "center"}}>
 					<Button

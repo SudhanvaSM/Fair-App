@@ -108,7 +108,6 @@ export default function Processing() {
 		};
 
 		updateStep(3);
-
 			router.replace({
 			pathname: "../review",
 			params: {

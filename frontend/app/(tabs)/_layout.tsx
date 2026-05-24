@@ -119,39 +119,6 @@ export default function TabsLayout() {
 						color={color}
 					/>,
 					animation: 'shift',
-					headerRight: () => (
-						<Menu
-							contentStyle={{ marginTop: 35, borderRadius: 20, backgroundColor: "#334155" }}
-							visible={visible}
-							onDismiss={closeMenu}
-							anchor={
-								<Pressable 
-									style={{ justifyContent: "center", alignItems: "center", paddingRight: 20 }}
-									hitSlop={10} 
-									onPress={openMenu}
-								>
-									<MaterialCommunityIcons
-										name={"dots-vertical"}
-										color={"white"}
-										size={24}
-									/>
-								</Pressable>
-							}
-						>
-						<Menu.Item
-							hitSlop={10}
-							onPress={() => {}}
-							title="Edit Group Title"
-							titleStyle={{ color: "#fff" }}
-						/>
-						<Menu.Item
-							hitSlop={10}
-							onPress={() => {}}
-							title="Delete Group"
-							titleStyle={{ color: "red" }}
-						/>
-						</Menu>
-					)
 				}}
 			/>
 		</Tabs>
