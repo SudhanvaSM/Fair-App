@@ -1,16 +1,22 @@
 import {Text, View, StyleSheet, ScrollView, Pressable, Alert} from "react-native"
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { RecentSplit } from "@/types/item";
 import Card from "@/components/Card";
 import { clearReceiptHistory, getRecentReceipts } from "@/src/services/receipt.service";
 
 export default function History() {
 	const [history, setHistory] = useState<RecentSplit[]>([]);
+
+	const scrollRef = useRef<ScrollView>(null);
 	
 	useFocusEffect(
 		useCallback(() => {
 			setHistory(getRecentReceipts());
+			scrollRef.current?.scrollTo({
+				y: 0,
+				animated: false
+			});
 		}, [])
 	);
 
@@ -30,6 +36,7 @@ export default function History() {
 				contentContainerStyle={{ paddingBottom: 40 }}
 				showsVerticalScrollIndicator={false}
 				keyboardShouldPersistTaps="handled"
+				ref={scrollRef}
 			>
 				{!history.length ? (
 					<View style={styles.container}>

@@ -19,6 +19,8 @@ export default function Summary() {
 		return <Text style={{ color: "white" }}>No Data</Text>;
 	}
 
+	const imageUri = parsedData.imageUri;
+
 	const groupId = parsedData.groupId;
 	const members = getMembersByGroupId(groupId);
 
@@ -64,6 +66,7 @@ export default function Summary() {
 		serviceCharge: parsedData.raw?.serviceCharge ?? 0,
 		createdAt: createdAt.toISOString(),
 		total: parsedData.raw?.total ?? 0,
+		imageUri,
 	};
 
 	const items: ItemWithSelection[] = parsedData.raw?.items ?? [];

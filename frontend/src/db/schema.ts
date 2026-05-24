@@ -21,6 +21,7 @@ receipts
 - service_charge
 - total
 - created_at
+- receipt_image_uri
 
 items
 - id
@@ -87,6 +88,7 @@ export function initializeDatabase() {
 			service_charge REAL DEFAULT 0,
 			total REAL NOT NULL,
 			created_at TEXT NOT NULL,
+			receipt_image_uri TEXT NOT NULL,
 
 			FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE,
 

@@ -1,7 +1,7 @@
-import {Text, View, StyleSheet, ScrollView, Pressable, Alert} from "react-native"
-import { router, Stack, useLocalSearchParams } from "expo-router";
+import {Text, View, StyleSheet, ScrollView, Pressable, Alert, Image } from "react-native"
+import { router, Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { AssignmentList, DebtDetails, Item, Receipt } from "@/types/item";
-import React, { useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { getDetailedReceipt, getItemsList, getDebtsList, getAssignmentsList, clearReceipt } from "@/src/services/receipt.service";
 import { getMemberName } from "@/src/services/member.service";
 import { Menu } from "react-native-paper";
@@ -11,6 +11,17 @@ import { getDetailedGroup, getGroupName } from "@/src/services/group.service";
 export default function DetailedHistory() {
 	const { receiptId } = useLocalSearchParams();
 	const id = Number(receiptId);
+
+	const scrollRef = useRef<ScrollView>(null);
+
+	useFocusEffect(
+		useCallback(() => {
+			scrollRef.current?.scrollTo({
+				y: 0,
+				animated: false
+			});
+		}, [])
+	);
 
 	const receipt: Receipt = getDetailedReceipt(id);
 	const items: Item[] = getItemsList(id);
@@ -138,6 +149,7 @@ export default function DetailedHistory() {
 				contentContainerStyle={{ paddingBottom: 40 }}
 				showsVerticalScrollIndicator={false}
 				keyboardShouldPersistTaps="handled"
+				ref={scrollRef}
 			>
 				<View style ={{ alignItems: "center", marginTop: 40}}>
 					<View style={[styles.container, { backgroundColor: "#334155" }]}>
@@ -252,7 +264,22 @@ export default function DetailedHistory() {
 								<Text style={styles.text}>{groupTtile}</Text>
 							</View>
 					</View>
-			</View>
+
+					<View style ={{ alignItems: "center", marginTop: 40, width: "100%" }}>
+						<View style={[styles.container, { backgroundColor: "#2B3648" }]}>
+							<Text style={[styles.text, { fontWeight: "600", fontSize: 18, textDecorationLine: "underline" }]}>Receipt Image</Text>
+							{receipt.imageUri ? (
+								<Image
+									source={{ uri: receipt.imageUri }}
+									style={{ width: 300, height: 400, borderRadius: 18, marginBottom: 20 }}
+									resizeMode="stretch"
+								/>
+							) : (
+								<Text style={styles.text}>No receipt image</Text>
+							)}
+						</View>
+					</View>
+				</View>
 			</ScrollView>
 		</>
 	);

@@ -36,7 +36,7 @@ export default function TabsLayout() {
 					tabBarLabelStyle: {
 						fontSize: 12,
 						fontWeight: "500",
-					}
+					},
 				}}
 			>
 			<Tabs.Screen
@@ -51,7 +51,7 @@ export default function TabsLayout() {
 						>Fair</Text>
 					),
 					tabBarIcon: ({ focused, color }) => <Ionicons name={ focused ? "home" : "home-outline" } size={24} color={color}/>,
-					animation: 'shift'
+					animation: 'shift',
 				}}
 			/>
 

@@ -77,7 +77,7 @@ const AddItemBlock = React.memo((props: any) => {
 });
 
 export default function Review() {
-	const { items, groupId } = useLocalSearchParams();
+	const { items, groupId, imageUri } = useLocalSearchParams();
 	const parsedParam = Array.isArray(items) ? items[0] : items;
 	const data = parsedParam ? JSON.parse(parsedParam) : null;
 
@@ -416,6 +416,7 @@ export default function Review() {
 							pathname: "/groupInput",
 							params: {
 								data: JSON.stringify(updatedData),
+								imageUri,
 							},
 							});
 					}
@@ -425,6 +426,7 @@ export default function Review() {
 							params: {
 								data: JSON.stringify(updatedData),
 								groupId: String(groupId),
+								imageUri,
 							},
 						});
 					}

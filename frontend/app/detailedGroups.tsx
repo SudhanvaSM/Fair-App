@@ -1,7 +1,7 @@
 import { Text, View, StyleSheet, ScrollView, Pressable, Alert, TextInput } from "react-native"
 import * as ImagePicker from "expo-image-picker";
-import { router, Stack, useLocalSearchParams } from "expo-router";
-import React, { useState } from "react";
+import { router, Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
+import React, { useCallback, useRef, useState } from "react";
 import { changeGroupName, deleteGroup, getLatestDate } from "@/src/services/group.service";
 import { DebtDetails, DetailedGroup, MemberBalance } from "@/types/item";
 import { getMemberBalances} from "@/src/services/member.service";
@@ -18,6 +18,16 @@ export default function DetailedGroups() {
 	if (!parsedGroup) {
 		return <Text style={{ color: "white" }}>No Data</Text>;
 	}
+	const scrollRef = useRef<ScrollView>(null);
+
+	useFocusEffect(
+		useCallback(() => {
+			scrollRef.current?.scrollTo({
+				y: 0,
+				animated: false
+			});
+		}, [])
+	);
 
 	const [groups, setGroups] = useState<DetailedGroup>(JSON.parse(parsedGroup));
 
@@ -259,6 +269,7 @@ export default function DetailedGroups() {
 				contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
 				showsVerticalScrollIndicator={false}
 				keyboardShouldPersistTaps="handled"
+				ref={scrollRef}
 			>
 				{editing && (
 					<View style={{ justifyContent: "center", alignItems: "center" }}>

@@ -73,6 +73,7 @@ export type Receipt = {
 	serviceCharge: number;
 	createdAt: string;
 	total: number;
+	imageUri: string;
 }
 
 export type Debt = {

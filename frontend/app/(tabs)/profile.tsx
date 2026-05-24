@@ -2,16 +2,21 @@ import { getProfileDetails } from "@/src/services/user.services";
 import { ProfileDetails } from "@/types/item";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {Text, View, StyleSheet, ScrollView} from "react-native";
-import { Menu } from "react-native-paper";
 
 export default function ProfileScreen() {
 	const [profileDetails, setProfileDetails] = useState<ProfileDetails>();
 
+	const scrollRef = useRef<ScrollView>(null);
+
 	useFocusEffect(
 		useCallback(() => {
 			setProfileDetails(getProfileDetails());
+			scrollRef.current?.scrollTo({
+				y: 0,
+				animated: false
+			});
 		}, [])
 	);
 
@@ -36,6 +41,8 @@ export default function ProfileScreen() {
 	else {
 		recentActivity = "No Activity"
 	}
+	
+	const pendingBalance = profileDetails.pendingBalance;
 
 	return (
 		<ScrollView
@@ -43,6 +50,7 @@ export default function ProfileScreen() {
 			contentContainerStyle={{ paddingBottom: 40 }}
 			showsVerticalScrollIndicator={false}
 			keyboardShouldPersistTaps="handled"
+			ref={scrollRef}
 		>
 			<View style={{ alignItems: "center" }}>
 				<View style={[styles.container, { flexDirection: "row" }]}>
@@ -54,39 +62,42 @@ export default function ProfileScreen() {
 						/>
 					</View>
 					<View style={styles.textContainer}>
-						<Text style={{ color: "white", fontSize: 18, fontWeight: "600", marginHorizontal: 10, }}>Sudhanva S M</Text>
-						<Text style={{ color: "white", fontSize: 14, fontWeight: "400", marginHorizontal: 10, }}>+91 9663825393</Text>
-						<Text style={{ color: "white", fontSize: 12, fontWeight: "400", marginHorizontal: 10, }}>sudhanva.madhusudhan@gmail.com</Text>
+						<Text style={{ color: "white", fontSize: 18, fontWeight: "600" }}>Sudhanva S M</Text>
+						<Text style={{ color: "white", fontSize: 14, fontWeight: "400" }}>+91 XXXXX XXXXX</Text>
+						<Text style={{ color: "white", fontSize: 12, fontWeight: "400" }}>genericemail@gmail.com</Text>
 					</View>
 				</View>
 
 				<View style={[styles.container, { marginVertical: 10 }]}>
-					<Text style={[styles.text, { marginBottom: 15, fontSize: 20, textDecorationLine: "underline", textAlign: "center" }]}>
+					<Text style={[styles.text, { marginBottom: 16, fontSize: 22, textAlign: "center" }]}>
 						Statistics
 					</Text>
 					<View style={styles.row}>
 						<Text style={styles.textType}>Total Spent</Text>
-						<Text style={styles.text}>₹{profileDetails.totalSpent}</Text>
+						<Text style={styles.text}>₹{profileDetails.totalSpent.toFixed(2)}</Text>
 					</View>
 
 					<View style={styles.row}>
 						<Text style={styles.textType}>Groups</Text>
-						<Text style={styles.text}>#{profileDetails.totalGroups}</Text>
+						<Text style={styles.text}>{profileDetails.totalGroups}</Text>
 					</View>
 
 					<View style={styles.row}>
 						<Text style={styles.textType}>Bills Scanned</Text>
-						<Text style={styles.text}>#{profileDetails.totalBillsScanned}</Text>
+						<Text style={styles.text}>{profileDetails.totalBillsScanned}</Text>
 					</View>
 
 					<View style={styles.row}>
 						<Text style={styles.textType}>Pending Balance</Text>
-						<Text style={styles.text}>₹{profileDetails.pendingBalance.toFixed(2)}</Text>
+						<Text 
+							style={[styles.text, {color: pendingBalance > 0 ? "#00fe0d" : pendingBalance < 0 ? "red" : "gray"}]}>
+							₹{pendingBalance.toFixed(2)}
+						</Text>
 					</View>
 				</View>
 
 				<View style={[styles.container, { marginVertical: 10 }]}>
-					<Text style={[styles.text, { marginBottom: 15, fontSize: 20, textDecorationLine: "underline", textAlign: "center" }]}>
+					<Text style={[styles.text, { marginBottom: 16, fontSize: 22, textAlign: "center" }]}>
 						Activity Insights
 					</Text>
 					<View style={styles.row}>
@@ -96,12 +107,12 @@ export default function ProfileScreen() {
 							style={[styles.textType, { flexShrink: 1 }]}>
 								Most Active Group
 						</Text>
-						<Text style={styles.text}>{profileDetails.activeGroup}</Text>
+						<Text numberOfLines={1} ellipsizeMode="tail" style={styles.text}>{profileDetails.activeGroup}</Text>
 					</View>
 
 					<View style={styles.row}>
 						<Text style={styles.textType}>Largest Split</Text>
-						<Text style={styles.text}>₹{profileDetails.highestExpense}</Text>
+						<Text style={styles.text}>₹{profileDetails.highestExpense.toFixed(2)}</Text>
 					</View>
 
 					<View style={styles.row}>
@@ -130,6 +141,7 @@ const styles = StyleSheet.create({
 		color: "#fff",
 		fontSize: 16,
 		fontWeight: "600",
+		flexShrink: 1
 	},
 	textType: {
 		color: "#fff",
@@ -144,14 +156,14 @@ const styles = StyleSheet.create({
 		borderWidth: 2,
 		borderColor: "#fff",
 		borderRadius: 35,
-		backgroundColor: "#fff",
+		backgroundColor: "#CBD5E1",
 		alignItems: "center",
 		justifyContent: "center",
-		marginLeft: 10,
 	},
 	textContainer: {
-		paddingHorizontal: 10,
+		paddingHorizontal: 16,
 		gap: 5,
+		marginRight: 50,
 	},
 	chipContainer: {
 		flexDirection: "column",

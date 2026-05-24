@@ -1,5 +1,5 @@
 import { View, StyleSheet, ScrollView, Pressable, TextInput, Text, Alert } from "react-native";
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { GroupSummary } from "@/types/item";
 import Groups from "@/components/Groups";
 import { createGroupWithMembers, getDetailedGroup, getGroupSummary, getGroupsWithMembers} from "@/src/services/group.service";
@@ -113,11 +113,16 @@ const AddItemBlock = React.memo((props: any) => {
 export default function GroupsScreen() {
 
 	const [groupState, setGroupState] = React.useState<GroupSummary[]>([]);
+	const scrollRef = useRef<ScrollView>(null);
 
 	useFocusEffect(
 		React.useCallback(() => {
 			const group = getGroupSummary();
-		setGroupState(group);
+			setGroupState(group);
+			scrollRef.current?.scrollTo({
+				y: 0,
+				animated: false
+			});
 		}, [])
 	);
 
@@ -159,6 +164,7 @@ export default function GroupsScreen() {
 			contentContainerStyle={{ paddingBottom: 40 }}
 			showsVerticalScrollIndicator={false}
 			keyboardShouldPersistTaps="handled"
+			ref={scrollRef}
 		>
 			<View style={{ marginTop: 10, paddingHorizontal: 10, justifyContent: "center" }}>
 				{groupState.map((group) => {

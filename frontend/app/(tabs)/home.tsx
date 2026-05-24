@@ -1,10 +1,9 @@
 import { View, Text, StyleSheet, Image, ScrollView, } from "react-native";
-import { useRouter, Link, useFocusEffect, router } from "expo-router";
+import { Link, useFocusEffect, router } from "expo-router";
 import Button from "@/components/Button";
 import * as ImagePicker from "expo-image-picker";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useActionSheet } from '@expo/react-native-action-sheet';
-import IconButton from "@/components/IconButton";
 import Card from "@/components/Card";
 import { RecentSplit } from "@/types/item";
 import { initializeDatabase } from "@/src/db/schema";
@@ -18,12 +17,16 @@ export default function Home() {
   }, []);
 
   const [history, setHistory] = useState<RecentSplit[]>([]);
+  const scrollRef = useRef<ScrollView>(null);
 
   useFocusEffect(
 		useCallback(() => {
 			const receipts = getRecentReceipts(LIMIT_RECENT_SPLITS_IN_HOME_SCREEN);
-
       setHistory(receipts);
+      scrollRef.current?.scrollTo({
+				y: 0,
+				animated: false
+			});
 		}, [])
 	);
 
@@ -114,6 +117,7 @@ export default function Home() {
         contentContainerStyle={{ paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        ref={scrollRef}
       >
       <View style={{backgroundColor: "#0F172A"}}>
         <View style={{ justifyContent: "center" }}>

@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, Pressable, Alert } from "react-native";
-import { Stack, useLocalSearchParams, router } from "expo-router";
+import { Stack, useLocalSearchParams, router, useFocusEffect } from "expo-router";
 import ItemBox from "@/components/ItemBox";
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { ItemWithSelection, ItemPerPerson } from "@/types/item";
 import React from "react";
 import { buildAssignments } from "@/utils/buildAssignment";
@@ -10,7 +10,7 @@ import { getMembersByGroupId } from "@/src/services/member.service";
 
 export default function Assignment() {
 
-	const { data, groupId } = useLocalSearchParams();
+	const { data, groupId, imageUri } = useLocalSearchParams();
 	const parsedParam = Array.isArray(data) ? data[0] : data;
 	const parsedData = parsedParam ? JSON.parse(parsedParam) : null;
 
@@ -111,6 +111,7 @@ export default function Assignment() {
 					finalTip: parsedData.raw.finalTip
 				},
 				groupId: parsedGroupId,
+				imageUri,
 			})
 			}
 		});

@@ -110,6 +110,7 @@ export default function Processing() {
 			params: {
 				items: JSON.stringify(normalisedData),
 				groupId: String(groupId),
+				imageUri: uri,
 			},
 			});
 

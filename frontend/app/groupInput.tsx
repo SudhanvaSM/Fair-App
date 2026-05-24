@@ -110,7 +110,7 @@ const AddItemBlock = React.memo((props: any) => {
 });
 
 export default function GroupInput() {
-	const { data } = useLocalSearchParams();
+	const { data, imageUri } = useLocalSearchParams();
 	const parsedParam = Array.isArray(data) ? data[0] : data;
 	const parsedData = parsedParam ? JSON.parse(parsedParam) : null;
 	
@@ -155,6 +155,7 @@ export default function GroupInput() {
 			params: {
 				data: JSON.stringify(parsedData),
 				groupId: String(group.id),
+				imageUri,
 			},
 		});
 	};
