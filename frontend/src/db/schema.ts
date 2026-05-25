@@ -38,7 +38,6 @@ debts
 - from_member_id
 - to_member_id
 - amount
-- settled_amount
 - status
 
 item_assignments
@@ -113,7 +112,6 @@ export function initializeDatabase() {
 			from_member_id INTEGER NOT NULL,
 			to_member_id INTEGER NOT NULL,
 			amount REAL NOT NULL,
-			settled_amount REAL DEFAULT 0,
 
 			status TEXT NOT NULL DEFAULT 'pending',
 
