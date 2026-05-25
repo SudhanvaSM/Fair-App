@@ -148,6 +148,8 @@ export default function DetailedGroups() {
 		});
 	};
 
+	const [pressed, setPressed] = useState(false);
+
 	if (!groups || !balances) {
 		return (
     		<View style={{ flex: 1, backgroundColor: "#0F172A" }} />
@@ -239,7 +241,7 @@ export default function DetailedGroups() {
 						</View>
 					</View>
 				)}
-				<View style ={{ alignItems: "center", marginTop: 28, }}>
+				<View style ={{ alignItems: "center", marginTop: 40, }}>
 					<View style={[styles.container, { backgroundColor: "#2B3648", paddingHorizontal: 20 }]}>
 						<Text style={styles.title}>Group Overview</Text>
 						<View style={styles.row}>
@@ -274,7 +276,7 @@ export default function DetailedGroups() {
 
 				{hasTransactions ? (
 					<>
-					<View style ={{ alignItems: "center", marginTop: 28, }}>
+					<View style ={{ alignItems: "center", marginTop: 40, }}>
 						<View style={[styles.container, { backgroundColor: "#334155" }]}>
 							<Text style={styles.title}>Balances</Text>
 							{balances?.map((member) => {
@@ -285,7 +287,7 @@ export default function DetailedGroups() {
 										<Text style={styles.text}>{member.name}</Text>
 									</View>
 									<View style={{ alignItems: "flex-end" }}>
-										<Text style={[styles.text, { color: balance > 0 ? "#00fe0d" : balance < 0 ? "red" : "gray" }]}>
+										<Text style={[styles.text, { color: balance > 0 ? "#10B981" : balance < 0 ? "#DC2626" : "gray" }]}>
 											{balance > 0 ? `+₹${balance.toFixed(2)}` : balance < 0 ? `-₹${Math.abs(balance).toFixed(2)}` : "Settled"}</Text>
 									</View>
 								</View>
@@ -294,7 +296,7 @@ export default function DetailedGroups() {
 						</View>
 					</View>
 
-					<View style ={{ alignItems: "center", marginTop: 28, }}>
+					<View style ={{ alignItems: "center", marginTop: 40, }}>
 						<View style={[styles.container, { backgroundColor: "#2B3648" }]}>
 							<Text style={styles.title}>Who Owes Whom?</Text>
 							{groups?.debts?.map((debt) => {
@@ -313,7 +315,7 @@ export default function DetailedGroups() {
 										>
 											<MaterialCommunityIcons 
 												name={debt.status === 'settled' ? "checkbox-marked-circle-outline" : "checkbox-blank-circle-outline"}
-												color={debt.status === 'settled' ? "#00fe0d" : "red"}
+												color={debt.status === 'settled' ? "#10B981" : "#DC2626"}
 												size={20}
 											/>
 										</Pressable>
@@ -324,7 +326,7 @@ export default function DetailedGroups() {
 						</View>
 					</View>
 
-					<View style ={{ alignItems: "center", marginTop: 28 }}>
+					<View style ={{ alignItems: "center", marginTop: 40 }}>
 						<View style={[styles.container, { backgroundColor: "#334155", gap: 10 }]}>
 							<Text style={styles.title}>Transaction History</Text>
 							{groups?.receipts.map((receipt) => {
@@ -335,7 +337,7 @@ export default function DetailedGroups() {
 										<Transaction
 											title={title}
 											paidBy={payerName}
-											date={new Date(receipt.createdAt)}
+											date={receipt.createdAt}
 											price={receipt.total}
 											onPress={() => redirectToDetailedHistory(receipt.id || -1)}
 										/>
@@ -352,11 +354,15 @@ export default function DetailedGroups() {
 					</View>
 				</>
 				}
-				<View style={{ justifyContent: "center", alignItems: "center", marginVertical: 20 }}>
+
+				<View style={{ justifyContent: "center", alignItems: "center", marginTop: 40 }}>
 					<Pressable
+						style={[styles.emptyBox, { transform: [{ scale: pressed ? 0.95 : 1 }] }]}
 						onPress={onContinueImageAsync}
+						onPressIn={() => setPressed(true)}
+						onPressOut={() => setPressed(false)}
 					>
-						<Text style={styles.emptyText}>Click to add a split</Text>
+						<Text style={styles.emptyText}>Add New Split</Text>
 					</Pressable>
 				</View>
 			</ScrollView>
@@ -414,14 +420,13 @@ const styles = StyleSheet.create({
 		fontSize: 20,
 		fontWeight: "700",
 		color: "#fff",
-		textDecorationLine: "underline",
+		marginBottom: 8,
 	},
 	emptyText: {
-		color: "#fff",
+		color: "#0F172A",
 		textAlign: "center",
 		fontSize: 18,
 		fontWeight: "500",
-		textDecorationLine: "underline",
 	},
 	input: {
 		width: "90%",
@@ -447,11 +452,11 @@ const styles = StyleSheet.create({
 		marginBottom: 20,
 	},
 	cancel: {
-		color: "#f87171",
+		color: "#DC2626",
 		fontSize: 14,
 	},
 	save: {
-		color: "#34d399",
+		color: "#10B981",
 		fontWeight: "600",
 		fontSize: 14,
 	},
@@ -461,4 +466,17 @@ const styles = StyleSheet.create({
 		fontWeight: "600",
 		flexShrink: 1,
   	},
+	emptyBox: {
+		width: "45%",
+		backgroundColor: "#E2E8F0",
+		paddingHorizontal: 20,
+		paddingVertical: 12,
+		borderRadius: 20,
+		alignItems: "center",
+		justifyContent: "center",
+		shadowColor: "#000",
+		shadowOpacity: 0.25,
+		shadowRadius: 6,
+		elevation: 4,
+	}
 });

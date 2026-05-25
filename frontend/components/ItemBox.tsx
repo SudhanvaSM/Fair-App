@@ -81,8 +81,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#334155",
 		padding: 14,
 		borderRadius: 20,
-		marginBottom: 12,
-		marginTop: 10,
+		marginTop: 30,
 		elevation: 2,
     },
 	header: {
@@ -131,10 +130,9 @@ const styles = StyleSheet.create({
 	hint: {
 		fontSize: 14,
     	color: "#cbd5f5",
-
 	},
 	splitText: {
-		fontSize: 13,
+		fontSize: 14,
 		fontWeight: "500",
 		color: "#fff",
 	}

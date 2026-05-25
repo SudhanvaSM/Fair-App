@@ -41,7 +41,7 @@ const AddBlock = React.memo((props: Props) => {
       >
         <MaterialIcons name={"add-circle-outline"} size={20} color="orange" />
         <Text style={{ color: "#cbd5f5", fontWeight: "500", fontSize: 16 }}>
-          Add New Group
+          {showMembers ? "Add New Group" : "Add New Item"}
         </Text>
       </Pressable>
 

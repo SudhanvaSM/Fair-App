@@ -222,7 +222,12 @@ export default function Summary() {
 					</View>
 				</View>
 
-				<View style={{alignItems: "center", marginTop: 20}}>
+				<View style={{ marginVertical: 28 }}>
+					<Text style={styles.subText}>Review totals before saving</Text>
+					<Text style={styles.subText}>Saved receipts cannot be edited later</Text>
+				</View>
+
+				<View style={{alignItems: "center" }}>
 					<View style={[styles.next, saving && { opacity: 0.6 }]}>
 						<Pressable
 							onPress={() => handleSaveAndGoHome()}
@@ -265,7 +270,6 @@ const styles = StyleSheet.create({
 		overflow: "hidden",
 		paddingHorizontal: 20,
 		paddingVertical: 10,
-		marginTop: 20,
 	},
 	nextText: {
 		color: "#fff", 
@@ -286,7 +290,7 @@ const styles = StyleSheet.create({
 		backgroundColor: "#111827",
 		color: "#fff",
 		paddingHorizontal: 15,
-		borderRadius: 18,
+		borderRadius: 16,
 		marginTop: 5,
 	},
 	titleText: {
@@ -294,5 +298,11 @@ const styles = StyleSheet.create({
 		fontWeight: "500",
 		color: "#fff",
 		textAlign: "center",
-	}
+	},
+	subText: {
+		fontSize: 16,
+		fontWeight: "500",
+		color: "#cbd5f5",
+		textAlign: "center",
+	},
 });

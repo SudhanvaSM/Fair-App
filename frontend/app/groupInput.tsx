@@ -67,7 +67,7 @@ export default function GroupInput() {
 			<Stack.Screen
 				options={{
 				headerStyle: { backgroundColor: "#1E293B" },
-				headerTitle: "Group Input",
+				headerTitle: "Select Group",
 				headerTitleAlign: "left",
 				headerShadowVisible: false,
 				headerTintColor: "#ffffff",
@@ -116,6 +116,11 @@ export default function GroupInput() {
 							setMemberInput={setMemberInput}
 							onAdd={addItem}
 						/>
+					</View>
+
+					<View style={{ marginTop: 20 }}>
+						<Text
+						style={styles.text}>Select a group or create a new one</Text>
 					</View>
 			</ScrollView>
 		</KeyboardAvoidingView>
@@ -183,5 +188,11 @@ const styles = StyleSheet.create({
 		flexDirection: "row",
 		justifyContent: "space-between",
 		gap: 20,
+	},
+	text: {
+		color: "#cbd5f5",
+		fontSize: 16,
+		fontWeight: "500",
+		textAlign: "center",
 	},
 });

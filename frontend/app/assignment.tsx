@@ -128,7 +128,7 @@ export default function Assignment() {
 			<Stack.Screen
 				options={{
 					headerStyle: { backgroundColor: "#1E293B" },
-					headerTitle: "Who ate what?",
+					headerTitle: "Who Ate What?",
 					headerTitleAlign: "left",
 					headerShadowVisible: false,
 					headerTintColor: "#ffffff",
@@ -141,7 +141,7 @@ export default function Assignment() {
 				showsVerticalScrollIndicator={false}
 				keyboardShouldPersistTaps="handled"
 			>
-				<View style={{alignItems: "center", marginTop: 20}}>
+				<View style={{alignItems: "center", marginTop: 20 }}>
 					<Pressable
 						style={styles.container} 
 						onPress={splitEverythingEqually}>
@@ -161,18 +161,19 @@ export default function Assignment() {
 					))}
 				</View>
 
-				<View style={{alignItems: "center", marginTop: 20}}>
-					<View style={styles.next}>
-						<Pressable
-							onPress={() => handleNext()}
-							style={styles.next}
-						>
-							<Text style={styles.nextText}>
-								Looks Good {"\n"} →
-							</Text>
-						</Pressable>
-							
-					</View>
+				<View style={{ marginVertical: 28 }}>
+					<Text style={styles.subText}>Select who shared each item</Text>
+				</View>
+
+				<View style={{ alignItems: "center" }}>
+					<Pressable
+						onPress={() => handleNext()}
+						style={styles.next}
+					>
+						<Text style={styles.nextText}>
+							Looks Good {"\n"} →
+						</Text>
+					</Pressable>
 				</View>
 			</ScrollView>
 		</>
@@ -197,6 +198,7 @@ const styles = StyleSheet.create({
 		color: "#fff",
 	},
 	next: {
+		width: "50%",
 		backgroundColor: "#10B981",
 		borderRadius: 20,
 		overflow: "hidden",
@@ -207,6 +209,12 @@ const styles = StyleSheet.create({
 		color: "#fff", 
 		fontSize: 20,
 		fontWeight: "600",
+		textAlign: "center",
+	},
+	subText: {
+		fontSize: 16,
+		fontWeight: "500",
+		color: "#cbd5f5",
 		textAlign: "center",
 	},
 });

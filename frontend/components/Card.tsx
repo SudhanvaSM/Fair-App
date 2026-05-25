@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
 		flexShrink: 1,
 	},
 	price: {
-		color: "#00fe0d",
+		color: "#10B981",
 		fontSize: 18,
 		fontWeight: "600",
 	},

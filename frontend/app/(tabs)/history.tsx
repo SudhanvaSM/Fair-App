@@ -144,12 +144,14 @@ const styles = StyleSheet.create({
 		flex: 1,
 		backgroundColor: "#0F172A",
 		alignItems: "center",
-		marginTop: 20,
+		marginTop: 28,
+		justifyContent: "center",
 	},
 	text: {
 		color: "white",
-		fontSize: 18,
-		fontWeight: "600",
+		fontSize: 16,
+		fontWeight: "500",
+		textAlign: "center",
 	},
 	scrollView: {
 		backgroundColor: '#0F172A',

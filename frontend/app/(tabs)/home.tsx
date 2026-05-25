@@ -1,5 +1,5 @@
-import { View, Text, StyleSheet, ScrollView, } from "react-native";
-import { Link, useFocusEffect, router } from "expo-router";
+import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
+import { useFocusEffect, router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 
 import { RecentSplit } from "@/types/item";
@@ -14,7 +14,6 @@ import DateFormat from "@/utils/dateFormat";
 
 import Card from "@/components/Card";
 import Button from "@/components/Button";
-
 
 const LIMIT_RECENT_SPLITS_IN_HOME_SCREEN = 5;
 const GROUP_ID = "-1";
@@ -59,6 +58,8 @@ export default function Home() {
         });
     };
 
+	const [pressed, setPressed] = useState(false);
+
     return (
         <ScrollView
           	style={styles.scrollView}
@@ -100,10 +101,15 @@ export default function Home() {
 								);
 								})}
 
-								<View style={{justifyContent: "center", alignItems: "center"}}>
-									<Link href={"/history"} style={styles.href}>
-										See full history
-									</Link>
+								<View style={{ justifyContent: "center", alignItems: "center" }}>
+									<Pressable
+										style={[styles.historyButton, { transform: [{ scale: pressed ? 0.95 : 1 }] }]}
+										onPress={() => router.push("/(tabs)/history")}
+										onPressIn={() => setPressed(true)}
+										onPressOut={() => setPressed(false)}
+									>
+										<Text style={styles.historyButtonText}>See Full History</Text>
+									</Pressable>
 								</View>
 							</View>
 						</>
@@ -135,5 +141,19 @@ const styles = StyleSheet.create({
 		textDecorationLine: "underline",
 		color: "#fff",
 		marginTop: 20,
+	},
+	historyButton: {
+		marginTop: 40,
+		paddingVertical: 12,
+		paddingHorizontal: 16,
+		borderRadius: 16,
+		backgroundColor: "#556274",
+		justifyContent: "center",
+		alignItems: "center",
+	},
+	historyButtonText: {
+		fontSize: 16,
+		fontWeight: "600",
+		color: "#fff",
 	},
 });

@@ -1,5 +1,6 @@
-import {Text, View, StyleSheet, ScrollView, Pressable, Alert, Image } from "react-native"
+import {Text, View, StyleSheet, ScrollView, Pressable, Alert, Image, Share } from "react-native"
 import { router, Stack, useLocalSearchParams } from "expo-router";
+import * as Clipboard from "expo-clipboard";
 import { useState } from "react";
 import { Menu } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -11,6 +12,8 @@ import { getMemberName } from "@/src/services/member.service";
 import { getDetailedGroup, getGroupName } from "@/src/services/group.service";
 
 import useScrollToTop from "./hooks/useScrollToTop";
+
+import genereteReceiptSummary from "@/utils/generateReceiptSummary";
 
 export default function DetailedHistory() {
 	const { receiptId } = useLocalSearchParams();
@@ -61,6 +64,16 @@ export default function DetailedHistory() {
 		})
 	}
 
+	const summary = genereteReceiptSummary(receipt, debts, items, groupTtile, payer.name);
+
+	const copyToClipboard = async() => {
+		await Clipboard.setStringAsync(summary);
+	}
+
+	const shareAsMessage = async() => {
+		await Share.share({ message: summary });
+	}
+
 	const removeItem = (id: number) => {
 		closeMenu();
 		Alert.alert (
@@ -98,7 +111,7 @@ export default function DetailedHistory() {
 					headerStyle: { backgroundColor: "#1E293B" },
 					headerTitle: () => (
 						<Text
-							style={styles.title}
+							style={styles.headerTitle}
 							numberOfLines={1}
 							ellipsizeMode="tail"
 						>{receipt.title}</Text>
@@ -134,6 +147,18 @@ export default function DetailedHistory() {
 							/>
 							<Menu.Item
 								hitSlop={10}
+								onPress={() => {copyToClipboard()}}
+								title="Copy Split"
+								titleStyle={{ color: "#fff" }}
+							/>
+							<Menu.Item
+								hitSlop={10}
+								onPress={() => {shareAsMessage()}}
+								title="Share Split"
+								titleStyle={{ color: "#fff" }}
+							/>
+							<Menu.Item
+								hitSlop={10}
 								onPress={() => removeItem(id)}
 								title="Remove Split"
 								titleStyle={{ color: "red" }}
@@ -151,29 +176,29 @@ export default function DetailedHistory() {
 			>
 				<View style ={{ alignItems: "center", marginTop: 40}}>
 					<View style={[styles.container, { backgroundColor: "#334155" }]}>
-						<Text style={[styles.text, { fontWeight: "600", fontSize: 18, textDecorationLine: "underline" }]}>Bill Details</Text>
+						<Text style={styles.title}>Bill Details</Text>
 							<View style={styles.row}>
-								<Text style={styles.text}>Subtotal:</Text>
+								<Text style={styles.text}>Subtotal</Text>
 								<Text style={styles.text}>₹{receipt.subtotal.toFixed(2) ?? 0}</Text>
 							</View>
 
 							<View style={styles.row}>
-								<Text style={styles.text}>Tax:</Text>
+								<Text style={styles.text}>Tax</Text>
 								<Text style={styles.text}>₹{receipt.tax.toFixed(2) ?? 0}</Text>
 							</View>
 
 							<View style={styles.row}>
-								<Text style={styles.text}>Service Charge:</Text>
+								<Text style={styles.text}>Service Charge</Text>
 								<Text style={styles.text}>₹{receipt.serviceCharge ?? 0}</Text>
 							</View>
 
 							<View style={styles.row}>
-								<Text style={styles.text}>Tips:</Text>
+								<Text style={styles.text}>Tips</Text>
 								<Text style={styles.text}>₹{receipt.finalTip ?? 0}</Text>
 							</View>
 
 							<View style={styles.row}>
-								<Text style={styles.totalText}>Total:</Text>
+								<Text style={styles.totalText}>Total</Text>
 								<Text style={styles.totalText}>₹{receipt.total.toFixed(2) ?? 0}</Text>
 							</View>
 					</View>
@@ -181,7 +206,7 @@ export default function DetailedHistory() {
 
 				<View style ={{ alignItems: "center", marginTop: 40, }}>
 					<View style={[styles.container, { backgroundColor: "#2B3648" }]}>
-						<Text style={[styles.text, { fontWeight: "600", fontSize: 18, textDecorationLine: "underline" }]}>Breakdown</Text>
+						<Text style={styles.title}>Breakdown</Text>
 						{debts.map((debt) => {
 							return (
 							<View key={debt.id} style={styles.row}>
@@ -190,7 +215,7 @@ export default function DetailedHistory() {
 								</View>
 								<View style={{ flexDirection: "column", justifyContent: "center", alignItems: "flex-end" }}>
 									<Text style={[styles.text, { fontWeight: "700" }]}>₹{debt.amount.toFixed(2)}</Text>
-									<Text style={styles.text}>Owes {debt.toMember}</Text>
+									<Text style={styles.text}> {debt.fromMember === "You" ? "Owe" : "Owes" } {debt.toMember}</Text>
 								</View>
 							</View>
 							);
@@ -209,7 +234,7 @@ export default function DetailedHistory() {
 
 				<View style ={{ alignItems: "center", marginTop: 40}}>
 					<View style={[styles.container, { backgroundColor: "#334155" }]}>
-						<Text style={[styles.text, { fontWeight: "600", fontSize: 18, textDecorationLine: "underline" }]}>Items</Text>
+						<Text style={styles.title}>Items</Text>
 						{items.map((item: Item) => {
 							return (
 								<View key={item.itemId} style={styles.row}>
@@ -225,7 +250,7 @@ export default function DetailedHistory() {
 
 				<View style ={{ alignItems: "center", marginTop: 40}}>
 					<View style={[styles.container, { backgroundColor: "#2B3648" }]}>
-						<Text style={[styles.text, { fontWeight: "600", fontSize: 18, textDecorationLine: "underline" }]}>Who Ate What</Text>
+						<Text style={styles.title}>Who Ate What</Text>
 						{peopleSelections.map((item) => {
 							return (
 							<View key={item.itemId} style={styles.row}>
@@ -239,33 +264,33 @@ export default function DetailedHistory() {
 					</View>
 				</View>
 
-				<View style ={{ alignItems: "center", marginTop: 40}}>
-					<View style={[styles.container, { backgroundColor: "#2B3648" }]}>
-						<Text style={[styles.text, { fontWeight: "600", fontSize: 18, textDecorationLine: "underline" }]}>Other</Text>
+				<View style ={{ alignItems: "center", marginTop: 40 }}>
+					<View style={[styles.container, { backgroundColor: "#334155" }]}>
+						<Text style={styles.title}>Other</Text>
 							<View style={styles.row}>
-								<Text style={styles.text}>Receipt ID:</Text>
+								<Text style={styles.text}>Receipt ID</Text>
 								<Text style={styles.text}>{receipt.id}</Text>
 							</View>
 
 							<View style={styles.row}>
-								<Text style={styles.text}>Date:</Text>
+								<Text style={styles.text}>Date</Text>
 								<Text style={styles.text}>{date.toLocaleDateString([], { day:"2-digit", month: "long", year: "numeric" }) ?? 0}</Text>
 							</View>
 
 							<View style={styles.row}>
-								<Text style={styles.text}>Time:</Text>
+								<Text style={styles.text}>Time</Text>
 								<Text style={styles.text}>{date.toLocaleTimeString([], { hour:"2-digit", minute: "2-digit" }) ?? 0}</Text>
 							</View>
 
 							<View style={styles.row}>
-								<Text style={styles.text}>Group Name:</Text>
+								<Text style={styles.text}>Group Name</Text>
 								<Text style={styles.text}>{groupTtile}</Text>
 							</View>
 					</View>
 
 					<View style ={{ alignItems: "center", marginTop: 40, width: "100%" }}>
 						<View style={[styles.container, { backgroundColor: "#2B3648" }]}>
-							<Text style={[styles.text, { fontWeight: "600", fontSize: 18, textDecorationLine: "underline" }]}>Receipt Image</Text>
+							<Text style={styles.title}>Receipt Image</Text>
 							{receipt.imageUri ? (
 								<Image
 									source={{ uri: receipt.imageUri }}
@@ -307,21 +332,6 @@ const styles = StyleSheet.create({
 		fontWeight: "300",
 		color: "#fff",
 	},
-	next: {
-		width: "50%",
-		backgroundColor: "#7C3AED",
-		borderRadius: 20,
-		overflow: "hidden",
-		paddingHorizontal: 20,
-		paddingVertical: 10,
-		marginTop: 20,
-	},
-	nextText: {
-		color: "#fff", 
-		fontSize: 20,
-		fontWeight: "600",
-		textAlign: "center",
-	},
 	row: {
 		flexDirection: "row",
 		justifyContent: "space-between",
@@ -333,13 +343,20 @@ const styles = StyleSheet.create({
 	totalText: {
 		fontSize: 18,
 		fontWeight: "700",
-		color: "#22c55e",
+		color: "#10B981",
 		paddingVertical: 4,
 	},
 	title: {
 		color: "#fff",
-		fontSize: 18,
-		fontWeight: "600",
-		flexShrink: 1,
+		fontSize: 20,
+		fontWeight: "700",
+		marginBottom: 8,
+		paddingTop: 4,
   	},
+	headerTitle: {
+		color: "#fff",
+		fontSize: 18,
+		fontWeight: "700",
+		flexShrink: 1,
+	}
 });

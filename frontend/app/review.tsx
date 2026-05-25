@@ -105,7 +105,7 @@ export default function Review() {
 		<Stack.Screen
         options={{
           headerStyle: { backgroundColor: "#1E293B" },
-          headerTitle: "Review receipt",
+          headerTitle: "Review Receipt",
           headerTitleAlign: "left",
           headerShadowVisible: false,
           headerTintColor: "#ffffff",
@@ -248,7 +248,7 @@ export default function Review() {
 						)}
 					</View>
 
-					{includeServiceCharge && (
+					{includeServiceCharge && raw.serviceCharge != 0 && (
 						<View style={styles.row}>
 							<Text style={styles.label}>Service Charge</Text>
 							<Text style={styles.price}>₹{serviceCharge.toFixed(2)}</Text>
@@ -327,10 +327,10 @@ export default function Review() {
 
 				<View style={styles.footer}>
 					<Text style={styles.footerText}>
-						Review the detected items. 
+						Review the detected items 
 					</Text>
 					<Text style={styles.footerText}>
-						Tap any item to edit or correct it.
+						Tap any item to edit or correct it
 					</Text>
 				</View>
 			</View>
@@ -424,7 +424,7 @@ const styles = StyleSheet.create({
 	footer: {
 		justifyContent: "center", 
 		alignItems: "center", 
-		marginTop: 20,
+		marginVertical: 28,
 	},
 	footerText: {
 		color: "#cbd5f5", 
@@ -438,7 +438,6 @@ const styles = StyleSheet.create({
 		overflow: "hidden",
 		paddingHorizontal: 20,
 		paddingVertical: 10,
-		marginTop: 40,
 	},
 	nextText: {
 		color: "#fff", 
