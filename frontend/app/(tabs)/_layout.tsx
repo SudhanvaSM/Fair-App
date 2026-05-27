@@ -1,16 +1,16 @@
 import { Tabs, } from 'expo-router';
-import { useState } from 'react';
 import { MaterialCommunityIcons, Ionicons, MaterialIcons } from '@expo/vector-icons';
+
+// Provides package to use expo-image-picker
 import { ActionSheetProvider }  from '@expo/react-native-action-sheet';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Menu } from 'react-native-paper';
-import { Pressable, Text, StyleSheet } from 'react-native';
+import { Text, StyleSheet } from 'react-native';
 
 export default function TabsLayout() {
+	// To add padding for the bottom navigation bar to make
+	// it float above the bottom boundary
 	const insets = useSafeAreaInsets();
-	const [visible, setVisible] = useState(false);
-	const openMenu = () => setVisible(true);
-	const closeMenu = () => setVisible(false);
 
 	return (
 		<ActionSheetProvider>
@@ -38,6 +38,7 @@ export default function TabsLayout() {
 					},
 				}}
 			>
+
 			<Tabs.Screen
 				name="home"
 				options={{

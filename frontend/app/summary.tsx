@@ -8,7 +8,6 @@ import { db } from "@/src/db/database";
 import { createItemAssignment, createReceipt, createReceiptItem } from "@/src/services/receipt.service";
 import { getMembersByGroupId } from "@/src/services/member.service";
 import { createDebt } from "@/src/services/debt.service";
-
 export default function Summary() {
 
 	const { data } = useLocalSearchParams();
@@ -131,6 +130,7 @@ export default function Summary() {
 			setSaving(false);
 		}
 	};
+
 
 	return (
 		<>

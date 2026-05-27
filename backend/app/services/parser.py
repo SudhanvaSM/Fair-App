@@ -5,8 +5,6 @@ import json
 DEBUG = False 
 
 PRICE_REGEX = re.compile(r'\d+(?:[.,]\d{1,2})?\s*$')
-#PRICE_REGEX = re.compile(r'(\d+(?:[.,]\d{1,2})?)\D*$')
-#PRICE_REGEX = re.compile(r'(\d+(?:[.,]\d{2})?)\s*$')
 
 NUMBER_REGEX = re.compile(r'\d+(?:[.,]\d{1,2})?')
 

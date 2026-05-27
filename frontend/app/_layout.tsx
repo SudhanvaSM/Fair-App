@@ -11,7 +11,10 @@ export default function RootLayout() {
 				<Stack>
 					<Stack.Screen 
 						name="(tabs)" 
-						options={{ headerShown: false, animation: "slide_from_right" }} 
+						options={{ 
+							headerShown: false, 
+							animation: "slide_from_right",
+						}} 
 					/>
 				</Stack>
 			</PaperProvider>

@@ -41,6 +41,7 @@ export default function Review() {
 			totalPrice: 0,
 		};
 		setItemsState((prev: Item[]) => [...prev, newItem]);
+		setShowInput(false);
 	};
 	
 	const [includeServiceCharge, setIncludeServiceCharge] = useState(true);

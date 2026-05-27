@@ -17,6 +17,9 @@ export default function genereteReceiptSummary(
 	const total = (receipt.total).toFixed(2);
 	const payerName = payer;
 
+	const activeDebts: DebtDetails[] = debts.filter((debt) => debt.status === 'pending');
+	const settledDebts: DebtDetails[] = debts.filter((debt) => debt.status === 'settled');
+
 	return `FAIR Split Summary
 
 Group: ${group}
@@ -33,7 +36,10 @@ Tax: ₹${tax}
 ${serviceCharge}${tip}Total: ₹${total}
 
 Balances:
-${debts.map((debt: DebtDetails) => 
+${settledDebts.map((debt: DebtDetails) => 
+	`• ${debt.fromMember} paid ✅`
+).join("\n")}
+${activeDebts.map((debt: DebtDetails) => 
 	`• ${debt.fromMember} ${debt.fromMember === "You" ? "owe" : "owes" } ${debt.toMember} ₹${debt.amount.toFixed(2)}`
 ).join("\n")}
 

@@ -3,7 +3,7 @@ import { ParsedData, Assignments } from "@/types/item";
 export function splitBill(parsedData: ParsedData, assignments: Assignments, includeServiceCharge: boolean) {
   	const personSubtotals: Record<string, number> = {};
 
-  // Split item costs
+  	// Split item costs
 	for (const item of parsedData.items) {
 		const { itemId, totalPrice } = item;
 		const assignment = assignments[itemId];
@@ -56,14 +56,13 @@ export function splitBill(parsedData: ParsedData, assignments: Assignments, incl
 		serviceCharge = 0,
 		rounding = 0,
 		finalTip = 0,
-		total,
 	} = parsedData;
 
 	const totalExtra = tax + rounding + (includeServiceCharge ? serviceCharge : 0) + finalTip;
 
 	const newTotal = subtotal + totalExtra;
 
-	const personTotalsExact: Record<string, number> = {};
+	const personTotals: Record<string, number> = {};
 
 	for (const person in personSubtotals) {
 		const sub = personSubtotals[person];
@@ -72,19 +71,16 @@ export function splitBill(parsedData: ParsedData, assignments: Assignments, incl
 
 		const exactTotal = sub + shareRatio * totalExtra;
 
-		personTotalsExact[person] = exactTotal;
+		personTotals[person] = exactTotal;
 	}
 
 	// Round values
-	const personTotals: Record<string, number> = {};
-
-	for (const person in personTotalsExact) {
-		personTotals[person] = Number(
-		personTotalsExact[person].toFixed(2)
-		);
+	for (const person in personTotals) {
+		const roundedValue = Number(personTotals[person].toFixed(2));
+		personTotals[person] = roundedValue;
 	}
 
-	// Fix rounding mismatch
+	// Fix rounding mismatch in total
 	const currentSum = Object.values(personTotals).reduce((a, b) => a + b, 0);
 
 	const diff = Number((newTotal - currentSum).toFixed(2));

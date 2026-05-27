@@ -34,6 +34,7 @@ def clean_common_ocr(name: str) -> str:
 
         "rot": "roti",
         "roit": "roti",
+        "roti h": "roti",
 
         "nran": "naan",
         "naa": "naan",

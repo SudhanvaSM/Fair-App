@@ -26,7 +26,7 @@ export default function DetailedHistory() {
 	const debts: DebtDetails[] = getDebtsList(id);
 	const assignments: AssignmentList[] = getAssignmentsList(id);
 
-	const groupTtile = getGroupName(receipt.groupId);
+	const groupTitle = getGroupName(receipt.groupId);
 
 	const totalDebts = debts.reduce((sum: number, debt: DebtDetails) => sum + debt.amount, 0);
 
@@ -64,7 +64,7 @@ export default function DetailedHistory() {
 		})
 	}
 
-	const summary = genereteReceiptSummary(receipt, debts, items, groupTtile, payer.name);
+	const summary = genereteReceiptSummary(receipt, debts, items, groupTitle, payer.name);
 
 	const copyToClipboard = async() => {
 		await Clipboard.setStringAsync(summary);
@@ -179,27 +179,30 @@ export default function DetailedHistory() {
 						<Text style={styles.title}>Bill Details</Text>
 							<View style={styles.row}>
 								<Text style={styles.text}>Subtotal</Text>
-								<Text style={styles.text}>₹{receipt.subtotal.toFixed(2) ?? 0}</Text>
+								<Text style={styles.text}>₹{receipt.subtotal.toFixed(2)}</Text>
 							</View>
 
 							<View style={styles.row}>
 								<Text style={styles.text}>Tax</Text>
-								<Text style={styles.text}>₹{receipt.tax.toFixed(2) ?? 0}</Text>
+								<Text style={styles.text}>₹{receipt.tax.toFixed(2)}</Text>
 							</View>
 
-							<View style={styles.row}>
+							{receipt.serviceCharge > 0 && (<View style={styles.row}>
 								<Text style={styles.text}>Service Charge</Text>
-								<Text style={styles.text}>₹{receipt.serviceCharge ?? 0}</Text>
+								<Text style={styles.text}>₹{receipt.serviceCharge}</Text>
 							</View>
+							)}
 
-							<View style={styles.row}>
-								<Text style={styles.text}>Tips</Text>
-								<Text style={styles.text}>₹{receipt.finalTip ?? 0}</Text>
-							</View>
+							{receipt.finalTip > 0 && (
+								<View style={styles.row}>
+									<Text style={styles.text}>Tips</Text>
+									<Text style={styles.text}>₹{receipt.finalTip}</Text>
+								</View>
+							)}
 
 							<View style={styles.row}>
 								<Text style={styles.totalText}>Total</Text>
-								<Text style={styles.totalText}>₹{receipt.total.toFixed(2) ?? 0}</Text>
+								<Text style={styles.totalText}>₹{receipt.total.toFixed(2)}</Text>
 							</View>
 					</View>
 				</View>
@@ -284,7 +287,7 @@ export default function DetailedHistory() {
 
 							<View style={styles.row}>
 								<Text style={styles.text}>Group Name</Text>
-								<Text style={styles.text}>{groupTtile}</Text>
+								<Text style={styles.text}>{groupTitle}</Text>
 							</View>
 					</View>
 

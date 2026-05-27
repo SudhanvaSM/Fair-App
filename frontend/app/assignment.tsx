@@ -49,7 +49,6 @@ export default function Assignment() {
 	}
 
 	const people = members.map((m) => m.name);
-	people.sort();
 
 	const showAlert = (name: string) => {
 		Alert.alert(
@@ -100,7 +99,10 @@ export default function Assignment() {
 			}
 		}
 
+		// Assign item -> member
 		const assignments = buildAssignments(thing);
+
+		// Split the bill among the members using the assignments array
 		const result = splitBill(raw, assignments, includeServiceCharge);
 
 		router.push({

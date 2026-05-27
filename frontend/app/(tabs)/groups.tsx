@@ -13,8 +13,11 @@ import Groups from "@/components/Groups";
 
 export default function GroupsScreen() {
 
-	const [groupState, setGroupState] = useState<GroupSummary[]>([]);
+	// To always scroll to the top of the page when the page is loaded
 	const scrollRef = useScrollToTop();
+
+	// Initialize state to update UI every time the screen is in focus
+	const [groupState, setGroupState] = useState<GroupSummary[]>([]);
 
 	useFocusEffect(
 		useCallback(() => {
@@ -23,11 +26,14 @@ export default function GroupsScreen() {
 		}, [])
 	);
 
+	// Variables to decide if to show add group or members field is shown
+	// And then send the input by the user to database
 	const [showInput, setShowInput] = useState(false);
 	const [newItemName, setNewItemName] = useState("");
 	const [memberInput, setMemberInput] = useState("");
 	const [members, setMembers] = useState<string[]>(["You"]);
 
+	// Adds member if valid name into the group
 	const addItem = (name: string) => {
 		if (!name.trim() || members.length === 0) {
 			Alert.alert("Invalid", "Add group name and at least 1 member");
@@ -36,15 +42,18 @@ export default function GroupsScreen() {
 		
 		createGroupWithMembers({
 			name,
-			members: members.map((m) => m.trim()),
+			members: members.map((m) => m.trim()).filter(Boolean),
 		});
 		setGroupState(getGroupsWithMembers());
 		setMemberInput("");
+
+		// All groups must have 'You' as the default first member
 		setMembers(["You"]);
 		setNewItemName("");
 		setShowInput(false);
 	};
 
+	// Redirect to show detailed group details
 	const openGroupDetails = (groupId: number) => {
 		const detailedGroup = getDetailedGroup(groupId);
 		router.push({

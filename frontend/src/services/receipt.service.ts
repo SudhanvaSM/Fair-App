@@ -146,7 +146,8 @@ export function getDebtsList (receiptId: number): DebtDetails[] {
 			from_member.id AS fromMemberId,
 			from_member.name AS fromMember,
 			to_member.name AS toMember,
-			to_member.id AS toMemberId
+			to_member.id AS toMemberId,
+			d.status AS status
 		FROM debts d
 
 		JOIN members from_member

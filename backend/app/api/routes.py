@@ -18,8 +18,13 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 @router.post("/upload")
 async def upload(file: UploadFile = File(...)):
     try:
+        # Read the image file as bytes
         contents = await file.read()
+
+        # Send the image bytes to OCR to extract structured data
         raw_text = run_ocr(contents)
+
+        # Pass the strcuctured data to parser logic
         raw_json = parse_receipt(raw_text)
 
         if DEBUG:

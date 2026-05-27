@@ -65,63 +65,66 @@ export default function Processing() {
 
 	useEffect(() => {
 		const run = async () => {
-		try {
-			const formData = new FormData();
+			try {
+				const formData = new FormData();
 
-			formData.append("file", {
-			uri,
-			name: "receipt.jpg",
-			type: "image/jpg",
-			} as any);
+				formData.append("file", {
+					uri,
+					name: "receipt.jpg",
+					type: "image/jpg",
+				} as any);
 
-			const fetchPromise = fetch(`${API_URL}/upload`, {
-			method: "POST",
-			body: formData,
-			headers: {
-				"Content-Type": "multipart/form-data",
-			},
-			});
+				const fetchPromise = fetch(`${API_URL}/upload`, {
+					method: "POST",
+					body: formData,
+					headers: {
+						"Content-Type": "multipart/form-data",
+					},
+				});
 
-			await delay(500);
-			updateStep(1);
+				await delay(500);
+				updateStep(1);
 
-			await delay(500);
-			updateStep(2);
+				const res = await fetchPromise;
+				const data = await res.json();
 
-			await delay(500);
+				if (!res) {
+					throw new Error("Upload falied\n");
+				}
 
-		const res = await fetchPromise;
-		const data = await res.json();
+				const normalisedData = {
+					...data,
+					raw: {
+						...data.raw,
+						items: data.raw.items.map((item: any) => ({
+							itemId: item.item_id,
+							name: item.name,
+							qty: item.qty,
+							unitPrice: item.unit_price ?? 0,
+							totalPrice: item.total_price ?? 0,
+						})),
+					}
+				};
 
-		const normalisedData = {
-			...data,
-			raw: {
-				...data.raw,
-				items: data.raw.items.map((item: any) => ({
-					itemId: item.item_id,
-					name: item.name,
-					qty: item.qty,
-					unitPrice: item.unit_price ?? 0,
-					totalPrice: item.total_price ?? 0,
-				})),
+				updateStep(2);
+
+				await delay(500);
+
+				updateStep(3);
+				await delay(200);
+				router.replace({
+					pathname: "../review",
+					params: {
+						items: JSON.stringify(normalisedData),
+						groupId: String(groupId),
+						imageUri: uri,
+					},
+				});
+			} 
+			catch (err) {
+				console.error("Processing error:", err);
 			}
 		};
-
-		updateStep(3);
-			router.replace({
-			pathname: "../review",
-			params: {
-				items: JSON.stringify(normalisedData),
-				groupId: String(groupId),
-				imageUri: uri,
-			},
-			});
-
-		} catch (err) {
-			console.error("Processing error:", err);
-		}
-		};
-
 		run();
 	}, []);
 

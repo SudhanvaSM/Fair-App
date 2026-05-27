@@ -51,7 +51,7 @@ const AddBlock = React.memo((props: Props) => {
 					keyboardType="default"
 					autoCapitalize="words"
 					autoFocus
-					placeholder="Enter group name..."
+					placeholder={showMembers ? "Enter group name..." : "Enter item name..."}
 					placeholderTextColor="#888"
 					value={newName}
 					onChangeText={setNewName}
@@ -111,7 +111,7 @@ const AddBlock = React.memo((props: Props) => {
 						setNewName("")
 					}}
 						style={{
-							width: "25%",
+							width: "30%",
 							backgroundColor: "#EF4444",
 							padding: 10,
 							borderRadius: 10,
@@ -123,7 +123,7 @@ const AddBlock = React.memo((props: Props) => {
 					<Pressable
 						onPress={() => onAdd(newName)}
 						style={{
-							width: "25%",
+							width: "30%",
 							backgroundColor: "#10B981",
 							padding: 10,
 							borderRadius: 10,
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
 	actions: {
 		flexDirection: "row",
 		justifyContent: "space-between",
-		gap: 20,
+		gap: 45,
 	},
 	chipContainer: {
 		flexDirection: "row",
