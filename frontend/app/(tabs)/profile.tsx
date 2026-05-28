@@ -146,7 +146,7 @@ export default function ProfileScreen() {
 						<View style={styles.row}>
 							<Text style={styles.textType}>Pending Balance</Text>
 							<Text 
-								style={[styles.text, {color: pendingBalance > 0 ? "#00fe0d" : pendingBalance < 0 ? "red" : "gray"}]}>
+								style={[styles.text, {color: pendingBalance > 0 ? "#10B981" : pendingBalance < 0 ? "red" : "gray"}]}>
 								₹{Math.abs(pendingBalance).toFixed(2)}
 							</Text>
 						</View>

@@ -95,6 +95,7 @@ export default function Home() {
 									date={date}
 									price={Number(item.price.toFixed(2)) || 0}
 									onPress={() => openRecentSplitDetails(item)}
+									isHome={true}
 									variant={(item.id) % 2 !== 0 ? "1" : "2"}
 									/>
 									</View>
@@ -143,17 +144,22 @@ const styles = StyleSheet.create({
 		marginTop: 20,
 	},
 	historyButton: {
-		marginTop: 40,
+		backgroundColor: "#E2E8F0",
+		paddingHorizontal: 12,
 		paddingVertical: 12,
-		paddingHorizontal: 16,
 		borderRadius: 16,
-		backgroundColor: "#556274",
-		justifyContent: "center",
 		alignItems: "center",
+		justifyContent: "center",
+		shadowColor: "#000",
+		shadowOpacity: 0.25,
+		shadowRadius: 6,
+		elevation: 4,
+		marginTop: 40,
 	},
 	historyButtonText: {
+		color: "#0F172A",
+		textAlign: "center",
 		fontSize: 16,
 		fontWeight: "600",
-		color: "#fff",
 	},
 });

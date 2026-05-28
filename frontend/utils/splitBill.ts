@@ -87,7 +87,7 @@ export function splitBill(parsedData: ParsedData, assignments: Assignments, incl
 
 	if (diff !== 0) {
 		const highest = Object.keys(personSubtotals).reduce((a, b) =>
-		personSubtotals[a] > personSubtotals[b] ? a : b
+		personSubtotals[a] >= personSubtotals[b] ? a : b
 		);
 
 		personTotals[highest] = Number(

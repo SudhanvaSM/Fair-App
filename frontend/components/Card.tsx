@@ -7,7 +7,8 @@ type CardProps = {
   date: string;
   price: number;
   onPress: () => void;
-  variant?: "1" | "2";
+  isHome?: boolean;
+  variant?: "1" | "2"
 };
 
 export default function Card({
@@ -16,15 +17,18 @@ export default function Card({
 	date,
 	price,
 	onPress,
+	isHome,
 	variant = "1",
 	}: CardProps) {
 		const [pressed, setPressed] = useState(false);
+		if (!isHome) isHome = false;
 		return (
 			<Pressable
 			hitSlop={10}
 			style={[
 				styles.card,
 				variant === "1" ? styles.variantOne : styles.variantTwo,
+				isHome && styles.homeWidth,
 				{ transform: [{ scale: pressed ? 0.95 : 1 }] }
 			]}
 			onPress={onPress}
@@ -51,7 +55,7 @@ export default function Card({
 
 const styles = StyleSheet.create({
 	card: {
-		width: "85%",
+		width: "90%",
 		padding: 20,
 		borderRadius: 18,
 		marginTop: 20,
@@ -61,6 +65,9 @@ const styles = StyleSheet.create({
 	},
 	variantTwo: {
 		backgroundColor: "#22304A",
+	},
+	homeWidth: {
+		width: "85%",
 	},
 	topRow: {
 		flexDirection: "row",
