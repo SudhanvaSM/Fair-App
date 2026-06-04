@@ -2,7 +2,11 @@
 
 Fair is a expense splitting mobile application that automates bill splitting by extracting receipt data using OCR, parses line items automatically, and computing real-time debt settlements between group members.
 
-Instead of manually reading receipts and doing calculations, Fair converts raw images into clean, actionable splits.
+### **Turn restaurant receipts into item-level settlements in under 30 seconds.**  
+
+Problem: Groups waste time manually calculating who owes whom.  
+
+Solution: FAIR uses OCR, receipt parsing, item ownership assignment, and debt computation to generate settlement-ready balances automatically.  
 
 ---
 
