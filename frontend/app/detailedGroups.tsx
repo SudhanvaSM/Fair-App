@@ -303,7 +303,10 @@ export default function DetailedGroups() {
 								const amount = debt.amount;
 								return (
 									<View style={[styles.row, { width: "80%" }]} key={debt.id}>
-										<Text style={[styles.text, debt.status === 'settled' && { color: "#888", textDecorationLine: "line-through" }]}>
+										<Text 
+										numberOfLines={1}
+										ellipsizeMode="tail"
+										style={[styles.text, debt.status === 'settled' && { color: "#888", textDecorationLine: "line-through" }]}>
 											{debt.fromMember} {debt.fromMember === "You" ? "owe" : "owes" } {debt.toMember}
 										</Text>
 									<View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>

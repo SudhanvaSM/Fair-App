@@ -1,5 +1,5 @@
-import {Text, View, StyleSheet, ScrollView, Pressable, Alert, Image, Share } from "react-native"
-import { router, Stack, useLocalSearchParams } from "expo-router";
+import {Text, View, StyleSheet, ScrollView, Pressable, Alert, Image, Share, TextInput } from "react-native"
+import { router, Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
 import * as Clipboard from "expo-clipboard";
 import { useState } from "react";
 import { Menu } from "react-native-paper";
@@ -7,13 +7,12 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import { AssignmentList, DebtDetails, Item, Receipt } from "@/types/item";
 
-import { getDetailedReceipt, getItemsList, getDebtsList, getAssignmentsList, clearReceipt } from "@/src/services/receipt.service";
+import { getDetailedReceipt, getItemsList, getDebtsList, getAssignmentsList, clearReceipt, changeReceiptTitle } from "@/src/services/receipt.service";
 import { getMemberName } from "@/src/services/member.service";
 import { getDetailedGroup, getGroupName } from "@/src/services/group.service";
+import genereteReceiptSummary from "@/utils/generateReceiptSummary";
 
 import useScrollToTop from "./hooks/useScrollToTop";
-
-import genereteReceiptSummary from "@/utils/generateReceiptSummary";
 
 export default function DetailedHistory() {
 	const { receiptId } = useLocalSearchParams();
@@ -21,7 +20,7 @@ export default function DetailedHistory() {
 
 	const scrollRef = useScrollToTop();
 
-	const receipt: Receipt = getDetailedReceipt(id);
+	const receipt = getDetailedReceipt(id);
 	const items: Item[] = getItemsList(id);
 	const debts: DebtDetails[] = getDebtsList(id);
 	const assignments: AssignmentList[] = getAssignmentsList(id);
@@ -74,6 +73,28 @@ export default function DetailedHistory() {
 		await Share.share({ message: summary });
 	}
 
+	const [receiptTitle, setReceiptTitle] = useState(receipt.title);
+	const [tempReceiptTitle, setTempReceiptTitle] = useState("");
+	const [editing, setEditing] = useState(false);
+
+	const editReceiptName = () => {
+		closeMenu();
+		setEditing(true);
+	}
+
+	const onSave = () => {
+		const updatedTitle = tempReceiptTitle.trim() || receipt.title;
+		const id = receipt.id ? receipt.id : -1;
+		setReceiptTitle(updatedTitle);
+		changeReceiptTitle(id, updatedTitle);
+		setEditing(false);
+	}
+
+	const onCancel = () => {
+		setReceiptTitle(groupTitle);
+		setEditing(false);
+	}
+
 	const removeItem = (id: number) => {
 		closeMenu();
 		Alert.alert (
@@ -114,7 +135,7 @@ export default function DetailedHistory() {
 							style={styles.headerTitle}
 							numberOfLines={1}
 							ellipsizeMode="tail"
-						>{receipt.title}</Text>
+						>{receiptTitle}</Text>
 					),
 					headerTitleAlign: "left",
 					headerShadowVisible: false,
@@ -139,6 +160,12 @@ export default function DetailedHistory() {
 								</Pressable>
 							}
 						>
+							<Menu.Item
+								hitSlop={10}
+								onPress={editReceiptName}
+								title="Edit Receipt Title"
+								titleStyle={{ color: "#fff" }}
+							/>
 							<Menu.Item
 								hitSlop={10}
 								onPress={() => goToGroup(receipt.groupId)}
@@ -174,6 +201,32 @@ export default function DetailedHistory() {
 				keyboardShouldPersistTaps="handled"
 				ref={scrollRef}
 			>
+				{editing && (
+					<View style={{ justifyContent: "center", alignItems: "center" }}>
+						<View style={styles.receiptContainer}>
+							<TextInput
+								keyboardType="default"
+								autoCapitalize="words"
+								placeholder="Enter group name..."
+								placeholderTextColor={"#888"}
+								value={tempReceiptTitle}
+								onChangeText={setTempReceiptTitle}
+								style={styles.input}
+							/>
+
+							<View style={styles.actions}>
+								<Pressable onPress={onCancel}>
+									<Text style={styles.cancel}>Cancel</Text>
+								</Pressable>
+						
+								<Pressable onPress={onSave}>
+									<Text style={styles.save}>Save</Text>
+									</Pressable>
+							</View>
+						</View>
+					</View>
+				)}
+
 				<View style ={{ alignItems: "center", marginTop: 40}}>
 					<View style={[styles.container, { backgroundColor: "#334155" }]}>
 						<Text style={styles.title}>Bill Details</Text>
@@ -361,5 +414,37 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		fontWeight: "700",
 		flexShrink: 1,
-	}
+	},
+	receiptContainer: {
+		width: "90%",
+		backgroundColor: "#334155",
+		borderRadius: 30,
+		marginTop: 20,
+		alignItems: "center",
+		marginBottom: 10,
+	},
+	actions: {
+		flexDirection: "row",
+		justifyContent: "space-between",
+		marginTop: 10,
+		gap: 80,
+		marginBottom: 20,
+	},
+	cancel: {
+		color: "#DC2626",
+		fontSize: 14,
+	},
+	save: {
+		color: "#10B981",
+		fontWeight: "600",
+		fontSize: 14,
+	},
+	input: {
+		width: "90%",
+		backgroundColor: "#111827",
+		color: "#fff",
+		paddingHorizontal: 15,
+		borderRadius: 30,
+		marginTop: 20,
+	},
 });

@@ -205,3 +205,11 @@ export function getReceiptTitle() {
 		WHERE id = 2
 	`)
 }
+
+export function changeReceiptTitle(receiptId: number, updatedTitle: string) {
+	db.runAsync(`
+		UPDATE receipts
+		SET title = ?
+		WHERE id = ?
+	`, [updatedTitle, receiptId]);
+}
