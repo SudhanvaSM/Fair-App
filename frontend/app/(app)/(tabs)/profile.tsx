@@ -1,5 +1,5 @@
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
-import { Stack, useFocusEffect } from "expo-router";
+import { Redirect, Stack, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import {Text, View, StyleSheet, ScrollView, Pressable, Alert} from "react-native";
 import { Menu } from "react-native-paper";
@@ -11,6 +11,8 @@ import { getProfileDetails, resetAppData } from "@/src/services/user.services";
 import DateFormat from "@/utils/dateFormat";
 
 import useScrollToTop from "../hooks/useScrollToTop";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/AuthProvider";
 
 
 export default function ProfileScreen() {
@@ -28,6 +30,15 @@ export default function ProfileScreen() {
 			setProfileDetails(getProfileDetails());
 		}, [])
 	);
+
+	const { session, loading } = useAuth();
+	if (loading) {
+		return null;
+	}
+
+	if (!session) {
+		return <Redirect href="/login" />;
+	}
 
 	if (!profileDetails) {
 		return (
@@ -68,6 +79,15 @@ export default function ProfileScreen() {
 		);
 	}
 
+	const logout = async () => {
+		const { error } = await supabase.auth.signOut({ scope: "local" });
+
+		if (error) {
+            Alert.alert('Logout failed', error.message);
+            return;
+        }
+	}
+
 	return (
 		<>
 			<Stack.Screen
@@ -97,6 +117,13 @@ export default function ProfileScreen() {
 							title="Reset App Data"
 							titleStyle={{ color: "red" }}
 						/>
+
+						<Menu.Item
+							hitSlop={10}
+							onPress={() => logout()}
+							title="Log Out"
+							titleStyle={{ color: "red" }}
+						/>
 						</Menu>
 					)
 				}}
@@ -109,7 +136,7 @@ export default function ProfileScreen() {
 				ref={scrollRef}
 			>
 				<View style={{ alignItems: "center" }}>
-					<View style={[styles.container, { flexDirection: "row" }]}>
+					<View style={[styles.container, { flexDirection: "row", gap: 20 }]}>
 						<View style={styles.avatar}>
 							<MaterialIcons
 								name="person"
@@ -120,7 +147,7 @@ export default function ProfileScreen() {
 						<View style={styles.textContainer}>
 							<Text style={{ color: "white", fontSize: 18, fontWeight: "600" }}>Sudhanva S M</Text>
 							<Text style={{ color: "white", fontSize: 14, fontWeight: "400" }}>+91 XXXXX XXXXX</Text>
-							<Text style={{ color: "white", fontSize: 12, fontWeight: "400" }}>genericemail@gmail.com</Text>
+							<Text style={{ color: "white", fontSize: 12, fontWeight: "400" }} ellipsizeMode="tail" numberOfLines={1}>{session.user.email}</Text>
 						</View>
 					</View>
 
@@ -220,7 +247,8 @@ const styles = StyleSheet.create({
 	textContainer: {
 		paddingHorizontal: 16,
 		gap: 5,
-		marginRight: 50,
+		flex: 1,
+		minWidth: 0,
 	},
 	chipContainer: {
 		flexDirection: "column",
