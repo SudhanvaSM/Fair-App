@@ -1,31 +1,27 @@
 import { db } from "../db/database";
 import { DebtDetails, DetailedGroup, Group, GroupDraft, GroupSummary, GroupSummaryRow, Member, Receipt } from "@/types/item";
 import { createMember } from "./member.service";
+import { randomUUID } from 'expo-crypto';
 
 export function createGroupWithMembers (group: GroupDraft) {
-	let groupId = -1;
 	db.withTransactionSync(() => {
-
-    const groupResult = db.runSync(
-      `
-      INSERT INTO groups (name)
-      VALUES (?)
-      `,
-      [group.name]
-    );
-
-    groupId = Number(groupResult.lastInsertRowId);
+		db.runSync(
+			`
+			INSERT INTO groups (id, name)
+			VALUES (?, ?)
+			`,
+			[group.id, group.name]
+		);
 
     for (const memberName of group.members) {
-    	createMember(groupId, memberName)
+    	createMember(group.id, memberName)
     }
   });
-  return groupId;
 }
 
 export function getGroupsWithMembers(): GroupSummary[] {
 	const groups = db.getAllSync<{
-		id: number;
+		id: string;
 		name: string;
 	}>
 	(`
@@ -86,7 +82,7 @@ export function getGroupSummary(): GroupSummary[] {
 	}));
 }
 
-export function getDetailedGroup(groupId: number): DetailedGroup {
+export function getDetailedGroup(groupId: string): DetailedGroup {
 	const group = db.getFirstSync<Group>(`
 		SELECT id, name, created_at AS createdAt
 		FROM groups
@@ -155,7 +151,7 @@ export function getDetailedGroup(groupId: number): DetailedGroup {
 	}
 }
 
-export function getLatestDate(groupId: number) {
+export function getLatestDate(groupId: string) {
 	const result = db.getFirstSync<{ date: Date }>(`
 		SELECT created_at as date
 		FROM receipts
@@ -170,7 +166,7 @@ export function getLatestDate(groupId: number) {
 	return result.date;
 }
 
-export function getGroupName(groupId: number) {
+export function getGroupName(groupId: string) {
 	const result = db.getFirstSync<{ title: string }>(`
 		SELECT name AS title
 		FROM groups
@@ -183,7 +179,7 @@ export function getGroupName(groupId: number) {
 	return result.title;
 }
 
-export function changeGroupName(groupId: number, groupName: string) {
+export function changeGroupName(groupId: string, groupName: string) {
 	db.runSync(`
 		UPDATE groups
 		SET name = ?
@@ -191,7 +187,7 @@ export function changeGroupName(groupId: number, groupName: string) {
 	`, [groupName, groupId]);
 }
 
-export function deleteGroup(groupId: number) {
+export function deleteGroup(groupId: string) {
 	return db.runSync(`
 		DELETE FROM groups
 		WHERE id = ?

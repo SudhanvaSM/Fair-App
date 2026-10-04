@@ -25,7 +25,7 @@ export default function DetailedGroups() {
 
 	const [groups, setGroups] = useState<DetailedGroup>(JSON.parse(parsedGroup));
 
-	const id = Number(groups?.group.id);
+	const id: string = (groups?.group.id);
 
 	const [balances, setBalances] = useState<MemberBalance[]>(getMemberBalances(id));
 	
@@ -33,7 +33,7 @@ export default function DetailedGroups() {
 		return new Map(groups?.members.map(member => [member.id, member.name]));
 	}, [groups]);
 
-	const redirectToDetailedHistory = (receiptId: number) => (
+	const redirectToDetailedHistory = (receiptId: string) => (
 		router.push({
 			pathname: "/detailedHistory",
 			params: {
@@ -61,7 +61,7 @@ export default function DetailedGroups() {
 	const createdOn = new Date(groups?.group.createdAt || 0);
 	const dateCreatedOn = createdOn.toLocaleDateString([], { day: "2-digit", month: "short", year: "numeric" })
 
-	const changeStatus = (debt: DebtDetails, groupId: number, fromMemberId: number, toMemberId: number) => {
+	const changeStatus = (debt: DebtDetails, groupId: string, fromMemberId: string, toMemberId: string) => {
 		const newStatus = debt.status === "pending" ? "settled" : "pending";
 		settleDebt(groupId, fromMemberId, toMemberId, newStatus);
 
@@ -342,7 +342,7 @@ export default function DetailedGroups() {
 											paidBy={payerName}
 											date={receipt.createdAt}
 											price={receipt.total}
-											onPress={() => redirectToDetailedHistory(receipt.id || -1)}
+											onPress={() => redirectToDetailedHistory(receipt.id || '0')}
 										/>
 									</View>
 								);

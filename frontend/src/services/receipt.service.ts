@@ -1,10 +1,12 @@
+import {  randomUUID } from "expo-crypto";
 import { db } from "../db/database";
 import { AssignmentList, DebtDetails, Item, Receipt, RecentSplit } from "@/types/item";
 
 export function createReceipt (data: Receipt) {
-	const result = db.runSync(
+	db.runSync(
 		`
 			INSERT INTO receipts (
+				id, 
 				title,
 				group_id,
 				payer_member_id,
@@ -16,9 +18,10 @@ export function createReceipt (data: Receipt) {
 				total,
 				receipt_image_uri
 			)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		`,
 		[
+			data.id,
 			data.title,
 			data.groupId,
 			data.payerMemberId,
@@ -31,23 +34,24 @@ export function createReceipt (data: Receipt) {
 			data.imageUri,
 		]
 	);
-
-	return result.lastInsertRowId;
 }
 
-export function createReceiptItem(item: Item, receipt_id: number) {
-	const result = db.runSync(
+export function createReceiptItem(item: Item, receipt_id: string) {
+	const itemId = randomUUID();
+	db.runSync(
 		`
 			INSERT INTO items (
+				id, 
 				receipt_id,
 				name,
 				qty,
 				unit_price,
 				total_price
 			)
-			VALUES (?, ?, ?, ?, ?)
+			VALUES (?, ?, ?, ?, ?, ?)
 		`,
 		[
+			itemId,
 			receipt_id,
 			item.name,
 			item.qty,
@@ -56,22 +60,24 @@ export function createReceiptItem(item: Item, receipt_id: number) {
 		]
 	);
 
-	return result.lastInsertRowId;
+	return itemId;
 }
 
 export function createItemAssignment(
-	itemId: number,
-	memberId: number
+	itemId: string,
+	memberId: string
 ) {
-	const result = db.runSync(`
+	const itemAssignmentId = randomUUID();
+	db.runSync(`
 		INSERT INTO item_assignments (
+			id, 
 			item_id,
 			member_id
 		)	
-		VALUES (?, ?)
-	`, [itemId, memberId]);
+		VALUES (?, ?, ?)
+	`, [itemAssignmentId, itemId, memberId]);
 
-	return result;
+	return itemAssignmentId;
 }
 
 export function getRecentReceipts(limit?: number): RecentSplit[] {
@@ -95,7 +101,7 @@ export function getRecentReceipts(limit?: number): RecentSplit[] {
 	return result;
 }
 
-export function getDetailedReceipt(receiptId: number): Receipt {
+export function getDetailedReceipt(receiptId: string): Receipt {
 	const receipt = db.getFirstSync<Receipt>(
 		`
 		SELECT 
@@ -123,7 +129,7 @@ export function getDetailedReceipt(receiptId: number): Receipt {
 	return receipt;
 }
 
-export function getItemsList (receiptId: number): Item[] {
+export function getItemsList (receiptId: string): Item[] {
 	const items = db.getAllSync<Item>(`
 		SELECT 
 			id AS itemId,
@@ -138,7 +144,7 @@ export function getItemsList (receiptId: number): Item[] {
 	return items;
 }
 
-export function getDebtsList (receiptId: number): DebtDetails[] {
+export function getDebtsList (receiptId: string): DebtDetails[] {
 	const debts = db.getAllSync<DebtDetails>(`
 		SELECT
 			d.id AS id,
@@ -162,7 +168,7 @@ export function getDebtsList (receiptId: number): DebtDetails[] {
 	return debts;
 }
 
-export function getAssignmentsList (receiptId: number): AssignmentList[] {
+export function getAssignmentsList (receiptId: string): AssignmentList[] {
 	const assignments = db.getAllSync<AssignmentList>(`
 		SELECT
 			i.id AS itemId,
@@ -182,7 +188,7 @@ export function getAssignmentsList (receiptId: number): AssignmentList[] {
 	return assignments;
 }
 
-export function clearReceipt(receiptId: number) {
+export function clearReceipt(receiptId: string) {
 	db.runSync(`
 		DELETE FROM receipts
 		WHERE id = ?
@@ -206,7 +212,7 @@ export function getReceiptTitle() {
 	`)
 }
 
-export function changeReceiptTitle(receiptId: number, updatedTitle: string) {
+export function changeReceiptTitle(receiptId: string, updatedTitle: string) {
 	db.runAsync(`
 		UPDATE receipts
 		SET title = ?

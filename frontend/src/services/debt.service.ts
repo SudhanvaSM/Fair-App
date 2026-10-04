@@ -1,10 +1,12 @@
+import { randomUUID } from "expo-crypto";
 import { db } from "../db/database";
 import { Debt } from "@/types/item";
 
 export function createDebt (data: Debt) {
-	const result = db.runSync(
+	db.runSync(
 		`
 			INSERT INTO debts (
+				id,
 				receipt_id,
 				group_id,
 				from_member_id,
@@ -12,9 +14,10 @@ export function createDebt (data: Debt) {
 				amount,
 				status
 			)
-			VALUES (?, ?, ?, ?, ?, 'pending')
+			VALUES (?, ?, ?, ?, ?, ?, 'pending')
 		`,
 		[
+			data.id,
 			data.receiptId,
 			data.groupId,
 			data.fromMemberId,
@@ -22,14 +25,12 @@ export function createDebt (data: Debt) {
 			data.amount,
 		]
 	);
-
-	return result.lastInsertRowId;
 }
 
 export function settleDebt(
-	groupId: number,
-	fromMemberId: number,
-	toMemberId: number,
+	groupId: string,
+	fromMemberId: string,
+	toMemberId: string,
 	status: "pending" | "settled"
 ) {
 	db.runSync(`

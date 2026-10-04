@@ -13,6 +13,7 @@ import { clearReceiptHistory, getRecentReceipts } from "@/src/services/receipt.s
 import DateFormat from "@/utils/dateFormat";
 import { Menu } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import uuidToBigInt from "@/utils/uuidToBigInt";
 
 
 export default function History() {
@@ -30,11 +31,11 @@ export default function History() {
 		}, [])
 	);
 
-	const openDetails = (item: RecentSplit) => {
+	const openDetails = (receipt: RecentSplit) => {
 		router.push({
 			pathname: "/detailedHistory",
 			params: {
-				receiptId: item.id,
+				receiptId: receipt.id,
 			},
 		});
 	};
@@ -119,6 +120,7 @@ export default function History() {
 					<View style ={{ marginTop: 10, paddingHorizontal: 10, justifyContent: "center" }}>
 						{history.map((item) => {
 							const date = DateFormat(item.date)
+							const itemId = uuidToBigInt(item.id)
 							return (
 								<View key={item.id}style={{ alignItems: "center" }}>
 								<Card
@@ -127,7 +129,7 @@ export default function History() {
 								date={date}
 								price={Number(item.price.toFixed(2)) || 0}
 								onPress={() => openDetails(item)}
-								variant={(item.id) % 2 !== 0 ? "1" : "2"}
+								variant={(itemId) % 2n !== 0n ? "1" : "2"}
 								/>
 								</View>
 							);

@@ -1,24 +1,26 @@
 import { MemberBalance } from "@/types/item";
 import { db } from "../db/database";
+import { randomUUID } from "expo-crypto";
 
 export function createMember(
-	groupId: number,
+	groupId: string,
 	memberName: string
 ) {
-	const result = db.runSync(
+	const memberId = randomUUID();
+	db.runSync(
 		`
-		INSERT INTO members (group_id, name)
-		VALUES (?, ?)
+		INSERT INTO members (id, group_id, name)
+		VALUES (?, ?, ?)
 		`,
-		[groupId, memberName]
+		[memberId, groupId, memberName]
 	);
 
-	return Number(result.lastInsertRowId);
+	return memberId;
 }
 
-export function getMembersByGroupId(groupId: number) {
+export function getMembersByGroupId(groupId: string) {
 	return db.getAllSync<{
-		id: number;
+		id: string;
 		name: string;
 	}>
 	(`
@@ -29,7 +31,7 @@ export function getMembersByGroupId(groupId: number) {
 	);
 }
 
-export function getMemberName(memberId: number) {
+export function getMemberName(memberId: string) {
 	const memberName = db.getFirstSync<{ name: string }>(`
 		SELECT m.name
 		FROM members m
@@ -42,7 +44,7 @@ export function getMemberName(memberId: number) {
 	return memberName;
 }
 
-export function getMemberBalances(groupId: number): MemberBalance[] {
+export function getMemberBalances(groupId: string): MemberBalance[] {
 	return db.getAllSync<MemberBalance>(`
 		SELECT 
 			m.id as memberId, 

@@ -14,9 +14,11 @@ import DateFormat from "@/utils/dateFormat";
 
 import Card from "@/components/Card";
 import Button from "@/components/Button";
+import uuidToBigInt from "@/utils/uuidToBigInt";
 
 const LIMIT_RECENT_SPLITS_IN_HOME_SCREEN = 5;
 const GROUP_ID = "-1";
+
 
 export default function Home() {
 
@@ -86,7 +88,7 @@ export default function Home() {
 								{history.map((item) => {
 
 								const date = DateFormat(item.date);
-
+								const itemId: bigint = uuidToBigInt(item.id)
 								return (
 									<View key={item.id}style={{ alignItems: "center" }}>
 									<Card
@@ -96,7 +98,7 @@ export default function Home() {
 									price={Number(item.price.toFixed(2)) || 0}
 									onPress={() => openRecentSplitDetails(item)}
 									isHome={true}
-									variant={(item.id) % 2 !== 0 ? "1" : "2"}
+									variant={(itemId) % 2n !== 0n ? "1" : "2"}
 									/>
 									</View>
 								);
@@ -105,7 +107,7 @@ export default function Home() {
 								<View style={{ justifyContent: "center", alignItems: "center" }}>
 									<Pressable
 										style={[styles.historyButton, { transform: [{ scale: pressed ? 0.95 : 1 }] }]}
-										onPress={() => router.push("/(tabs)/history")}
+										onPress={() => router.push("/(app)/(tabs)/history")}
 										onPressIn={() => setPressed(true)}
 										onPressOut={() => setPressed(false)}
 									>

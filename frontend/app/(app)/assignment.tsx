@@ -17,7 +17,7 @@ export default function Assignment() {
 	const parsedParam = Array.isArray(data) ? data[0] : data;
 	const parsedData = parsedParam ? JSON.parse(parsedParam) : null;
 
-	const parsedGroupId = Number(groupId);
+	const parsedGroupId = String(groupId);
 	const members = getMembersByGroupId(parsedGroupId);
 	
 	if (!parsedData || !parsedData.raw) {

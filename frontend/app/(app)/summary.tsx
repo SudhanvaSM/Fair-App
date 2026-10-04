@@ -8,6 +8,8 @@ import { db } from "@/src/db/database";
 import { createItemAssignment, createReceipt, createReceiptItem } from "@/src/services/receipt.service";
 import { getMembersByGroupId } from "@/src/services/member.service";
 import { createDebt } from "@/src/services/debt.service";
+import { randomUUID } from "expo-crypto";
+
 export default function Summary() {
 
 	const { data } = useLocalSearchParams();
@@ -21,10 +23,10 @@ export default function Summary() {
 
 	const imageUri = parsedData.imageUri;
 
-	const groupId = parsedData.groupId;
+	const groupId: string = parsedData.groupId;
 	const members = getMembersByGroupId(groupId);
 
-	const [payerId, setPayerId] = useState<number>(members[0]?.id);
+	const [payerId, setPayerId] = useState<string>(members[0]?.id);
 	const payer = members.find((m) => m.id === payerId);
 
 	const result = parsedData.result;
@@ -59,8 +61,11 @@ export default function Summary() {
 	}
 
 	const receiptTitle = receiptName ? receiptName : defaultTitle;
+
+	const receiptId: string = randomUUID();
 	
 	const receipt: Receipt = {
+		id: receiptId, 
 		title: receiptTitle,
 		groupId,
 		payerMemberId: payer?.id ?? members[0].id,
@@ -90,7 +95,7 @@ export default function Summary() {
 
 		try {
 			db.withTransactionSync(() => {
-				const receiptId = createReceipt(receipt);
+				createReceipt(receipt);
 				for (const item of items) {
 					const itemId = createReceiptItem(item, receiptId);
 
@@ -107,8 +112,10 @@ export default function Summary() {
 					const member = members.find((m) => m.name === personName);
 
 					if (!member) continue;
+					const debtId = randomUUID();
 
 					createDebt({
+						id: debtId,
 						receiptId,
 						groupId,
 						fromMemberId: member.id,
@@ -120,7 +127,7 @@ export default function Summary() {
 				}
 			});
 			setSaving(false);
-			router.replace("/(tabs)/home");
+			router.replace("/(app)/(tabs)/home");
 		} catch (e) {
 			console.error(e);
 			Alert.alert(

@@ -22,9 +22,9 @@ export default function Review() {
 	const raw = data.raw;
 
 	const [itemsState, setItemsState] = useState(raw.items);
-	const [editingId, setEditingId] = useState<number | null>(null);
+	const [editingId, setEditingId] = useState<string | null>(null);
 
-	const removeItem = (id: number) => {
+	const removeItem = (id: string) => {
 		setItemsState((prev: Item[]) =>
 			prev.filter(item => item.itemId !== id)
 		);
@@ -34,7 +34,7 @@ export default function Review() {
 	const [newItemName, setNewItemName] = useState("");
 	const addItem = (name: string) => {
 		const newItem: Item = {
-			itemId: Date.now(),
+			itemId: String(Date.now()),
 			name: name,
 			qty: 1,
 			unitPrice: 0,

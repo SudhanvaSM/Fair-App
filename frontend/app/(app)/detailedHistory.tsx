@@ -15,8 +15,8 @@ import genereteReceiptSummary from "@/utils/generateReceiptSummary";
 import useScrollToTop from "./hooks/useScrollToTop";
 
 export default function DetailedHistory() {
-	const { receiptId } = useLocalSearchParams();
-	const id = Number(receiptId);
+	const { receiptId } = useLocalSearchParams<{ receiptId: string }>();
+	const id: string = receiptId;
 
 	const scrollRef = useScrollToTop();
 
@@ -52,7 +52,7 @@ export default function DetailedHistory() {
 	const openMenu = () => setVisible(true);
 	const closeMenu = () => setVisible(false);
 
-	const goToGroup = (groupId: number) => {
+	const goToGroup = (groupId: string) => {
 		closeMenu();
 		const detailedGroup = getDetailedGroup(groupId);
 		router.push({
@@ -84,7 +84,7 @@ export default function DetailedHistory() {
 
 	const onSave = () => {
 		const updatedTitle = tempReceiptTitle.trim() || receipt.title;
-		const id = receipt.id ? receipt.id : -1;
+		const id = receipt.id ? receipt.id : '-1';
 		setReceiptTitle(updatedTitle);
 		changeReceiptTitle(id, updatedTitle);
 		setEditing(false);
@@ -95,7 +95,7 @@ export default function DetailedHistory() {
 		setEditing(false);
 	}
 
-	const removeItem = (id: number) => {
+	const removeItem = (id: string) => {
 		closeMenu();
 		Alert.alert (
 			"Confirm Action",
@@ -323,10 +323,6 @@ export default function DetailedHistory() {
 				<View style ={{ alignItems: "center", marginTop: 40 }}>
 					<View style={[styles.container, { backgroundColor: "#334155" }]}>
 						<Text style={styles.title}>Other</Text>
-							<View style={styles.row}>
-								<Text style={styles.text}>Receipt ID</Text>
-								<Text style={styles.text}>{receipt.id}</Text>
-							</View>
 
 							<View style={styles.row}>
 								<Text style={styles.text}>Date</Text>

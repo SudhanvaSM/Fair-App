@@ -7,6 +7,8 @@ import { GroupDraft } from "@/types/item";
 import { createGroupWithMembers, getGroupsWithMembers } from "@/src/services/group.service";
 
 import AddBlock from "@/components/AddBlock";
+import { getSession } from "@/utils/getSession";
+import { randomUUID } from "expo-crypto";
 
 export default function GroupInput() {
 	const { data, imageUri } = useLocalSearchParams();
@@ -29,13 +31,18 @@ export default function GroupInput() {
 		setItemsState(groups);
 	}, []);
 
+	
 	const addItem = (name: string) => {
 		if (!name.trim() || members.length === 0) {
 			Alert.alert("Invalid", "Add group name and at least 1 member");
 			return;
 		}
+
+		const userId = String(getSession());
+		const groupId = randomUUID();
 		
 		createGroupWithMembers({
+			id: groupId,
 			name,
 			members: members.map((m) => m.trim()),
 		});

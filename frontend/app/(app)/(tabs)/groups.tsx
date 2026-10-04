@@ -13,6 +13,8 @@ import AddBlock from "@/components/AddBlock";
 import Groups from "@/components/Groups";
 import { Menu } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import uuidToBigInt from "@/utils/uuidToBigInt";
+import { randomUUID } from "expo-crypto";
 
 export default function GroupsScreen() {
 
@@ -43,7 +45,9 @@ export default function GroupsScreen() {
 			return;
 		}
 		
+		const groupId = randomUUID();
 		createGroupWithMembers({
+			id: groupId,
 			name,
 			members: members.map((m) => m.trim()).filter(Boolean),
 		});
@@ -57,7 +61,7 @@ export default function GroupsScreen() {
 	};
 
 	// Redirect to show detailed group details
-	const openGroupDetails = (groupId: number) => {
+	const openGroupDetails = (groupId: string) => {
 		const detailedGroup = getDetailedGroup(groupId);
 		router.push({
 			pathname: "/detailedGroups",
@@ -143,14 +147,15 @@ export default function GroupsScreen() {
 			>
 				<View style={{ marginTop: 10, paddingHorizontal: 10, justifyContent: "center" }}>
 					{groupState.map((group) => {
+						const groupId = uuidToBigInt(group?.id || '0')
 						return (
 							<View key={group.id}style={{ alignItems: "center" }}>
 							<Groups
 							title={group.name}
 							people={group.members.length}
 							total={group.totalExpenses}
-							onPress={() => openGroupDetails(group.id || 0)}
-							variant={((group.id ?? 0) % 2 !== 0) ? "1" : "2"}
+							onPress={() => openGroupDetails(group.id || '0')}
+							variant={((groupId ?? 0) % 2n !== 0n) ? "1" : "2"}
 							/>
 							</View>
 						);
