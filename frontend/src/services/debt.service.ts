@@ -1,4 +1,3 @@
-import { randomUUID } from "expo-crypto";
 import { db } from "../db/database";
 import { Debt } from "@/types/item";
 

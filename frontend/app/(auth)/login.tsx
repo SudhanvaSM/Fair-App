@@ -1,14 +1,8 @@
 import { useState } from 'react';
-import {
-    View,
-    Text,
-    TextInput,
-    Pressable,
-    StyleSheet,
-    Alert,
-} from 'react-native';
+import { View, Text, TextInput, Pressable, StyleSheet, Alert } from 'react-native';
 
 import { supabase } from '@/lib/supabase';
+import pullInitialData from '@/lib/sync/pullInitialData';
 
 export default function LoginScreen() {
     const [email, setEmail] = useState('');
@@ -23,34 +17,31 @@ export default function LoginScreen() {
 
         setLoading(true);
 
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { error } = await supabase.auth.signInWithPassword({
             email,
             password,
         });
-
-        setLoading(false);
 
         if (error) {
             Alert.alert('Login failed', error.message);
             return;
         }
 
-        const token = data.session?.access_token;
+        try {
+            await pullInitialData();
+        } catch (error) {
+            console.error("Initial data pull failed:", error);
 
-        const response = await fetch (
-            "http://192.168.1.104:8000/test-auth",
-            {
-                headers: {
-                    Authorisation: `Bearer ${token}`,
-                },
-            }
-        );
+            Alert.alert(
+                "Sync failed",
+                "Could not load your data. Please try again."
+            );
 
-        const result = await response.json();
+            setLoading(false);
+            return;
+        }
 
-        console.log("FASTAPI: ", result);  
-
-        // We will handle navigation automatically later.
+        setLoading(false);
     }
 
     async function handleSignup() {
@@ -61,7 +52,7 @@ export default function LoginScreen() {
 
         setLoading(true);
 
-        const { data, error } = await supabase.auth.signUp({
+        const { error } = await supabase.auth.signUp({
             email,
             password,
         });
@@ -72,8 +63,6 @@ export default function LoginScreen() {
             Alert.alert('Signup failed', error.message);
             return;
         }
-
-        console.log('SIGNUP DATA:', data);
 
         Alert.alert(
             'Success',

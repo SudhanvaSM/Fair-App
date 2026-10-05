@@ -1,5 +1,5 @@
 import {Text, View, StyleSheet, ScrollView, Pressable, Alert, Image, Share, TextInput } from "react-native"
-import { router, Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import * as Clipboard from "expo-clipboard";
 import { useState } from "react";
 import { Menu } from "react-native-paper";

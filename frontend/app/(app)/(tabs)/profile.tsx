@@ -6,13 +6,14 @@ import { Menu } from "react-native-paper";
 
 import { ProfileDetails } from "@/types/item";
 
-import { getProfileDetails, resetAppData } from "@/src/services/user.services";
+import { deleteLocalData, getProfileDetails, resetAppData } from "@/src/services/user.services";
 
 import DateFormat from "@/utils/dateFormat";
 
 import useScrollToTop from "../hooks/useScrollToTop";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/AuthProvider";
+import syncAll from "@/lib/sync/syncAll";
 
 
 export default function ProfileScreen() {
@@ -62,9 +63,12 @@ export default function ProfileScreen() {
 				{
 					text: "Delete",
 					style: "destructive",
-					onPress: async() => {
+					onPress:() => {
 						try {
 							resetAppData();
+							syncAll().catch(error => {
+								console.error("Background sync failed:", error);
+							});
 							setProfileDetails(getProfileDetails());
 						}
 						catch (e) {
@@ -80,12 +84,20 @@ export default function ProfileScreen() {
 	}
 
 	const logout = async () => {
+		const success = await syncAll();
+
+		if (!success) {
+			Alert.alert("Could not complete sync", "Please try again before logging out.");
+			return;
+		}
 		const { error } = await supabase.auth.signOut({ scope: "local" });
 
 		if (error) {
             Alert.alert('Logout failed', error.message);
             return;
         }
+
+		deleteLocalData();
 	}
 
 	return (

@@ -1,5 +1,6 @@
 import { ProfileDetails } from "@/types/item";
 import { db } from "../db/database";
+import { randomUUID } from "expo-crypto";
 
 export function getProfileDetails(): ProfileDetails {
 	const receipt = db.getFirstSync<{ 
@@ -76,7 +77,30 @@ export function getProfileDetails(): ProfileDetails {
 
 export function resetAppData() {
 	console.log("App Data Reset.");
-	db.execSync(`
-		DELETE FROM groups;
-	`)
+	db.withTransactionSync(() => {
+		const groups = db.getAllSync<{ id: string }>(
+			`
+			SELECT id FROM groups
+			`
+		);
+
+		for (const group of groups) {
+			db.runSync(
+				`
+				INSERT INTO sync_deletions (id, table_name, record_id)
+				VALUES (?, ?, ?)
+				`,
+				[randomUUID(), 'groups', group.id]
+			);
+		}
+
+		db.runSync(`DELETE FROM groups;`)
+	});
+}
+
+export function deleteLocalData() {
+	db.withTransactionSync(() => {
+		db.runSync(`DELETE FROM groups;`);
+		db.runSync(`DELETE FROM sync_deletions;`);
+	});
 }

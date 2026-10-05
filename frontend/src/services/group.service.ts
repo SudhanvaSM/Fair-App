@@ -1,7 +1,7 @@
 import { db } from "../db/database";
 import { DebtDetails, DetailedGroup, Group, GroupDraft, GroupSummary, GroupSummaryRow, Member, Receipt } from "@/types/item";
 import { createMember } from "./member.service";
-import { randomUUID } from 'expo-crypto';
+import { randomUUID } from "expo-crypto";
 
 export function createGroupWithMembers (group: GroupDraft) {
 	db.withTransactionSync(() => {
@@ -188,8 +188,17 @@ export function changeGroupName(groupId: string, groupName: string) {
 }
 
 export function deleteGroup(groupId: string) {
-	return db.runSync(`
-		DELETE FROM groups
-		WHERE id = ?
-	`, [groupId]);
+	return db.withTransactionSync(() => {
+		db.runSync(`
+			DELETE FROM groups
+			WHERE id = ?
+		`, [groupId]
+		);
+
+		const deletionId  = randomUUID();
+		db.runSync(`
+			INSERT INTO sync_deletions (id, table_name, record_id)
+			VALUES (?, 'groups', ?)
+		`, [deletionId , groupId])
+	})
 }

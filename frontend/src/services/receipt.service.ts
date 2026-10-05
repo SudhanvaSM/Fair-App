@@ -189,19 +189,45 @@ export function getAssignmentsList (receiptId: string): AssignmentList[] {
 }
 
 export function clearReceipt(receiptId: string) {
-	db.runSync(`
-		DELETE FROM receipts
-		WHERE id = ?
-	`, [receiptId]);
+    db.withTransactionSync(() => {
+        db.runSync(
+            `
+            DELETE FROM receipts
+            WHERE id = ?
+            `,
+            [receiptId]
+        );
+
+        db.runSync(
+            `
+            INSERT INTO sync_deletions (id, table_name, record_id)
+            VALUES (?, ?, ?)
+            `,
+            [randomUUID(), 'receipts', receiptId]
+        );
+    });
 }
 
 export function clearReceiptHistory() {
-	db.execSync(`
-		DELETE FROM item_assignments;
-		DELETE FROM debts;
-		DELETE FROM items;
-		DELETE FROM receipts;
-	`);
+    db.withTransactionSync(() => {
+		const receipts = db.getAllSync<{ id: string }>(
+            `
+            SELECT id FROM receipts
+            `
+        );
+
+        for (const receipt of receipts) {
+			db.runSync(
+            `
+            INSERT INTO sync_deletions (id, table_name, record_id)
+            VALUES (?, ?, ?)
+            `,
+            [randomUUID(), 'receipts', receipt.id]
+        );
+		}
+
+		db.runSync(`DELETE FROM receipts`)
+    });
 }
 
 export function getReceiptTitle() {

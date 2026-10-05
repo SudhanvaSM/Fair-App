@@ -9,6 +9,7 @@ import { createItemAssignment, createReceipt, createReceiptItem } from "@/src/se
 import { getMembersByGroupId } from "@/src/services/member.service";
 import { createDebt } from "@/src/services/debt.service";
 import { randomUUID } from "expo-crypto";
+import syncAll from "@/lib/sync/syncAll";
 
 export default function Summary() {
 
@@ -127,7 +128,13 @@ export default function Summary() {
 				}
 			});
 			setSaving(false);
+
 			router.replace("/(app)/(tabs)/home");
+
+			syncAll().catch(error => {
+				console.error("Background sync failed:", error);
+			});
+
 		} catch (e) {
 			console.error(e);
 			Alert.alert(

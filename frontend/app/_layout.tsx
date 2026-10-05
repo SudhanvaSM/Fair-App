@@ -3,8 +3,14 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { AuthProvider } from '@/lib/AuthProvider';
+import { useEffect } from 'react';
+import { initializeDatabase } from '@/src/db/schema';
 
 export default function RootLayout() {
+    useEffect(() => {
+      	initializeDatabase();
+    }, []);
+    
     return (
         <AuthProvider>
             <ActionSheetProvider>

@@ -1,10 +1,8 @@
 import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
 import { useFocusEffect, router } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 import { RecentSplit } from "@/types/item";
-
-import { initializeDatabase } from "@/src/db/schema";
 import { getRecentReceipts } from "@/src/services/receipt.service";
 
 import useImagePicker from "../hooks/useImagePicker";
@@ -21,10 +19,6 @@ const GROUP_ID = "-1";
 
 
 export default function Home() {
-
-    useEffect(() => {
-      	initializeDatabase();
-    }, []);
 
     const [history, setHistory] = useState<RecentSplit[]>([]);
     const scrollRef = useScrollToTop();
