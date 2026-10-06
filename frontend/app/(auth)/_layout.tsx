@@ -9,7 +9,7 @@ export default function AuthLayout() {
     }
 
     if (session) {
-        return <Redirect href="/home" />;
+        return <Redirect href="/loading"/>;
     }
 
 	return (
@@ -18,6 +18,11 @@ export default function AuthLayout() {
                 name="login"
                 options={{
                     headerShown: false,
+                    headerStyle: {
+                        backgroundColor: "#1E293B",
+                    },
+                    headerShadowVisible: false,
+					headerTintColor: "#fff",
                 }}
             />
 		</Stack>

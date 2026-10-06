@@ -138,3 +138,12 @@ export type ProfileDetails = {
     highestExpense: number;
     recentActivity: string;
 };
+
+export type SyncStep =
+    | "groups"
+    | "members"
+    | "receipts"
+    | "items"
+    | "assignments"
+    | "debts"
+    | "complete";

@@ -5,13 +5,25 @@ import fetchItemAssignments from "./pull/fetchItemAssignments";
 import fetchItems from "./pull/fetchItems";
 import fetchMembers from "./pull/fetchMembers";
 import fetchReceipts from "./pull/fetchReceipts";
+import { SyncStep } from "@/types/item";
 
-export default async function pullInitialData() {
+export default async function pullInitialData(onProgress?: (step: SyncStep) => void) {
+	onProgress?.("groups");
 	const groups = await fetchGroups();
+
+	onProgress?.("members");
 	const members = await fetchMembers();
+
+	onProgress?.("receipts");
 	const receipts = await fetchReceipts();
+
+	onProgress?.("items");
 	const items = await fetchItems();
+
+	onProgress?.("assignments");
 	const item_assignments = await fetchItemAssignments();
+
+	onProgress?.("debts");
 	const debts = await fetchDebts();
 
 	db.withTransactionSync(() => {
@@ -80,5 +92,15 @@ export default async function pullInitialData() {
 			`, [debt.id, debt.receipt_id, debt.group_id, debt.from_member_id, debt.to_member_id, debt.amount, debt.status, debt.updated_at]
 		);
 		}
+
+		db.runSync(
+			`
+				INSERT INTO app_state
+				VALUES (?, ?)
+				ON CONFLICT(key) DO UPDATE SET value = excluded.value
+			`, ["initial_sync_completed", "true"]
+		)
 	})
+
+	onProgress?.("complete");
 }

@@ -102,5 +102,6 @@ export function deleteLocalData() {
 	db.withTransactionSync(() => {
 		db.runSync(`DELETE FROM groups;`);
 		db.runSync(`DELETE FROM sync_deletions;`);
+		db.runSync(`DELETE FROM app_state;`);
 	});
 }

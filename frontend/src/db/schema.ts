@@ -63,6 +63,10 @@ sync_deletions
 - table_name
 - record_id
 - deleted_at
+
+app_state
+- key
+- value
 */
 
 import { db } from './database';
@@ -170,6 +174,11 @@ export function initializeDatabase() {
 			record_id TEXT NOT NULL,
 			deleted_at TEXT DEFAULT CURRENT_TIMESTAMP,
 			UNIQUE(table_name, record_id)
+		);
+
+		CREATE TABLE IF NOT EXISTS app_state (
+			key TEXT PRIMARY KEY NOT NULL,
+			value TEXT NOT NULL
 		);
   	`);
 }

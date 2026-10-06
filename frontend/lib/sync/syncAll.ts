@@ -27,8 +27,6 @@ export default async function syncAll(): Promise<boolean> {
 
         if (!(await syncReceiptDeletions())) success = false;
 
-        console.log("SYNC COMPLETE:", success);
-
         return success;
 
     } catch (error) {
