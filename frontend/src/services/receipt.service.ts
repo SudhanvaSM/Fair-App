@@ -241,7 +241,7 @@ export function getReceiptTitle() {
 export function changeReceiptTitle(receiptId: string, updatedTitle: string) {
 	db.runAsync(`
 		UPDATE receipts
-		SET title = ?
+		SET title = ?, sync_status = ?, updated_at = ?
 		WHERE id = ?
-	`, [updatedTitle, receiptId]);
+	`, [updatedTitle, "not_synced", new Date().toISOString(), receiptId]);
 }

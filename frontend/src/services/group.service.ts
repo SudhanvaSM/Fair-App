@@ -182,9 +182,9 @@ export function getGroupName(groupId: string) {
 export function changeGroupName(groupId: string, groupName: string) {
 	db.runSync(`
 		UPDATE groups
-		SET name = ?
+		SET name = ?, sync_status = ?, updated_at = ?
 		WHERE id = ?
-	`, [groupName, groupId]);
+	`, [groupName, "not_synced", new Date().toISOString(), groupId]);
 }
 
 export function deleteGroup(groupId: string) {

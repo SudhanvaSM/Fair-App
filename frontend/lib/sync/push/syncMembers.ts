@@ -24,28 +24,90 @@ export const syncMembers = async() => {
 	let success = true;
 
 	for (const member of members) {
-		const { error } = await supabase
-			.from('members')
-			.upsert({
-				id: member.id,
-				group_id: member.group_id,
-				name: member.name,
-				active: member.active,
-				updated_at: member.updated_at
-			});
 
-		if (error) {
-			console.error('Failed to sync members: ', member.id, error);
+		const { data: cloudMember, error: fetchError } = await supabase
+			.from("members")
+			.select("*")
+			.eq("id", member.id)
+			.maybeSingle();
+
+		if (fetchError) {
+			console.error("Failed to fetch cloud members: ", member.id, fetchError);
 			success = false;
 			continue;
-		} 
+		}
 
-		db.runSync(
-			`UPDATE members
-			SET sync_status = 'synced'
-			WHERE id = ?`,
-			[member.id]
-		);
+		if (!cloudMember) {
+			const { error } = await supabase
+				.from('members')
+				.insert({
+					id: member.id,
+					group_id: member.group_id,
+					name: member.name,
+					active: member.active,
+					updated_at: member.updated_at
+				});
+
+			if (error) {
+				console.error('Failed to sync members: ', member.id, error);
+				success = false;
+				continue;
+			} 
+
+			db.runSync(
+				`UPDATE members
+				SET sync_status = 'synced'
+				WHERE id = ?`,
+				[member.id]
+			);
+
+			continue;
+		}
+		const localTime = new Date(member.updated_at).getTime();
+		const cloudTime = new Date(cloudMember.updated_at).getTime();
+
+		if (localTime > cloudTime) {
+			const { error } = await supabase
+				.from('members')
+				.update({
+					id: member.id,
+					group_id: member.group_id,
+					name: member.name,
+					active: member.active,
+					updated_at: member.updated_at
+				});
+
+			if (error) {
+				console.error('Failed to sync members: ', member.id, error);
+				success = false;
+				continue;
+			} 
+
+			db.runSync(
+				`UPDATE members
+				SET sync_status = 'synced'
+				WHERE id = ?`,
+				[member.id]
+			);
+		} else {
+			db.runSync(
+				`UPDATE members
+				SET group_id = ?,
+					name = ?,
+					active = ?,
+					sync_status = ?,
+					updated_at = ?
+				WHERE id = ?
+				`, [
+					cloudMember.group_id,
+					cloudMember.name,
+					cloudMember.active,
+					"synced",
+					cloudMember.updated_at,
+					cloudMember.id
+				]
+			);
+		}
 	}
 
 	return success;

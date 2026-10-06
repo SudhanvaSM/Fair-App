@@ -34,13 +34,15 @@ export function settleDebt(
 ) {
 	db.runSync(`
 		UPDATE debts
-		SET status = ?
+		SET status = ?, sync_status = ?, updated_at = ?
 		WHERE
 			group_id = ?
 			AND from_member_id = ?
 			AND to_member_id = ?
 	`, [
 		status,
+		"not_synced",
+		new Date().toISOString(),
 		groupId,
 		fromMemberId,
 		toMemberId
