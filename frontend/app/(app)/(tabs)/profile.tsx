@@ -1,8 +1,8 @@
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { Redirect, Stack, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import {Text, View, StyleSheet, ScrollView, Pressable, Alert} from "react-native";
-import { Menu } from "react-native-paper";
+import {Text, View, StyleSheet, ScrollView, Pressable, Alert, ActivityIndicator  } from "react-native";
+import { Icon, Menu } from "react-native-paper";
 
 import { ProfileDetails } from "@/types/item";
 
@@ -14,6 +14,7 @@ import useScrollToTop from "../hooks/useScrollToTop";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/AuthProvider";
 import syncAll from "@/lib/sync/syncAll";
+import Ring from "@/components/LoadingWheel";
 
 
 export default function ProfileScreen() {
@@ -21,6 +22,8 @@ export default function ProfileScreen() {
 	const [visible, setVisible] = useState(false);
 	const openMenu = () => setVisible(true);
 	const closeMenu = () => setVisible(false);
+
+	const [isSyncing, setIsSyncing] = useState(false);
 
 	const scrollRef = useScrollToTop();
 
@@ -90,6 +93,7 @@ export default function ProfileScreen() {
 			Alert.alert("Could not complete sync", "Please try again before logging out.");
 			return;
 		}
+
 		const { error } = await supabase.auth.signOut({ scope: "local" });
 
 		if (error) {
@@ -99,6 +103,25 @@ export default function ProfileScreen() {
 
 		deleteLocalData();
 	}
+
+	const syncLocalChanges = async () => {
+		if (isSyncing) return;
+
+		setIsSyncing(true);
+
+		try {
+			const success = await syncAll();
+
+			if (!success) {
+				Alert.alert("Could not complete sync", "Please try again before logging out.");
+				return;
+			}
+			await new Promise(resolve => setTimeout(resolve, 500));
+			Alert.alert("Upload Complete", "All local changes uploaded to cloud database.");
+		} finally {
+			setIsSyncing(false);
+		}
+	};
 
 	return (
 		<>
@@ -123,6 +146,28 @@ export default function ProfileScreen() {
 								</Pressable>
 							}
 						>
+						<Menu.Item
+							hitSlop={10}
+							onPress={() => syncLocalChanges()}
+							title="Sync Local Changes"
+							titleStyle={{ color: "white" }}
+							trailingIcon={() => (
+								<View style={{ width: 32, alignItems: "center" }}>
+									{isSyncing ? (
+									<Ring
+										size={20}
+										strokeWidth={2}
+										color={"#ffffff"}
+										duration={1500}
+									/>
+								) : (
+									null
+								)}
+								</View>
+							)
+							}
+						/>
+
 						<Menu.Item
 							hitSlop={10}
 							onPress={() => deleteAllData()}

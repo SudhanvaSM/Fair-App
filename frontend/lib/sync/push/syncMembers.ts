@@ -75,7 +75,8 @@ export const syncMembers = async() => {
 					name: member.name,
 					active: member.active,
 					updated_at: member.updated_at
-				});
+				})
+				.eq("id", member.id);;
 
 			if (error) {
 				console.error('Failed to sync members: ', member.id, error);

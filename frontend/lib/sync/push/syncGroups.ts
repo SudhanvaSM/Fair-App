@@ -22,7 +22,7 @@ export const syncGroups = async() => {
 	for (const group of groups) {
 
 		const { data: cloudGroup, error: fetchError } = await supabase
-			.from("receipts")
+			.from("groups")
 			.select("*")
 			.eq("id", group.id)
 			.maybeSingle();
@@ -66,11 +66,11 @@ export const syncGroups = async() => {
 			const { error } = await supabase
 				.from('groups')
 				.update({
-					id: group.id,
 					name: group.name,
 					created_at: group.created_at,
 					updated_at: group.updated_at
-				});
+				})
+				.eq("id", group.id);;
 
 			if (error) {
 				console.error('Failed to sync groups: ', group.id, error);

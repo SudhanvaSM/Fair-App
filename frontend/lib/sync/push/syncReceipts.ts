@@ -100,7 +100,8 @@ export const syncReceipts = async() => {
 					total: receipt.total,
 					created_at: receipt.created_at,
 					updated_at: receipt.updated_at
-				});
+				})
+				.eq("id", receipt.id);
 
 			if (error) {
 				console.error('Failed to sync receipts: ', receipt.id, error);
