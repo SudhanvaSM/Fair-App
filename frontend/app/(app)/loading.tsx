@@ -6,6 +6,8 @@ import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { db } from '@/src/db/database';
+import { supabase } from '@/lib/supabase';
+import { deleteLocalData } from '@/src/services/user.services';
 
 export default function LoadingScreen() {
 	const insets = useSafeAreaInsets();
@@ -17,6 +19,8 @@ export default function LoadingScreen() {
 	}
 
 	const loadData = async () => {
+		// await supabase.auth.signOut({ scope: "local" });
+		// deleteLocalData();
 		const result = db.getFirstSync<{ value: string }>(`
 				SELECT value
 				FROM app_state
@@ -52,33 +56,41 @@ export default function LoadingScreen() {
 	}, []);
 
 	const stepText: Record<SyncStep, { text: string, progress: number }> = {
+		profile: {
+			text: "Fetching Profile",
+			progress: 1
+		},
 		groups: {
 			text: "Fetching Groups",
-			progress: 1
+			progress: 2
 		},
 		members: {
 			text: "Fetching Members",
-			progress: 2
+			progress: 3
 		},
 		receipts: {
 			text: "Fetching Receipts",
-			progress: 3
+			progress: 4
 		},
 		items: {
 			text: "Fetching Items",
-			progress: 4
+			progress: 5
 		},
 		assignments: {
 			text: "Fetching Assignments",
-			progress: 5
+			progress: 6
 		},
 		debts: {
 			text: "Fetching Debts",
-			progress: 6
+			progress: 7
+		},
+		settlements: {
+			text: "Fetching Settlements",
+			progress: 8
 		},
 		complete: {
 			text: "Sync Complete",
-			progress: 7
+			progress: 9
 		}
 	}
 

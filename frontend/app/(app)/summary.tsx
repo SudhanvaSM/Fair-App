@@ -27,8 +27,8 @@ export default function Summary() {
 	const groupId: string = parsedData.groupId;
 	const members = getMembersByGroupId(groupId);
 
-	const [payerId, setPayerId] = useState<string>(members[0]?.id);
-	const payer = members.find((m) => m.id === payerId);
+	const [payerId, setPayerId] = useState<string>(members[0]?.memberId);
+	const payer = members.find((m) => m.memberId === payerId);
 
 	const result = parsedData.result;
 
@@ -45,22 +45,6 @@ export default function Summary() {
 
 	const [receiptName, setReceiptName] = useState("");
 
-	if (receiptName.length > 20) {
-		Alert.alert(
-			"Invalid Title", "Title name is too long. Maximum limit is 20 characters.",
-			[
-				{
-					text: "OK",
-					style: "default"
-				}
-			],
-			{
-				cancelable: true,
-			}
-		)
-		setReceiptName("");
-	}
-
 	const receiptTitle = receiptName ? receiptName : defaultTitle;
 
 	const receiptId: string = randomUUID();
@@ -69,7 +53,7 @@ export default function Summary() {
 		id: receiptId, 
 		title: receiptTitle,
 		groupId,
-		payerMemberId: payer?.id ?? members[0].id,
+		payerMemberId: payer?.memberId ?? members[0].memberId,
 		subtotal: parsedData.raw?.subtotal ?? 0,
 		tax: parsedData.raw?.tax ?? 0,
 		finalTip: parsedData.raw?.finalTip ?? 0,
@@ -83,16 +67,9 @@ export default function Summary() {
 
 	const [saving, setSaving] = useState(false);
 
-	const LoadingScreen = () => (
-		(saving && <View style={{ flex: 1, justifyContent: 'center' }}>
-			<ActivityIndicator size="large" color="#0000ff" />
-		</View>
-	));
-
 	const handleSaveAndGoHome = async () => {
 		if (saving) return;
 		setSaving(true);
-		LoadingScreen();
 
 		try {
 			db.withTransactionSync(() => {
@@ -102,8 +79,12 @@ export default function Summary() {
 
 					for (const personName of item.selectedPeople) {
 						const member = members.find((m) => m.name === personName);
-						if (!member) continue;
-						createItemAssignment(itemId, member.id);
+						if (!member) {
+							throw new Error(
+								`Member "${personName}" not found in group ${groupId}`
+							);
+						}
+						createItemAssignment(itemId, member.memberId);
 					}
 				}
 				
@@ -112,17 +93,20 @@ export default function Summary() {
 
 					const member = members.find((m) => m.name === personName);
 
-					if (!member) continue;
+					if (!member) {
+						throw new Error(
+							`Member "${personName}" not found in group ${groupId}`
+						);
+					}
 					const debtId = randomUUID();
 
 					createDebt({
 						id: debtId,
 						receiptId,
 						groupId,
-						fromMemberId: member.id,
+						fromMemberId: member.memberId,
 						toMemberId: receipt.payerMemberId,
-						amount,
-						status: 'pending'
+						amount
 					})
 					
 				}
@@ -177,6 +161,7 @@ export default function Summary() {
 							value={receiptName}
 							onChangeText={setReceiptName}
 							style={styles.input}
+							maxLength={20}
 						/>
 						<View style={[styles.row, { borderBottomWidth: 0, paddingBottom: 0, marginTop: -5 }]}>
 							<Text style={styles.titleText}>Current Title</Text>
@@ -225,9 +210,9 @@ export default function Summary() {
 								>
 									{members.map(member => (
 										<Picker.Item
-											key={member.id}
+											key={member.memberId}
 											label={member.name}
-											value={member.id}
+											value={member.memberId}
 										/>
 									))}
 								</Picker>

@@ -152,8 +152,7 @@ export function getDebtsList (receiptId: string): DebtDetails[] {
 			from_member.id AS fromMemberId,
 			from_member.name AS fromMember,
 			to_member.name AS toMember,
-			to_member.id AS toMemberId,
-			d.status AS status
+			to_member.id AS toMemberId
 		FROM debts d
 
 		JOIN members from_member
@@ -239,7 +238,7 @@ export function getReceiptTitle() {
 }
 
 export function changeReceiptTitle(receiptId: string, updatedTitle: string) {
-	db.runAsync(`
+	db.runSync(`
 		UPDATE receipts
 		SET title = ?, sync_status = ?, updated_at = ?
 		WHERE id = ?

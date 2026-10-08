@@ -12,7 +12,6 @@ export function buildAssignments(items: ItemWithSelection[]): Assignments {
 		}
 		
 		assignments[itemId] = {
-			type: "equal",
 			users: selectedPeople
 		};
 	}

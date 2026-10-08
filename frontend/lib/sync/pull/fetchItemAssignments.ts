@@ -7,7 +7,7 @@ export default async function fetchItemAssignments() {
 			id,
 			member_id,
 			item_id,
-			updated_at
+			created_at
 		`);
 
 	if (error) {

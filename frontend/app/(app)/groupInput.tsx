@@ -7,7 +7,6 @@ import { GroupDraft } from "@/types/item";
 import { createGroupWithMembers, getGroupsWithMembers } from "@/src/services/group.service";
 
 import AddBlock from "@/components/AddBlock";
-import { getSession } from "@/utils/getSession";
 import { randomUUID } from "expo-crypto";
 
 export default function GroupInput() {
@@ -38,7 +37,6 @@ export default function GroupInput() {
 			return;
 		}
 
-		const userId = String(getSession());
 		const groupId = randomUUID();
 		
 		createGroupWithMembers({

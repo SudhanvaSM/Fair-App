@@ -1,4 +1,3 @@
-import { MemberBalance } from "@/types/item";
 import { db } from "../db/database";
 import { randomUUID } from "expo-crypto";
 
@@ -20,11 +19,11 @@ export function createMember(
 
 export function getMembersByGroupId(groupId: string) {
 	return db.getAllSync<{
-		id: string;
+		memberId: string;
 		name: string;
 	}>
 	(`
-		SELECT id, name
+		SELECT id AS memberId, name
 		FROM members
 		WHERE group_id = ?
 	`, [groupId]
@@ -42,32 +41,4 @@ export function getMemberName(memberId: string) {
 		throw new Error("Member not found!");
 	}
 	return memberName;
-}
-
-export function getMemberBalances(groupId: string): MemberBalance[] {
-	return db.getAllSync<MemberBalance>(`
-		SELECT 
-			m.id as memberId, 
-			m.name as name,
-			COALESCE(
-				(
-					SELECT sum(d.amount)
-					FROM debts d
-					WHERE d.to_member_id = m.id
-					AND d.status = 'pending'
-				), 0
-			)
-				-
-			COALESCE(
-				(
-					SELECT sum(d.amount)
-					FROM debts d
-					WHERE d.from_member_id = m.id
-					AND d.status = 'pending'
-				), 0
-			)
-				AS balance
-			FROM members m
-			WHERE m.group_id = ?
-	`, [groupId]);
 }

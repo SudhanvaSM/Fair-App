@@ -8,6 +8,7 @@ export default async function fetchMembers() {
 			group_id,
 			name,
 			active,
+			created_at,
 			updated_at
 		`);
 

@@ -6,6 +6,7 @@ import { syncMembers } from "./push/syncMembers";
 import { syncReceipts } from "./push/syncReceipts";
 import { syncReceiptDeletions } from "./push/syncReceiptDeletions";
 import { syncGroupDeletions } from "./push/syncGroupDeletions";
+import { syncSettlements } from "./push/syncSettlements";
 
 export default async function syncAll(): Promise<boolean> {
     try {
@@ -22,6 +23,8 @@ export default async function syncAll(): Promise<boolean> {
         if (!(await syncItemAssignments())) success = false;
 
         if (!(await syncDebts())) success = false;
+
+        if (!(await syncSettlements())) success = false;
 
         if (!(await syncGroupDeletions())) success = false;
 

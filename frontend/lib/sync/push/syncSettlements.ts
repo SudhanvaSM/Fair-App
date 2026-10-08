@@ -1,10 +1,9 @@
 import { db } from "@/src/db/database"
 import { supabase } from "../../supabase";
 
-export const syncDebts = async() => {
-	const debts = db.getAllSync<{
+export const syncSettlements = async() => {
+	const settlements = db.getAllSync<{
 		id: string;
-		receipt_id: string;
 		group_id: string;
 		from_member_id: string;
 		to_member_id: string;
@@ -14,43 +13,41 @@ export const syncDebts = async() => {
 		`
 			SELECT 
 				id,
-				receipt_id,
 				group_id,
 				from_member_id,
 				to_member_id,
 				amount,
 				created_at
-			FROM debts
+			FROM settlements
 			WHERE sync_status = 'not_synced';
 		`
 	)
 
 	let success = true;
 
-	for (const debt of debts) {
+	for (const settlement of settlements) {
 		const { error } = await supabase
-			.from('debts')
-			.upsert({
-				id: debt.id,
-				receipt_id: debt.receipt_id,
-				group_id: debt.group_id,
-				from_member_id: debt.from_member_id,
-				to_member_id: debt.to_member_id,
-				amount: debt.amount,
-				created_at: debt.created_at
+			.from('settlements')
+			.insert({
+				id: settlement.id,
+				group_id: settlement.group_id,
+				from_member_id: settlement.from_member_id,
+				to_member_id: settlement.to_member_id,
+				amount: settlement.amount,
+				created_at: settlement.created_at
 			});
 
 		if (error) {
-			console.error('Failed to sync debts: ', debt.id, error);
+			console.error('Failed to sync settlement: ', settlement.id, error);
 			success = false;
 			continue;
 		} 
 
 		db.runSync(
-			`UPDATE debts
+			`UPDATE settlements
 			SET sync_status = 'synced'
 			WHERE id = ?`,
-			[debt.id]
+			[settlement.id]
 		);
 	}
 

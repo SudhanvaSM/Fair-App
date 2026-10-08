@@ -1,11 +1,10 @@
 import { supabase } from "../../supabase";
 
-export default async function fetchDebts() {
+export default async function fetchSettlements() {
 	const { data, error } = await supabase
-		.from('debts')
+		.from('settlements')
 		.select(`
 			id,
-			receipt_id,
 			group_id,
 			from_member_id,
 			to_member_id,

@@ -6,8 +6,13 @@ import fetchItems from "./pull/fetchItems";
 import fetchMembers from "./pull/fetchMembers";
 import fetchReceipts from "./pull/fetchReceipts";
 import { SyncStep } from "@/types/item";
+import fetchSettlements from "./pull/fetchSettlements";
+import fetchProfile from "./pull/fetchProfile";
 
 export default async function pullInitialData(onProgress?: (step: SyncStep) => void) {
+	onProgress?.("profile");
+	const profile = await fetchProfile();
+
 	onProgress?.("groups");
 	const groups = await fetchGroups();
 
@@ -26,7 +31,19 @@ export default async function pullInitialData(onProgress?: (step: SyncStep) => v
 	onProgress?.("debts");
 	const debts = await fetchDebts();
 
+	onProgress?.("settlements");
+	const settlements = await fetchSettlements();
+
 	db.withTransactionSync(() => {
+		db.runSync(
+			`
+				INSERT OR REPLACE INTO profile
+				VALUES (?, ?, ?)
+				ON CONFLICT(user_id) DO UPDATE SET
+        			email = excluded.email
+			`, [profile.id, profile.email, profile.created_at]
+		);
+
 		for (const group of groups) {
 			db.runSync(
 			`
@@ -40,8 +57,8 @@ export default async function pullInitialData(onProgress?: (step: SyncStep) => v
 			db.runSync(
 			`
 				INSERT INTO members
-				VALUES (?, ?, ?, ?, 'synced', ?)
-			`, [member.id, member.group_id, member.name, member.active ? 1 : 0, member.updated_at]
+				VALUES (?, ?, ?, ?, 'synced', ?, ?)
+			`, [member.id, member.group_id, member.name, member.active ? 1 : 0, member.created_at, member.updated_at]
 		);
 		}
 
@@ -71,7 +88,7 @@ export default async function pullInitialData(onProgress?: (step: SyncStep) => v
 			`
 				INSERT INTO items
 				VALUES (?, ?, ?, ?, ?, ?, 'synced', ?)
-			`, [item.id, item.receipt_id, item.name, item.qty, item.unit_price, item.total_price, item.updated_at]
+			`, [item.id, item.receipt_id, item.name, item.qty, item.unit_price, item.total_price, item.created_at]
 		);
 		}
 
@@ -80,7 +97,7 @@ export default async function pullInitialData(onProgress?: (step: SyncStep) => v
 			`
 				INSERT INTO item_assignments
 				VALUES (?, ?, ?, 'synced', ?)
-			`, [item_assignment.id, item_assignment.item_id, item_assignment.member_id, item_assignment.updated_at]
+			`, [item_assignment.id, item_assignment.item_id, item_assignment.member_id, item_assignment.created_at]
 		);
 		}
 
@@ -88,8 +105,17 @@ export default async function pullInitialData(onProgress?: (step: SyncStep) => v
 			db.runSync(
 			`
 				INSERT INTO debts
-				VALUES (?, ?, ?, ?, ?, ?, ?, 'synced', ?)
-			`, [debt.id, debt.receipt_id, debt.group_id, debt.from_member_id, debt.to_member_id, debt.amount, debt.status, debt.updated_at]
+				VALUES (?, ?, ?, ?, ?, ?, 'synced', ?)
+			`, [debt.id, debt.receipt_id, debt.group_id, debt.from_member_id, debt.to_member_id, debt.amount, debt.created_at]
+		);
+		}
+
+		for (const settlement of settlements) {
+			db.runSync(
+			`
+				INSERT INTO settlements
+				VALUES (?, ?, ?, ?, ?, 'synced', ?)
+			`, [settlement.id, settlement.group_id, settlement.from_member_id, settlement.to_member_id, settlement.amount, settlement.created_at]
 		);
 		}
 

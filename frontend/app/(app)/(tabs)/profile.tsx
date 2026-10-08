@@ -204,7 +204,7 @@ export default function ProfileScreen() {
 						<View style={styles.textContainer}>
 							<Text style={{ color: "white", fontSize: 18, fontWeight: "600" }}>Sudhanva S M</Text>
 							<Text style={{ color: "white", fontSize: 14, fontWeight: "400" }}>+91 XXXXX XXXXX</Text>
-							<Text style={{ color: "white", fontSize: 12, fontWeight: "400" }} ellipsizeMode="tail" numberOfLines={1}>{session.user.email}</Text>
+							<Text style={{ color: "white", fontSize: 12, fontWeight: "400" }} ellipsizeMode="tail" numberOfLines={1}>{profileDetails.email}</Text>
 						</View>
 					</View>
 

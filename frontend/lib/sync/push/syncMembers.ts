@@ -2,12 +2,15 @@ import { db } from "@/src/db/database"
 import { supabase } from "../../supabase";
 
 export const syncMembers = async() => {
+	const { data: { user } } = await supabase.auth.getUser();
+
 	const members = db.getAllSync<{
 		id: string;
 		group_id: string;
 		name: string;
 		active: number;
 		updated_at: string;
+		created_at: string;
 	}> (
 		`
 			SELECT 
@@ -15,15 +18,17 @@ export const syncMembers = async() => {
 				group_id,
 				name,
 				active,
-				updated_at
+				updated_at,
+				created_at
 			FROM members
 			WHERE sync_status = 'not_synced';
 		`
 	)
-
 	let success = true;
 
 	for (const member of members) {
+
+		const userId = member.name === "You" ? user?.id : null;
 
 		const { data: cloudMember, error: fetchError } = await supabase
 			.from("members")
@@ -45,7 +50,9 @@ export const syncMembers = async() => {
 					group_id: member.group_id,
 					name: member.name,
 					active: member.active,
-					updated_at: member.updated_at
+					updated_at: member.updated_at,
+					created_at: member.created_at,
+					user_id: userId
 				});
 
 			if (error) {
@@ -74,7 +81,9 @@ export const syncMembers = async() => {
 					group_id: member.group_id,
 					name: member.name,
 					active: member.active,
-					updated_at: member.updated_at
+					updated_at: member.updated_at,
+					created_at: member.created_at,
+					user_id: userId
 				})
 				.eq("id", member.id);;
 
@@ -97,7 +106,8 @@ export const syncMembers = async() => {
 					name = ?,
 					active = ?,
 					sync_status = ?,
-					updated_at = ?
+					updated_at = ?,
+					created_at = ?
 				WHERE id = ?
 				`, [
 					cloudMember.group_id,
@@ -105,6 +115,7 @@ export const syncMembers = async() => {
 					cloudMember.active,
 					"synced",
 					cloudMember.updated_at,
+					cloudMember.created_at,
 					cloudMember.id
 				]
 			);

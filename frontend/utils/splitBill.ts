@@ -5,47 +5,17 @@ export function splitBill(parsedData: ParsedData, assignments: Assignments, incl
 
   	// Split item costs
 	for (const item of parsedData.items) {
-		const { itemId, totalPrice } = item;
-		const assignment = assignments[itemId];
+		const assignment = assignments[item.itemId];
 
-		if (!assignment) {
-			throw new Error(`Missing assignment for item ${itemId}`);
+		if (!assignment || assignment.users.length === 0) {
+			throw new Error(`No users assigned to item ${item.itemId}`);
 		}
 
-		// Equal split
-		if (assignment.type === "equal" && Array.isArray(assignment.users)) {
-			const users = assignment.users;
+		const splitAmount = item.totalPrice / assignment.users.length;
 
-			if (users.length === 0) {
-				throw new Error(`No users for item ${itemId}`);
-			}
-
-			const splitAmount = totalPrice / users.length;
-
-			for (const user of users) {
-				personSubtotals[user] = (personSubtotals[user] || 0) + splitAmount;
-			}
-		}
-
-		// Weighted Split
-		else if (
-			assignment.type === "weighted" &&
-			!Array.isArray(assignment.users)
-		) {
-			const users = assignment.users;
-
-			const totalWeight = Object.values(users).reduce(
-				(a, b) => a + b,
-				0
-			);
-
-			for (const user in users) {
-				const share =
-				(users[user] / totalWeight) * totalPrice;
-
-				personSubtotals[user] =
-				(personSubtotals[user] || 0) + share;
-			}
+		for (const user of assignment.users) {
+			personSubtotals[user] =
+				(personSubtotals[user] || 0) + splitAmount;
 		}
 	}
 

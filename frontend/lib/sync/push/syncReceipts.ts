@@ -118,17 +118,17 @@ export const syncReceipts = async() => {
 		} else {
 			db.runSync(
 				`UPDATE receipts
-				SET title: ?,
-					group_id: ?,
-					payer_member_id: ?,
-					subtotal: ?,
-					tax: ?,
-					final_tip: ?,
-					service_charge: ?,
-					total: ?,
-					created_at: ?,
-					updated_at: ?,
-					sync_status: ?
+				SET title = ?,
+					group_id = ?,
+					payer_member_id = ?,
+					subtotal = ?,
+					tax = ?,
+					final_tip = ?,
+					service_charge = ?,
+					total = ?,
+					created_at = ?,
+					updated_at = ?,
+					sync_status = ?
 				WHERE id = ?
 				`, [
 					cloudReceipt.title,

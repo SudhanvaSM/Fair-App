@@ -17,8 +17,7 @@ export type ItemWithSelection = Item & {
 };
 
 export type Assignment = {
-    type: "equal" | "weighted";
-    users: string[] | Record<string, number>;
+    users: string[];
 };
 
 export type Assignments = Record<string, Assignment>;
@@ -79,7 +78,6 @@ export type Debt = {
     fromMemberId: string;
     toMemberId: string;
     amount: number;
-    status: "pending" | "settled";
 };
 
 export type DebtDetails = {
@@ -89,7 +87,6 @@ export type DebtDetails = {
     toMember: string;
     fromMemberId: string;
     toMemberId: string;
-    status: "pending" | "settled";
 };
 
 export type AssignmentList = {
@@ -130,6 +127,7 @@ export type MemberBalance = {
 };
 
 export type ProfileDetails = {
+    email: string;
     totalSpent: number;
     totalGroups: number;
     totalBillsScanned: number;
@@ -140,10 +138,18 @@ export type ProfileDetails = {
 };
 
 export type SyncStep =
+    | "profile"
     | "groups"
     | "members"
     | "receipts"
     | "items"
     | "assignments"
     | "debts"
+    | "settlements"
     | "complete";
+
+export type SimplifiedBalances = {
+    fromMemberId: string;
+    toMemberId: string;
+    amount: number;
+}

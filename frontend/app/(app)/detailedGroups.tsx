@@ -1,18 +1,20 @@
 import { Text, View, StyleSheet, ScrollView, Pressable, Alert, TextInput } from "react-native"
-import { router, Stack, useLocalSearchParams } from "expo-router";
-import { useMemo, useState } from "react";
+import { router, Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Menu } from "react-native-paper";
+import { Checkbox } from "expo-checkbox";
 
-import { DebtDetails, DetailedGroup, MemberBalance } from "@/types/item";
+import { DetailedGroup, MemberBalance, SimplifiedBalances } from "@/types/item";
 
-import { changeGroupName, deleteGroup, getLatestDate } from "@/src/services/group.service";
-import { getMemberBalances} from "@/src/services/member.service";
-import { settleDebt } from "@/src/services/debt.service";
+import { changeGroupName, deleteGroup, getDetailedGroup, getLatestDate } from "@/src/services/group.service";
 
 import Transaction from "@/components/Transaction";
 import useImagePicker from "./hooks/useImagePicker";
 import useScrollToTop from "./hooks/useScrollToTop";
+import { simplifyBalances } from "@/utils/simplifyBalances";
+import { getMemberBalances } from "@/utils/getMemberBalances";
+import { insertSettlement } from "@/src/services/settlement.service";
 
 export default function DetailedGroups() {
 	const { groupData } = useLocalSearchParams();
@@ -23,11 +25,65 @@ export default function DetailedGroups() {
 	}
 	const scrollRef = useScrollToTop();
 
+	const initialGroup: DetailedGroup = JSON.parse(parsedGroup);
+	const id = initialGroup.group.id;
+
 	const [groups, setGroups] = useState<DetailedGroup>(JSON.parse(parsedGroup));
 
-	const id: string = (groups?.group.id);
+	useFocusEffect(
+		useCallback(() => {
+			const updatedGroup = getDetailedGroup(id);
+			setGroups(updatedGroup);
+		}, [id])
+	);
 
-	const [balances, setBalances] = useState<MemberBalance[]>(getMemberBalances(id));
+	const simplifiedBalances: SimplifiedBalances[] = simplifyBalances(id);
+
+	const balances: MemberBalance[] = getMemberBalances(id);
+
+	const [selectedSettlements, setSelectedSettlements] = useState<Record<string, boolean>>({});
+
+	const settlementKey = (fromMemberId: string, toMemberId: string) =>
+    `${fromMemberId}-${toMemberId}`;
+
+	const toggleSettlement = (fromMemberId: string, toMemberId: string) => {
+		const key = settlementKey(fromMemberId, toMemberId);
+
+		setSelectedSettlements(prev => ({
+			...prev,
+			[key]: !prev[key],
+		}));
+	};
+
+	const saveSettlements = () => {
+		simplifiedBalances.forEach(debt => {
+			const key = settlementKey(
+				debt.fromMemberId,
+				debt.toMemberId
+			);
+
+			if (selectedSettlements[key]) {
+				insertSettlement(
+					id,
+					debt.fromMemberId,
+					debt.toMemberId,
+					debt.amount
+				);
+			}
+		});
+
+		// Clear selections
+		setSelectedSettlements({});
+
+		// Re-fetch everything from SQLite
+		const updatedGroup = getDetailedGroup(id);
+		setGroups(updatedGroup);
+
+		Alert.alert(
+			"Settlements Saved",
+			"The selected debts have been marked as settled."
+		);
+	};
 	
 	const memberMap = useMemo(() => {
 		return new Map(groups?.members.map(member => [member.id, member.name]));
@@ -60,20 +116,6 @@ export default function DetailedGroups() {
 
 	const createdOn = new Date(groups?.group.createdAt || 0);
 	const dateCreatedOn = createdOn.toLocaleDateString([], { day: "2-digit", month: "short", year: "numeric" })
-
-	const changeStatus = (debt: DebtDetails, groupId: string, fromMemberId: string, toMemberId: string) => {
-		const newStatus = debt.status === "pending" ? "settled" : "pending";
-		settleDebt(groupId, fromMemberId, toMemberId, newStatus);
-
-		setGroups(prev => ({
-			...prev,
-			debts: prev.debts.map(d => 
-				d.id === debt.id ? { ...d, status: newStatus} : d
-			),
-		}))
-
-		setBalances(getMemberBalances(id));
-	}
 
 	const hasTransactions = (groups?.receipts.length ?? 0) > 0;
 
@@ -280,7 +322,7 @@ export default function DetailedGroups() {
 						<View style={[styles.container, { backgroundColor: "#334155" }]}>
 							<Text style={styles.title}>Balances</Text>
 							{balances?.map((member) => {
-								const balance = member.balance;
+								const balance = Number(member.balance.toFixed(2));
 								return (
 									<View style={[styles.row, { width: "80%" }]} key={member.memberId}>
 									<View style={{ alignItems: "flex-start" }}>
@@ -299,33 +341,55 @@ export default function DetailedGroups() {
 					<View style ={{ alignItems: "center", marginTop: 40, }}>
 						<View style={[styles.container, { backgroundColor: "#2B3648" }]}>
 							<Text style={styles.title}>Who Owes Whom?</Text>
-							{groups?.debts?.map((debt) => {
-								const amount = debt.amount;
+							<View>
+							{simplifiedBalances.length > 0 ? (simplifiedBalances.map((debt) => {
+								const key = settlementKey(debt.fromMemberId, debt.toMemberId);
+								const selected = selectedSettlements[key] ?? false;
 								return (
-									<View style={[styles.row, { width: "80%" }]} key={debt.id}>
-										<Text 
-										numberOfLines={1}
-										ellipsizeMode="tail"
-										style={[styles.text, debt.status === 'settled' && { color: "#888", textDecorationLine: "line-through" }]}>
-											{debt.fromMember} {debt.fromMember === "You" ? "owe" : "owes" } {debt.toMember}
+									<View>
+									<View style={[styles.row, { width: "80%" }]} key={key}>
+										<Checkbox
+											value={selected}
+											hitSlop={20}
+											onValueChange={() =>
+												toggleSettlement(
+													debt.fromMemberId,
+													debt.toMemberId
+												)
+											}
+											color={selected ? "#10B981" : undefined}
+										/>
+
+										<Text style={[styles.text, { flex: 1, marginLeft: 10 }]}>
+											{memberMap.get(debt.fromMemberId)}
+											{memberMap.get(debt.fromMemberId) === "You" ? " owe " : " owes "}
+											{memberMap.get(debt.toMemberId)}
 										</Text>
-									<View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
-										<Text style={[styles.text, debt.status === 'settled' && { color: "#888", textDecorationLine: "line-through" }]}>₹{amount.toFixed(2)}</Text>
-										<Pressable
-											style={{ width: 24 }}
-											hitSlop={10}
-											onPress={() => changeStatus(debt, groups.group.id, debt.fromMemberId, debt.toMemberId)}
-										>
-											<MaterialCommunityIcons 
-												name={debt.status === 'settled' ? "checkbox-marked-circle-outline" : "checkbox-blank-circle-outline"}
-												color={debt.status === 'settled' ? "#10B981" : "#DC2626"}
-												size={20}
-											/>
-										</Pressable>
+										<Text style={styles.text}>
+											₹{debt.amount.toFixed(2)}
+										</Text>
 									</View>
+									<Pressable
+										style={styles.settlementSaveButton}
+										hitSlop={10}
+										onPress={saveSettlements}
+									>
+										<Text style={styles.settlementSaveText}> Mark as paid </Text>
+									</Pressable>
+									<Text style={styles.helperText}>
+										Check a debt to mark it as paid, then tap Save to settle it.
+									</Text>
 								</View>
 								);
-							})}
+							})) : (
+								<View>
+									<Text style={[styles.text, { marginLeft: 10 }]}>
+										All balances settled
+									</Text>
+								</View>
+							)}
+							</View>
+							
 						</View>
 					</View>
 
@@ -481,5 +545,24 @@ const styles = StyleSheet.create({
 		shadowOpacity: 0.25,
 		shadowRadius: 6,
 		elevation: 4,
-	}
+	},
+	settlementSaveButton: {
+		backgroundColor: "#E2E8F0",
+		paddingHorizontal: 20,
+		paddingVertical: 10,
+		borderRadius: 20,
+		marginBottom: 10,
+	},
+	settlementSaveText: {
+		color: "#0F172A",
+		fontSize: 16,
+		fontWeight: "600",
+	},
+	helperText: {
+		color: "#94A3B8",
+		fontSize: 13,
+		textAlign: "center",
+		marginHorizontal: 20,
+		marginTop: 10,
+	},
 });

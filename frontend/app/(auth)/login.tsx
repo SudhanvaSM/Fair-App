@@ -3,10 +3,11 @@ import { View, Text, TextInput, Pressable, StyleSheet, Alert, ScrollView } from 
 
 import { supabase } from '@/lib/supabase';
 import { useScrollToTop } from '@react-navigation/native';
+import { db } from '@/src/db/database';
 
 export default function LoginScreen() {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
 
     const scrollRef = useRef<ScrollView>(null);
@@ -21,15 +22,25 @@ export default function LoginScreen() {
 
             setLoading(true);
 
-            const { error } = await supabase.auth.signInWithPassword({
+            const { data, error } = await supabase.auth.signInWithPassword({
                 email,
                 password,
             });
 
             if (error) {
                 Alert.alert('Login failed', error.message);
+                setEmail("");
+                setPassword("");
                 return;
             }
+
+            const user = data.user;
+
+            db.runSync(`
+                INSERT INTO profile (user_id, email)
+                VALUES (?, ?)
+            `, [user.id, email]);
+
         } finally {
             setLoading(false);
         }
@@ -44,7 +55,7 @@ export default function LoginScreen() {
 
             setLoading(true);
 
-            const { error } = await supabase.auth.signUp({
+            const { data, error } = await supabase.auth.signUp({
                 email,
                 password,
             });
@@ -54,14 +65,39 @@ export default function LoginScreen() {
                 return;
             }
 
+            const user = data.user;
+
+            if (!user) {
+                Alert.alert("Signup incomplete", "Account was created, but no user information was returned.");
+                return;
+            }
+
+            const { error: profileError } = await supabase
+                .from("profiles")
+                .upsert({
+                    id: user.id,
+                    email: email,
+                });
+
+            if (profileError) {
+                console.error("Profile creation failed:", profileError);
+
+                Alert.alert(
+                    "Profile creation failed",
+                    profileError.message
+                );
+
+                return;
+            }
+
+            Alert.alert(
+                'Success',
+                'Account created successfully!'
+            );
+
         } finally {
             setLoading(false);
         }
-
-        Alert.alert(
-            'Success',
-            'Account created successfully!'
-        );
     }
 
     return (

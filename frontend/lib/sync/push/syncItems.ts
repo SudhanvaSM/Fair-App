@@ -9,7 +9,7 @@ export const syncItems = async() => {
 		qty: number;
 		unit_price: number;
 		total_price: number;
-		updated_at: string;
+		created_at: string;
 	}> (
 		`
 			SELECT 
@@ -19,7 +19,7 @@ export const syncItems = async() => {
 				qty,
 				unit_price, 
 				total_price,
-				updated_at
+				created_at
 			FROM items
 			WHERE sync_status = 'not_synced';
 		`
@@ -30,14 +30,14 @@ export const syncItems = async() => {
 	for (const item of items) {
 		const { error } = await supabase
 			.from('items')
-			.upsert({
+			.insert({
 				id: item.id,
 				receipt_id: item.receipt_id,
 				name: item.name,
 				qty: item.qty,
 				unit_price: item.unit_price,
 				total_price: item.total_price,
-				updated_at: item.updated_at
+				created_at: item.created_at
 			});
 
 		if (error) {

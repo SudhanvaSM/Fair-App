@@ -6,14 +6,14 @@ export const syncItemAssignments = async() => {
 		id: string;
 		member_id: string;
 		item_id: string;
-		updated_at: string;
+		created_at: string;
 	}> (
 		`
 			SELECT 
 				id,
 				member_id,
 				item_id,
-				updated_at
+				created_at
 			FROM item_assignments
 			WHERE sync_status = 'not_synced';
 		`
@@ -24,11 +24,11 @@ export const syncItemAssignments = async() => {
 	for (const itemAssignment of itemAssignments) {
 		const { error } = await supabase
 			.from('item_assignments')
-			.upsert({
+			.insert({
 				id: itemAssignment.id,
 				member_id: itemAssignment.member_id,
 				item_id: itemAssignment.item_id,
-				updated_at: itemAssignment.updated_at
+				created_at: itemAssignment.created_at
 			});
 
 		if (error) {

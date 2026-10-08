@@ -10,10 +10,9 @@ export function createDebt (data: Debt) {
 				group_id,
 				from_member_id,
 				to_member_id,
-				amount,
-				status
+				amount
 			)
-			VALUES (?, ?, ?, ?, ?, ?, 'pending')
+			VALUES (?, ?, ?, ?, ?, ?)
 		`,
 		[
 			data.id,
@@ -47,4 +46,19 @@ export function settleDebt(
 		fromMemberId,
 		toMemberId
 	]);
+}
+
+export function getGroupDebts(groupId: string) {
+	return db.getAllSync<{
+		fromMemberId: string;
+		toMemberId: string;
+		amount: number;
+	}>(`
+		SELECT 
+			from_member_id AS fromMemberId,
+			to_member_id AS toMemberId,
+			amount AS amount
+		FROM debts
+		WHERE group_id = ?
+	`, [groupId]);
 }

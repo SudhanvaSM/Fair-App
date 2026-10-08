@@ -123,8 +123,7 @@ export function getDetailedGroup(groupId: string): DetailedGroup {
 			fm.id AS fromMemberId, 
 			tm.id AS toMemberId,
 			fm.name AS fromMember,
-			tm.name AS toMember,
-			d.status AS status
+			tm.name AS toMember
 		FROM debts d
 		JOIN members fm ON d.from_member_id = fm.id
 		JOIN members tm ON d.to_member_id = tm.id
@@ -132,8 +131,7 @@ export function getDetailedGroup(groupId: string): DetailedGroup {
 			d.group_id = ?
 		GROUP BY
 			d.from_member_id,
-			d.to_member_id,
-			d.status
+			d.to_member_id
 	`, [groupId]);
 
 	const totalExpenses = db.getFirstSync<{ total: number }>(`

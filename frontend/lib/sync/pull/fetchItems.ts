@@ -10,7 +10,7 @@ export default async function fetchItems() {
 			qty,
 			unit_price,
 			total_price,
-			updated_at
+			created_at
 		`);
 
 	if (error) {

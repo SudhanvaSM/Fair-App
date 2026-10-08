@@ -3,7 +3,13 @@ import { db } from "../db/database";
 import { randomUUID } from "expo-crypto";
 
 export function getProfileDetails(): ProfileDetails {
-	const receipt = db.getFirstSync<{ 
+
+	const profile = db.getFirstSync<{email: string}>(`
+		SELECT email
+		FROM profile
+	`);
+
+	const receipt = db.getFirstSync<{
 		totalSpent: number, 
 		totalBillsScanned: number, 
 		highestExpense: number 
@@ -32,15 +38,31 @@ export function getProfileDetails(): ProfileDetails {
 				SUM(
 					CASE
 						WHEN d.to_member_id = sm.self_id
-						AND d.status = 'pending'
 						THEN d.amount
 
 						WHEN d.from_member_id = sm.self_id
-						AND d.status = 'pending'
 						THEN -(d.amount)
 
 						ELSE 0
 					END
+				), 0
+			) 
+			+
+			COALESCE(
+				(
+					SELECT SUM(
+						CASE
+							WHEN s.from_member_id = sm.self_id
+							THEN s.amount
+
+							WHEN s.to_member_id = sm.self_id
+							THEN -(s.amount)
+
+							ELSE 0
+						END
+					)
+					FROM settlements s
+					WHERE s.group_id = sm.group_id
 				), 0
 			) AS pendingBalance
 		FROM debts d
@@ -65,6 +87,7 @@ export function getProfileDetails(): ProfileDetails {
 	`);
 
 	return {
+		email: profile?.email ?? "0",
 		totalSpent: receipt?.totalSpent ?? 0,
 		totalGroups: groups?.totalGroups ?? 0,
 		totalBillsScanned: receipt?.totalBillsScanned ?? 0,
@@ -103,5 +126,6 @@ export function deleteLocalData() {
 		db.runSync(`DELETE FROM groups;`);
 		db.runSync(`DELETE FROM sync_deletions;`);
 		db.runSync(`DELETE FROM app_state;`);
+		db.runSync(`DELETE FROM profile;`);
 	});
 }
