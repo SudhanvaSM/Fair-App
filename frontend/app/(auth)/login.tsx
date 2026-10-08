@@ -16,7 +16,9 @@ export default function LoginScreen() {
     async function handleLogin() {
         try {
             if (!email || !password) {
-                Alert.alert('Incomplete credentials', 'Enter email and password');
+                Alert.alert('Incomplete credentials', 'Enter email and password',
+                    [{ text: "OK" }],
+                    {cancelable: true,});
                 return;
             }
 
@@ -28,7 +30,9 @@ export default function LoginScreen() {
             });
 
             if (error) {
-                Alert.alert('Login failed', error.message);
+                Alert.alert('Login failed', error.message,
+                    [{ text: "OK" }],
+                    {cancelable: true,});
                 setEmail("");
                 setPassword("");
                 return;
@@ -49,7 +53,9 @@ export default function LoginScreen() {
     async function handleSignup() {
         try {
             if (!email || !password) {
-                Alert.alert('Error', 'Enter email and password');
+                Alert.alert('Error', 'Enter email and password',
+                    [{ text: "OK" }],
+                    {cancelable: true,});
                 return;
             }
 
@@ -61,14 +67,18 @@ export default function LoginScreen() {
             });
 
             if (error) {
-                Alert.alert('Signup failed', error.message);
+                Alert.alert('Signup failed', error.message,
+                    [{ text: "OK" }],
+                    {cancelable: true,});
                 return;
             }
 
             const user = data.user;
 
             if (!user) {
-                Alert.alert("Signup incomplete", "Account was created, but no user information was returned.");
+                Alert.alert("Signup incomplete", "Account was created, but no user information was returned.",
+                    [{ text: "OK" }],
+                    {cancelable: true,});
                 return;
             }
 
@@ -84,7 +94,9 @@ export default function LoginScreen() {
 
                 Alert.alert(
                     "Profile creation failed",
-                    profileError.message
+                    profileError.message,
+                    [{ text: "OK" }],
+                    {cancelable: true,}
                 );
 
                 return;
@@ -92,7 +104,9 @@ export default function LoginScreen() {
 
             Alert.alert(
                 'Success',
-                'Account created successfully!'
+                'Account created successfully!',
+                    [{ text: "OK" }],
+                    {cancelable: true,}
             );
 
         } finally {

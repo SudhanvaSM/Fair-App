@@ -45,7 +45,9 @@ export default function LoadingScreen() {
 				console.error("Initial data pull failed:", error);
 				Alert.alert(
 					"Sync failed",
-					"Could not load your data. Please try again."
+					"Could not load your data. Please try again.",
+					[{ text: "OK" }],
+					{cancelable: true,}
 				);
 			}
 		}

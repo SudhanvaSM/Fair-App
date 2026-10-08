@@ -224,7 +224,9 @@ export default function Review() {
 										onPress={() => {
 											const parsedTax = parseFloat(tempTaxInput);
 											if (isNaN(parsedTax) || parsedTax < 0 || parsedTax > 9999) {
-												Alert.alert("Invalid input", "Enter a valid number.");
+												Alert.alert("Invalid input", "Enter a valid number.",
+													[{ text: "OK" }],
+													{cancelable: true,});
 												return;
 											}
 											setIsEditingTax(false);
@@ -291,7 +293,9 @@ export default function Review() {
 										onPress={() => {
 											const paresdTip = parseFloat(tempTipInput);
 											if (isNaN(paresdTip) || paresdTip < 0 || paresdTip > 9999) {
-												Alert.alert("Invalid input", "Enter a valid number.");
+												Alert.alert("Invalid input", "Enter a valid number.",
+													[{ text: "OK" }],
+													{cancelable: true,});
 												return;
 											}
 											setIsEditingTip(false);
@@ -341,7 +345,9 @@ export default function Review() {
 			<Pressable
 				onPress={() => {
 					if (itemsState.length === 0) {
-					Alert.alert("No items", "Please add at least one item.");
+					Alert.alert("No items", "Please add at least one item.",
+						[{ text: "OK" }],
+						{cancelable: true,});
 					return;
 					}
 					

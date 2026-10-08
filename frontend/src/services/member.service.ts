@@ -42,3 +42,11 @@ export function getMemberName(memberId: string) {
 	}
 	return memberName;
 }
+
+export function addMemberIntoGroup(id: string, groupId: string, name: string) {
+	const date = new Date().toISOString();
+	db.runSync(`
+		INSERT INTO members (id, group_id, name, active, sync_status, created_at, updated_at)
+		VALUES(?, ?, ?, ?, ?, ?, ?)
+	`,[id, groupId, name, 1, "not_synced", date, date]);
+}

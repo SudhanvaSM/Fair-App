@@ -123,7 +123,9 @@ export default function Summary() {
 			console.error(e);
 			Alert.alert(
 				"Error",
-				"Failed to save receipt"
+				"Failed to save receipt",
+				[{ text: "OK" }],
+				{cancelable: true,}
 			);
 			setSaving(false);
 		}

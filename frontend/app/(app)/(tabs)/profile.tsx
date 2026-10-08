@@ -90,14 +90,18 @@ export default function ProfileScreen() {
 		const success = await syncAll();
 
 		if (!success) {
-			Alert.alert("Could not complete sync", "Please try again before logging out.");
+			Alert.alert("Could not complete sync", "Please try again before logging out.",
+			[{ text: "OK" }],
+			{cancelable: true,});
 			return;
 		}
 
 		const { error } = await supabase.auth.signOut({ scope: "local" });
 
 		if (error) {
-            Alert.alert('Logout failed', error.message);
+            Alert.alert('Logout failed', error.message,
+			[{ text: "OK" }],
+			{cancelable: true,});
             return;
         }
 
@@ -113,11 +117,15 @@ export default function ProfileScreen() {
 			const success = await syncAll();
 
 			if (!success) {
-				Alert.alert("Could not complete sync", "Please try again before logging out.");
+				Alert.alert("Could not complete sync", "Please try again before logging out.",
+				[{ text: "OK" }],
+				{cancelable: true,});
 				return;
 			}
 			await new Promise(resolve => setTimeout(resolve, 500));
-			Alert.alert("Upload Complete", "All local changes uploaded to cloud database.");
+			Alert.alert("Upload Complete", "All local changes uploaded to cloud database.",
+			[{ text: "OK" }],
+			{cancelable: true,});
 		} finally {
 			setIsSyncing(false);
 		}

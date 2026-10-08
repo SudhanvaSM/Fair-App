@@ -33,7 +33,9 @@ export default function GroupInput() {
 	
 	const addItem = (name: string) => {
 		if (!name.trim() || members.length === 0) {
-			Alert.alert("Invalid", "Add group name and at least 1 member");
+			Alert.alert("Invalid", "Add group name and at least 1 member",
+			[{ text: "OK" }],
+			{cancelable: true,});
 			return;
 		}
 

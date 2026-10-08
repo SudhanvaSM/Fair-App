@@ -5,7 +5,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Menu } from "react-native-paper";
 import { Checkbox } from "expo-checkbox";
 
-import { DetailedGroup, MemberBalance, SimplifiedBalances } from "@/types/item";
+import { DetailedGroup, Member, MemberBalance, SimplifiedBalances } from "@/types/item";
 
 import { changeGroupName, deleteGroup, getDetailedGroup, getLatestDate } from "@/src/services/group.service";
 
@@ -15,6 +15,10 @@ import useScrollToTop from "./hooks/useScrollToTop";
 import { simplifyBalances } from "@/utils/simplifyBalances";
 import { getMemberBalances } from "@/utils/getMemberBalances";
 import { insertSettlement } from "@/src/services/settlement.service";
+import AddBlock from "@/components/AddBlock";
+import AddMember from "@/components/AddMember";
+import { randomUUID } from "expo-crypto";
+import { addMemberIntoGroup } from "@/src/services/member.service";
 
 export default function DetailedGroups() {
 	const { groupData } = useLocalSearchParams();
@@ -56,6 +60,19 @@ export default function DetailedGroups() {
 	};
 
 	const saveSettlements = () => {
+
+		const hasSelection = Object.values(selectedSettlements).some(selected => selected);
+
+		if (!hasSelection) {
+			Alert.alert(
+				"Invalid Selections",
+				"Select atleast one debt to settle.",
+				[{ text: "OK" }],
+				{cancelable: true,}
+			);
+			return;
+		}
+
 		simplifiedBalances.forEach(debt => {
 			const key = settlementKey(
 				debt.fromMemberId,
@@ -81,7 +98,9 @@ export default function DetailedGroups() {
 
 		Alert.alert(
 			"Settlements Saved",
-			"The selected debts have been marked as settled."
+			"The selected debts have been marked as settled.",
+			[{ text: "OK" }],
+			{cancelable: true,}
 		);
 	};
 	
@@ -144,6 +163,50 @@ export default function DetailedGroups() {
 		setGroupTitle(groupTitle);
 		setEditing(false);
 	}
+
+	const [showInput, setShowInput] = useState(false);
+	const [newName, setNewName] = useState("");
+
+	const addMember = (name: string) => {
+		const trimmedName = name.trim();
+		if (!trimmedName) {
+			Alert.alert("Invalid", "Add at least 1 member",
+			[{ text: "OK" }],
+			{cancelable: true,}
+			);
+			return;
+		}
+
+		for (const member of groups.members) {
+			if (member.name.trim().toLowerCase() === trimmedName.toLowerCase()) {
+				Alert.alert("Duplicate Name", "Member already exists in the group.",
+				[{ text: "OK" }],
+				{cancelable: true,})
+				setNewName("");
+				return;
+			}
+		}
+
+		const newMember: Member = {
+			id: randomUUID(),
+			groupId: id,
+			userId: null,
+			name: trimmedName
+		};
+
+		try {
+			addMemberIntoGroup(newMember.id, newMember.groupId, newMember.name);
+
+			setGroups(prev => ({
+				...prev,
+				members: [...prev.members, newMember],
+			}));
+		} catch {
+			Alert.alert("Error", "Could not add member.",
+			[{ text: "OK" }],
+			{cancelable: true,});
+		}
+	};
 
 	const handleDeleteGroup = () => {
 		closeMenu();
@@ -256,7 +319,7 @@ export default function DetailedGroups() {
 				contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
 				showsVerticalScrollIndicator={false}
 				keyboardShouldPersistTaps="handled"
-				ref={scrollRef}
+				//ref={scrollRef}
 			>
 				{editing && (
 					<View style={{ justifyContent: "center", alignItems: "center" }}>
@@ -313,6 +376,15 @@ export default function DetailedGroups() {
 							))}
 							</View>
 						</View>
+						<View style={{ justifyContent: "center", alignItems: "center", marginBottom: 5 }}>
+							<AddMember
+							showInput={showInput}
+							setShowInput={setShowInput}
+							newName={newName}
+							setNewName={setNewName}
+							onAdd={addMember}
+						/>
+						</View>
 					</View>
 				</View>
 
@@ -338,58 +410,96 @@ export default function DetailedGroups() {
 						</View>
 					</View>
 
-					<View style ={{ alignItems: "center", marginTop: 40, }}>
+					<View style={{ alignItems: "center", marginTop: 40 }}>
 						<View style={[styles.container, { backgroundColor: "#2B3648" }]}>
 							<Text style={styles.title}>Who Owes Whom?</Text>
-							<View>
-							{simplifiedBalances.length > 0 ? (simplifiedBalances.map((debt) => {
-								const key = settlementKey(debt.fromMemberId, debt.toMemberId);
-								const selected = selectedSettlements[key] ?? false;
-								return (
-									<View>
-									<View style={[styles.row, { width: "80%" }]} key={key}>
-										<Checkbox
-											value={selected}
-											hitSlop={20}
-											onValueChange={() =>
-												toggleSettlement(
-													debt.fromMemberId,
-													debt.toMemberId
-												)
-											}
-											color={selected ? "#10B981" : undefined}
-										/>
 
-										<Text style={[styles.text, { flex: 1, marginLeft: 10 }]}>
-											{memberMap.get(debt.fromMemberId)}
-											{memberMap.get(debt.fromMemberId) === "You" ? " owe " : " owes "}
-											{memberMap.get(debt.toMemberId)}
-										</Text>
-										<Text style={styles.text}>
-											₹{debt.amount.toFixed(2)}
+							<View style={{ alignItems: "center", }}>
+								{simplifiedBalances.length > 0 ? (
+									simplifiedBalances.map((debt) => {
+										const key = settlementKey(
+											debt.fromMemberId,
+											debt.toMemberId
+										);
+
+										const selected =
+											selectedSettlements[key] ?? false;
+
+										return (
+											<View key={key} style={{ width: "90%", marginVertical: 10 }}>
+												<View style={styles.row}>
+													<Checkbox
+														value={selected}
+														hitSlop={20}
+														onValueChange={() =>
+															toggleSettlement(
+																debt.fromMemberId,
+																debt.toMemberId
+															)
+														}
+														color={
+															selected
+																? "#10B981"
+																: undefined
+														}
+													/>
+
+													<Text
+														style={[
+															styles.text,
+															{
+																flex: 1,
+																marginLeft: 10,
+															},
+														]}
+													>
+														{memberMap.get(debt.fromMemberId)}
+														{memberMap.get(debt.fromMemberId) ===
+														"You"
+															? " owe "
+															: " owes "}
+														{memberMap.get(debt.toMemberId)}
+													</Text>
+
+													<Text style={styles.text}>
+														₹{debt.amount.toFixed(2)}
+													</Text>
+												</View>
+											</View>
+										);
+									})
+								) : (
+									<View>
+										<Text
+											style={[
+												styles.text,
+												{ marginLeft: 10 },
+											]}
+										>
+											All balances settled
 										</Text>
 									</View>
-									<Pressable
-										style={styles.settlementSaveButton}
-										hitSlop={10}
-										onPress={saveSettlements}
-									>
-										<Text style={styles.settlementSaveText}> Mark as paid </Text>
-									</Pressable>
-									<Text style={styles.helperText}>
-										Check a debt to mark it as paid, then tap Save to settle it.
-									</Text>
-								</View>
-								);
-							})) : (
-								<View>
-									<Text style={[styles.text, { marginLeft: 10 }]}>
-										All balances settled
-									</Text>
-								</View>
-							)}
+								)}
+
+								{simplifiedBalances.length > 0 && (
+									<>
+										<Pressable
+											style={styles.settlementSaveButton}
+											hitSlop={10}
+											onPress={saveSettlements}
+										>
+											<Text style={styles.settlementSaveText}>
+												Mark as paid
+											</Text>
+										</Pressable>
+
+										<Text style={styles.helperText}>
+											Check a debt to mark it as paid, then tap Save to
+											settle it.
+										</Text>
+									</>
+								)}
 							</View>
-							
 						</View>
 					</View>
 
@@ -461,7 +571,7 @@ const styles = StyleSheet.create({
 		justifyContent: "space-between",
 		borderBottomWidth: 0.5,
 		borderBottomColor: "#aaa",
-		paddingVertical: 8,
+		paddingVertical: 12,
 		alignItems: "center",
 	},
 	chipContainer: {
@@ -552,6 +662,7 @@ const styles = StyleSheet.create({
 		paddingVertical: 10,
 		borderRadius: 20,
 		marginBottom: 10,
+		marginTop: 20,
 	},
 	settlementSaveText: {
 		color: "#0F172A",

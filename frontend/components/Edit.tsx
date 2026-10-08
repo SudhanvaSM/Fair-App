@@ -29,7 +29,9 @@ export default function Edit({ item, onSave, onCancel }: Props) {
 
   const handleSave = () => {
     if (!trimmedName) {
-      Alert.alert("Invalid Name", "Item name cannot be empty.");
+      Alert.alert("Invalid Name", "Item name cannot be empty.",
+        [{ text: "OK" }],
+        {cancelable: true,});
       return;
     }
 
