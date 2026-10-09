@@ -41,17 +41,21 @@ export const syncItems = async() => {
 			});
 
 		if (error) {
-			console.error('Failed to sync items: ', item.id, error);
+			if (error.code === "23505") {
+				// Already exists remotely — treat as synced
+				db.runSync(
+					`UPDATE items
+					SET sync_status = 'synced'
+					WHERE id = ?`,
+					[item.id]
+				);
+
+				continue;
+			}
+			console.error('Failed to sync itemAssignments: ', item.id, error);
 			success = false;
 			continue;
-		} 
-
-		db.runSync(
-			`UPDATE items
-			SET sync_status = 'synced'
-			WHERE id = ?`,
-			[item.id]
-		);
+		}
 	}
 
 	return success;

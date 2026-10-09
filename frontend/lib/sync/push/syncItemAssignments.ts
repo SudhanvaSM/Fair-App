@@ -29,20 +29,25 @@ export const syncItemAssignments = async() => {
 				member_id: itemAssignment.member_id,
 				item_id: itemAssignment.item_id,
 				created_at: itemAssignment.created_at
-			});
+			}
+		);
 
 		if (error) {
+			if (error.code === "23505") {
+				// Already exists remotely — treat as synced
+				db.runSync(
+					`UPDATE item_assignments
+					SET sync_status = 'synced'
+					WHERE id = ?`,
+					[itemAssignment.id]
+				);
+
+				continue;
+			}
 			console.error('Failed to sync itemAssignments: ', itemAssignment.id, error);
 			success = false;
 			continue;
-		} 
-
-		db.runSync(
-			`UPDATE item_assignments
-			SET sync_status = 'synced'
-			WHERE id = ?`,
-			[itemAssignment.id]
-		);
+		}
 	}
 
 	return success;

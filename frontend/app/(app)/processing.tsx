@@ -64,26 +64,22 @@ export default function Processing() {
 	const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 	useEffect(() => {
-		const start = performance.now();
 		const run = async () => {
 			try {
 				const formData = new FormData();
 
 				formData.append("file", {
 					uri,
-					name: "receipt.jpg",
+					name: "receipt.jpeg",
 					type: "image/jpg",
 				} as any);
 
 				const fetchPromise = fetch(`${API_URL}/upload`, {
 					method: "POST",
 					body: formData,
-					headers: {
-						"Content-Type": "multipart/form-data",
-					},
 				});
 
-				await delay(500);
+
 				updateStep(1);
 
 				const res = await fetchPromise;
@@ -108,11 +104,11 @@ export default function Processing() {
 				};
 
 				updateStep(2);
-
-				await delay(500);
-
+				await delay(50);
+				
 				updateStep(3);
-				await delay(200);
+
+				await delay(250);
 
 				router.replace({
 					pathname: "../review",
@@ -122,10 +118,6 @@ export default function Processing() {
 						imageUri: uri,
 					},
 				});
-				const end = performance.now();
-				const duration = end - start;
-
-				console.log(`Execution time: ${duration.toFixed(4)} ms`);
 			} 
 			catch (err) {
 				console.error("Processing error:", err);

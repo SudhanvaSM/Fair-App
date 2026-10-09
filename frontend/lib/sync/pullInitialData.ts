@@ -126,7 +126,7 @@ export default async function pullInitialData(onProgress?: (step: SyncStep) => v
 			`
 				INSERT INTO item_assignments(id, member_id, item_id, sync_status, created_at)
 				VALUES (?, ?, ?, 'synced', ?)
-			`, [item_assignment.id, item_assignment.item_id, item_assignment.member_id, item_assignment.created_at]
+			`, [item_assignment.id, item_assignment.member_id, item_assignment.item_id, item_assignment.created_at]
 		);
 		}
 

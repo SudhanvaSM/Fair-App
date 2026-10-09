@@ -25,15 +25,21 @@ export const syncProfiles = async () => {
             });
 
         if (error) {
-            console.error(
-                "Failed to sync profile:",
-                profile.user_id,
-                error
-            );
+			if (error.code === "23505") {
+				// Already exists remotely — treat as synced
+				db.runSync(
+					`UPDATE profile
+					SET sync_status = 'synced'
+					WHERE id = ?`,
+					[profile.user_id]
+				);
 
-            success = false;
-            continue;
-        }
+				continue;
+			}
+			console.error('Failed to sync itemAssignments: ', profile.user_id, error);
+			success = false;
+			continue;
+		}
     }
 
     return success;

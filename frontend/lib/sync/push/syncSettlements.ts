@@ -38,17 +38,21 @@ export const syncSettlements = async() => {
 			});
 
 		if (error) {
-			console.error('Failed to sync settlement: ', settlement.id, error);
+			if (error.code === "23505") {
+				// Already exists remotely — treat as synced
+				db.runSync(
+					`UPDATE settlements
+					SET sync_status = 'synced'
+					WHERE id = ?`,
+					[settlement.id]
+				);
+
+				continue;
+			}
+			console.error('Failed to sync itemAssignments: ', settlement.id, error);
 			success = false;
 			continue;
-		} 
-
-		db.runSync(
-			`UPDATE settlements
-			SET sync_status = 'synced'
-			WHERE id = ?`,
-			[settlement.id]
-		);
+		}
 	}
 
 	return success;

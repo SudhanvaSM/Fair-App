@@ -337,6 +337,7 @@ export default function DetailedGroups() {
 								value={tempGroupTitle}
 								onChangeText={setTempGroupTitle}
 								style={styles.input}
+								maxLength={20}
 							/>
 
 							<View style={styles.actions}>

@@ -41,17 +41,21 @@ export const syncDebts = async() => {
 			});
 
 		if (error) {
-			console.error('Failed to sync debts: ', debt.id, error);
+			if (error.code === "23505") {
+				// Already exists remotely — treat as synced
+				db.runSync(
+					`UPDATE debts
+					SET sync_status = 'synced'
+					WHERE id = ?`,
+					[debt.id]
+				);
+
+				continue;
+			}
+			console.error('Failed to sync itemAssignments: ', debt.id, error);
 			success = false;
 			continue;
-		} 
-
-		db.runSync(
-			`UPDATE debts
-			SET sync_status = 'synced'
-			WHERE id = ?`,
-			[debt.id]
-		);
+		}
 	}
 
 	return success;
