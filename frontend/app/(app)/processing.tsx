@@ -64,6 +64,7 @@ export default function Processing() {
 	}, []);
 
 	useEffect(() => {
+		const start = performance.now();
 		const run = async () => {
 			try {
 				const formData = new FormData();
@@ -88,8 +89,8 @@ export default function Processing() {
 				const res = await fetchPromise;
 				const data = await res.json();
 
-				if (!res) {
-					throw new Error("Upload falied\n");
+				if (!res.ok) {
+					throw new Error(`Upload failed: ${res.status}`);
 				}
 
 				const normalisedData = {
@@ -112,6 +113,7 @@ export default function Processing() {
 
 				updateStep(3);
 				await delay(200);
+
 				router.replace({
 					pathname: "../review",
 					params: {
@@ -120,6 +122,10 @@ export default function Processing() {
 						imageUri: uri,
 					},
 				});
+				const end = performance.now();
+				const duration = end - start;
+
+				console.log(`Execution time: ${duration.toFixed(4)} ms`);
 			} 
 			catch (err) {
 				console.error("Processing error:", err);

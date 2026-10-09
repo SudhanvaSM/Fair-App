@@ -1,75 +1,59 @@
-import cv2
-from pytesseract import *
-import numpy as np
+import cv2, numpy as np
 from PIL import Image
 import io
+import pytesseract
+from pytesseract import Output
+
+def crop_receipt(image):
+    """Find the bright paper blob, rotate/crop to it. Falls back to the full image."""
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    blur = cv2.GaussianBlur(gray, (9, 9), 0)
+    _, mask = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, np.ones((25, 25), np.uint8))
+    cnts, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if not cnts:
+        return image
+    c = max(cnts, key=cv2.contourArea)
+    if cv2.contourArea(c) < 0.2 * image.shape[0] * image.shape[1]:
+        return image
+
+    box = cv2.boxPoints(cv2.minAreaRect(c)).astype("float32")
+    s, d = box.sum(axis=1), np.diff(box, axis=1).ravel()
+    tl, br = box[np.argmin(s)], box[np.argmax(s)]
+    tr, bl = box[np.argmin(d)], box[np.argmax(d)]
+    W = int(max(np.linalg.norm(tr - tl), np.linalg.norm(br - bl)))
+    H = int(max(np.linalg.norm(bl - tl), np.linalg.norm(br - tr)))
+    dst = np.array([[0, 0], [W - 1, 0], [W - 1, H - 1], [0, H - 1]], dtype="float32")
+    M = cv2.getPerspectiveTransform(np.array([tl, tr, br, bl], dtype="float32"), dst)
+    return cv2.warpPerspective(image, M, (W, H))
 
 def preprocess(image):
+    # deskews the image
+    image = crop_receipt(image)                       
 
-    # ── 1. Upscale  ───────────────────────────
+    # Normalise size: ~1600px wide gives Tesseract ~30-40px glyphs
     h, w = image.shape[:2]
+    target = 1600
+    interp = cv2.INTER_CUBIC if w < target else cv2.INTER_AREA
+    image = cv2.resize(image, None, fx=target / w, fy=target / w, interpolation=interp)
 
-    if w < 1500:
-        image = cv2.resize(image, None, fx=2, fy=2)
-    elif w > 2000:
-        scale = 2000 / w
-        image = cv2.resize(image, None, fx=scale, fy=scale)
-
-    # ── 2. Grayscale ─────────────────────────────────────────────────────────
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    # ── 3. Denoise — removes thermal printer speckle ─────────────────────────
-    gray = cv2.fastNlMeansDenoising(gray, h=10)
-
-    # ── 4. Deskew — fixes tilted phone photos ────────────────────────────────
-    coords = np.column_stack(np.where(gray < 200))   # find dark pixels
-    if len(coords) > 0:
-        angle = cv2.minAreaRect(coords)[-1]
-        if angle < -45:
-            angle = 90 + angle
-        if abs(angle) > 0.5:                          # only rotate if tilt > 0.5°
-            (h, w) = gray.shape
-            center = (w // 2, h // 2)
-            M = cv2.getRotationMatrix2D(center, angle, 1.0)
-            gray = cv2.warpAffine(gray, M, (w, h),
-                                  flags=cv2.INTER_CUBIC,
-                                  borderMode=cv2.BORDER_REPLICATE)
-
-    # ── 5. Adaptive threshold — handles uneven lighting ──────────────────────
-    #    Better than OTSU for phone photos with shadows
-
-    kernel = np.array([[0, -1, 0],
-                   [-1, 5,-1],
-                   [0, -1, 0]])
-    gray = cv2.filter2D(gray, -1, kernel)
-
-    _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-
-    # ── 6. Morphological cleanup — closes tiny gaps in characters ────────────
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 1))
-    thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
-
-    return thresh
-
+    # Flatten lighting: estimate background (text removed), divide it out
+    bg = cv2.medianBlur(cv2.dilate(gray, np.ones((7, 7), np.uint8)), 31)
+    norm = cv2.divide(gray, bg, scale=255)
+    norm = cv2.normalize(norm, None, 0, 255, cv2.NORM_MINMAX)
+    return norm            # no sharpen, no hard threshold
 
 def run_ocr(image_bytes):
-    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-    image = np.array(image)
-
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-
-    # Preprocess separately
-    items_processed  = preprocess(image)
-
-    custom_config = r'--oem 3 --psm 4'
-
-    items_text = pytesseract.image_to_data(items_processed, config=custom_config, output_type=Output.DICT)
-
-    return items_text
+    img = np.array(Image.open(io.BytesIO(image_bytes)).convert("RGB"))
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+    cfg = "--oem 3 --psm 6 -c preserve_interword_spaces=1"
+    return pytesseract.image_to_data(preprocess(img), config=cfg, output_type=Output.DICT)
 
 # Used for debugging
 # if __name__ == "__main__":
-#     with open("backend/uploads/Images/ai_receipt.jpeg", "rb") as f:
+#     with open("backend/uploads/Images/dhabha.jpeg", "rb") as f:
 #         raw = run_ocr(f.read())
 #     print("── RAW OCR ──────────────────────────────")
 #     print(raw)

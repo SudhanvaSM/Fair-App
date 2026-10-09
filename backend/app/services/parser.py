@@ -27,7 +27,7 @@ def normalize_price_spaces(line):
     line = re.sub(r'(\d+)\s*[.,]\s*(\d{2})\b', r'\1.\2', line)
 
     # 3. fix space decimals
-    line = re.sub(r'\b(\d{1,3})\s+(\d{2})\b', r'\1.\2', line)
+    line = re.sub(r'\b(\d{1,3})\s+(\d{2})(?!\.)\b', r'\1.\2', line)
 
     return line
 
@@ -296,7 +296,6 @@ def parse_receipt(result):
         qty = None
 
         line = line_to_text(words)
-        line = normalize_price_spaces(line)
         line = fix_merged_words(line)
 
         parsed = extract_columns(words, columns)
@@ -315,6 +314,8 @@ def parse_receipt(result):
 
         # fallback to regex parser if spatial parsing failed
         if not total:
+            line = normalize_price_spaces(line)
+
             price, line_body = extract_price(line)
 
             if price is None:
@@ -434,9 +435,8 @@ def clean_name(name: str) -> str:
 
 # Used for debugging
 # if __name__ == "__main__":
-#     from ocr_service import run_ocr
-#     with open("backend/uploads/Images/ai_receipt.jpeg", "rb") as f:
+#     from app.services.ocr_paddleocr import run_ocr
+#     with open("uploads/Images/dhabha.jpeg", "rb") as f:
 #         raw_text = run_ocr(f.read())
-
 #     result = parse_receipt(raw_text)
 #     print(json.dumps(result, indent=4))
