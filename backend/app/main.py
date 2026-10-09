@@ -13,11 +13,4 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/test-auth")
-def test_auth(user_id: str = Depends(get_current_user)):
-	return {
-		"authenticated": True,
-        "user_id": user_id
-    }
-
 app.include_router(router)
