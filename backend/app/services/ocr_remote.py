@@ -7,7 +7,10 @@ from gradio_client import Client, handle_file
 OCR_SERVICE_URL = os.environ["OCR_SERVICE_URL"]
 HF_TOKEN = os.environ["HF_TOKEN"]
 
-_client = Client(OCR_SERVICE_URL)
+_client = Client(
+    Client(OCR_SERVICE_URL),
+    token=HF_TOKEN
+)
 
 
 def run_remote_ocr(image_bytes: bytes):
