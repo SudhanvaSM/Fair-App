@@ -67,7 +67,6 @@ export const syncGroups = async() => {
 				.from('groups')
 				.update({
 					name: group.name,
-					created_at: group.created_at,
 					updated_at: group.updated_at
 				})
 				.eq("id", group.id);;
@@ -88,13 +87,11 @@ export const syncGroups = async() => {
 			db.runSync(
 				`UPDATE groups
 				SET name = ?,
-					created_at = ?,
 					sync_status = ?,
-					updated_at = ?,
+					updated_at = ?
 				WHERE id = ?
 				`, [
 					cloudGroup.name,
-					cloudGroup.created_at,
 					"synced",
 					cloudGroup.updated_at,
 					cloudGroup.id

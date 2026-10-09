@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet, ScrollView, Pressable, Alert, TextInput } from "react-native"
+import { Text, View, StyleSheet, ScrollView, Pressable, Alert, TextInput, KeyboardAvoidingView, Platform } from "react-native"
 import { router, Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -262,7 +262,10 @@ export default function DetailedGroups() {
 	}
 
 	return (
-		<>
+		<KeyboardAvoidingView
+			style={{ flex: 1 }}
+			behavior={Platform.OS === "ios" ? "padding" : "height"}
+		>
 			<Stack.Screen
 				options={{
 					headerStyle: { backgroundColor: "#1E293B" },
@@ -319,7 +322,9 @@ export default function DetailedGroups() {
 				contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
 				showsVerticalScrollIndicator={false}
 				keyboardShouldPersistTaps="handled"
-				//ref={scrollRef}
+				keyboardDismissMode="interactive"
+				automaticallyAdjustKeyboardInsets
+				ref={scrollRef}
 			>
 				{editing && (
 					<View style={{ justifyContent: "center", alignItems: "center" }}>
@@ -543,7 +548,7 @@ export default function DetailedGroups() {
 					</Pressable>
 				</View>
 			</ScrollView>
-		</>
+		</KeyboardAvoidingView>
 	);
 }
 

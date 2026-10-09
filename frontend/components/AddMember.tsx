@@ -61,6 +61,7 @@ const AddMember = React.memo((props: Props) => {
 					value={newName}
 					onChangeText={setNewName}
 					style={styles.input}
+					autoFocus
 					/>
 
 					<View style={styles.actions}>

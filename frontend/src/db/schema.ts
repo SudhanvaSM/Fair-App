@@ -75,9 +75,10 @@ sync_deletions
 
 profile
 - user_id
-- name
+- name l
 - email
-- phone
+- phone l
+- created_at
 
 app_state
 - key

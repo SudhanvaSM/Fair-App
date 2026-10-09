@@ -26,6 +26,7 @@ export function getProfileDetails(): ProfileDetails {
 		FROM groups
 	`);
 
+	// need to change min uuid, add user_id column to members
 	const debts = db.getFirstSync<{ pendingBalance: number }>(`
 		WITH self_members AS (
 			SELECT group_id, MIN(id) AS self_id
