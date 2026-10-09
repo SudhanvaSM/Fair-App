@@ -21,7 +21,6 @@ async def upload(file: UploadFile = File(...)):
         # Read the image file as bytes
         contents = await file.read()
 
-        # Send the image bytes to OCR to extract structured data
         return {
             "status": "backend_online",
             "filename": file.filename,
