@@ -6,8 +6,6 @@ import { LinearGradient } from "expo-linear-gradient";
 
 import Status from "@/components/Status";
 
-import { API_URL } from "@/src/config/api";
-
 
 export default function Processing() {
 	type StepStatus = "waiting" | "active" | "done";
@@ -62,6 +60,8 @@ export default function Processing() {
 		])
 		).start();
 	}, []);
+
+	const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 	useEffect(() => {
 		const start = performance.now();
