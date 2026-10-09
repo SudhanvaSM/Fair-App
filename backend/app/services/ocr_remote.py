@@ -8,7 +8,7 @@ OCR_SERVICE_URL = os.environ["OCR_SERVICE_URL"]
 HF_TOKEN = os.environ["HF_TOKEN"]
 
 client = Client(
-    Client(OCR_SERVICE_URL),
+    OCR_SERVICE_URL,
     token=HF_TOKEN
 )
 
