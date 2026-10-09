@@ -4,7 +4,7 @@
 from fastapi import APIRouter, UploadFile, File
 import os
 
-# from app.services.ocr_paddleocr import run_ocr
+from app.services.ocr_remote import run_remote_ocr
 from app.services.parser import parse_receipt
 
 # Set this is to True to print parsing results along with confidence scoring
@@ -21,10 +21,13 @@ async def upload(file: UploadFile = File(...)):
         # Read the image file as bytes
         contents = await file.read()
 
+        raw_text = run_remote_ocr(contents)
+
+        raw_json = parse_receipt(raw_text)
+
+
         return {
-            "status": "backend_online",
-            "filename": file.filename,
-            "size": len(contents),
+            "raw": raw_json
         }
 
     except Exception as e:
