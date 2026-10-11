@@ -1,8 +1,12 @@
 import { db } from "@/src/db/database"
 import { supabase } from "../../supabase";
+import { getName } from "@/src/services/user.services";
 
 export const syncMembers = async() => {
 	const { data: { user } } = await supabase.auth.getUser();
+
+	const profileName = getName();
+	console.log(profileName);
 
 	const members = db.getAllSync<{
 		id: string;
@@ -28,7 +32,7 @@ export const syncMembers = async() => {
 
 	for (const member of members) {
 
-		const userId = member.name === "You" ? user?.id : null;
+		const userId = member.name === profileName ? user?.id : null;
 
 		const { data: cloudMember, error: fetchError } = await supabase
 			.from("members")

@@ -6,10 +6,14 @@ export const syncProfiles = async () => {
     const profiles = db.getAllSync<{
         user_id: string;
         email: string;
+        name: string;
+        created_at: string;
     }>(`
         SELECT
             user_id,
-            email
+            email,
+            name,
+            created_at
         FROM profile;
     `);
 
@@ -21,7 +25,8 @@ export const syncProfiles = async () => {
             .from("profiles")
             .upsert({
                 user_id: profile.user_id,
-                email: profile.email
+                email: profile.email,
+                name: profile.name,
             });
 
         if (error) {

@@ -45,11 +45,12 @@ export default async function pullInitialData(onProgress?: (step: SyncStep) => v
 	db.withTransactionSync(() => {
 		db.runSync(
 			`
-				INSERT OR REPLACE INTO profile(user_id, name, email, created_at)
+				INSERT INTO profile(user_id, name, email, created_at)
 				VALUES (?, ?, ?, ?)
 				ON CONFLICT(user_id) DO UPDATE SET
-        			email = excluded.email
-			`, [profile.id, profile.name, profile.email, profile.created_at]
+        			email = excluded.email,
+					name = excluded.name
+			`, [profile.id, profile.name ?? profile.email?.split("@")[0] ?? "Me", profile.email, profile.created_at]
 		);
 
 		for (const group of groups) {

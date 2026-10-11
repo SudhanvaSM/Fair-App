@@ -3,7 +3,6 @@ import { View, Text, TextInput, Pressable, StyleSheet, Alert, ScrollView } from 
 
 import { supabase } from '@/lib/supabase';
 import { useScrollToTop } from '@react-navigation/native';
-import { db } from '@/src/db/database';
 import { router } from 'expo-router';
 
 export default function LoginScreen() {
@@ -38,13 +37,6 @@ export default function LoginScreen() {
                 setPassword("");
                 return;
             }
-
-            const user = data.user;
-
-            db.runSync(`
-                INSERT INTO profile (user_id, email)
-                VALUES (?, ?)
-            `, [user.id, email]);
 
         } finally {
             setLoading(false);
