@@ -10,12 +10,15 @@ import { getMembersByGroupId } from "@/src/services/member.service";
 import { createDebt } from "@/src/services/debt.service";
 import { randomUUID } from "expo-crypto";
 import syncAll from "@/lib/sync/syncAll";
+import { getName } from "@/src/services/user.services";
 
 export default function Summary() {
 
 	const { data } = useLocalSearchParams();
 	const parsedParam = Array.isArray(data) ? data[0] : data;
 	const parsedData = parsedParam ? JSON.parse(parsedParam) : null;
+
+	const profileName: string = getName();
 	
 	if (!parsedData || !parsedData.result.perPerson) {
 		console.log("BROKEN DATA:", parsedData);
@@ -180,11 +183,11 @@ export default function Summary() {
 								style={styles.row}
 								>
 								<Text 
-									style={[styles.text,  person === "You" && {fontWeight: "800", color: "#FFD700"}]}>
+									style={[styles.text,  person === profileName && {fontWeight: "800", color: "#FFD700"}]}>
 									{person}
 								</Text>
 								<Text 
-									style={[styles.text,  person === "You" && {fontWeight: "800", color: "#FFD700"}]}>
+									style={[styles.text,  person === profileName && {fontWeight: "800", color: "#FFD700"}]}>
 									₹{amount.toFixed(2)}
 								</Text>
 							</View>

@@ -12,36 +12,44 @@ import fetchProfile from "./pull/fetchProfile";
 export default async function pullInitialData(onProgress?: (step: SyncStep) => void) {
 	onProgress?.("profile");
 	const profile = await fetchProfile();
+	// console.log("Profile fetched");
 
 	onProgress?.("groups");
 	const groups = await fetchGroups();
+	// console.log("groups fetched");
 
 	onProgress?.("members");
 	const members = await fetchMembers();
+	// console.log("members fetched");
 
 	onProgress?.("receipts");
 	const receipts = await fetchReceipts();
+	// console.log("receipts fetched");
 
 	onProgress?.("items");
 	const items = await fetchItems();
+	// console.log("items fetched");
 
 	onProgress?.("assignments");
 	const item_assignments = await fetchItemAssignments();
+	// console.log("assignments fetched");
 
 	onProgress?.("debts");
 	const debts = await fetchDebts();
+	// console.log("debts fetched");
 
 	onProgress?.("settlements");
 	const settlements = await fetchSettlements();
+	// console.log("settlements fetched");
 
 	db.withTransactionSync(() => {
 		db.runSync(
 			`
-				INSERT OR REPLACE INTO profile(user_id, email, created_at)
-				VALUES (?, ?, ?)
+				INSERT OR REPLACE INTO profile(user_id, name, email, created_at)
+				VALUES (?, ?, ?, ?)
 				ON CONFLICT(user_id) DO UPDATE SET
         			email = excluded.email
-			`, [profile.id, profile.email, profile.created_at]
+			`, [profile.id, profile.name, profile.email, profile.created_at]
 		);
 
 		for (const group of groups) {

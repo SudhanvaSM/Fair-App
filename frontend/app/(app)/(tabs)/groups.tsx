@@ -5,7 +5,7 @@ import { router, Stack, useFocusEffect } from "expo-router";
 import { GroupSummary } from "@/types/item";
 
 import { createGroupWithMembers, getDetailedGroup, getGroupSummary, getGroupsWithMembers } from "@/src/services/group.service";
-import { resetAppData } from "@/src/services/user.services";
+import { getName, resetAppData } from "@/src/services/user.services";
 
 import useScrollToTop from "../hooks/useScrollToTop";
 
@@ -31,12 +31,14 @@ export default function GroupsScreen() {
 		}, [])
 	);
 
+	const profileName: string = getName();
+
 	// Variables to decide if to show add group or members field is shown
 	// And then send the input by the user to database
 	const [showInput, setShowInput] = useState(false);
 	const [newItemName, setNewItemName] = useState("");
 	const [memberInput, setMemberInput] = useState("");
-	const [members, setMembers] = useState<string[]>(["You"]);
+	const [members, setMembers] = useState<string[]>([profileName]);
 
 	// Adds member if valid name into the group
 	const addItem = (name: string) => {
@@ -57,7 +59,7 @@ export default function GroupsScreen() {
 		setMemberInput("");
 
 		// All groups must have 'You' as the default first member
-		setMembers(["You"]);
+		setMembers([profileName]);
 		setNewItemName("");
 		setShowInput(false);
 	};

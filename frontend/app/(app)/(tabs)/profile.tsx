@@ -2,7 +2,7 @@ import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { Redirect, Stack, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import {Text, View, StyleSheet, ScrollView, Pressable, Alert, ActivityIndicator  } from "react-native";
-import { Icon, Menu } from "react-native-paper";
+import { Menu } from "react-native-paper";
 
 import { ProfileDetails } from "@/types/item";
 
@@ -210,7 +210,7 @@ export default function ProfileScreen() {
 							/>
 						</View>
 						<View style={styles.textContainer}>
-							<Text style={{ color: "white", fontSize: 18, fontWeight: "600" }}>Sudhanva S M</Text>
+							<Text style={{ color: "white", fontSize: 18, fontWeight: "600" }}>{profileDetails.name}</Text>
 							<Text style={{ color: "white", fontSize: 14, fontWeight: "400" }}>+91 XXXXX XXXXX</Text>
 							<Text style={{ color: "white", fontSize: 12, fontWeight: "400" }} ellipsizeMode="tail" numberOfLines={1}>{profileDetails.email}</Text>
 						</View>

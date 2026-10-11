@@ -9,7 +9,7 @@ export default async function fetchProfile() {
 
     const { data, error } = await supabase
         .from("profiles")
-        .select(`id, email, created_at`)
+        .select(`id, email, name, created_at`)
         .eq("id", user.id)
         .single();
 

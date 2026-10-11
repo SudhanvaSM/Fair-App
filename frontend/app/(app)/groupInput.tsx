@@ -8,6 +8,7 @@ import { createGroupWithMembers, getGroupsWithMembers } from "@/src/services/gro
 
 import AddBlock from "@/components/AddBlock";
 import { randomUUID } from "expo-crypto";
+import { getName } from "@/src/services/user.services";
 
 export default function GroupInput() {
 	const { data, imageUri } = useLocalSearchParams();
@@ -19,10 +20,12 @@ export default function GroupInput() {
 		return <Text style={{ color: "white" }}>No Data</Text>;
 	}
 
+	const profileName: string = getName();
+
 	const [showInput, setShowInput] = useState(false);
 	const [newItemName, setNewItemName] = useState("");
 	const [memberInput, setMemberInput] = useState("");
-	const [members, setMembers] = useState<string[]>(["You"]);
+	const [members, setMembers] = useState<string[]>([profileName]);
 	const [itemsState, setItemsState] = useState<GroupDraft[]>([]);
 
 	useEffect(() => {
@@ -48,7 +51,7 @@ export default function GroupInput() {
 		});
 		setItemsState(getGroupsWithMembers());
 		setMemberInput("");
-		setMembers(["You"]);
+		setMembers([profileName]);
 		setNewItemName("");
 		setShowInput(false);
 	};

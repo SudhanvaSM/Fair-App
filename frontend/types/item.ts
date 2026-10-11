@@ -127,6 +127,7 @@ export type MemberBalance = {
 };
 
 export type ProfileDetails = {
+    name: string;
     email: string;
     totalSpent: number;
     totalGroups: number;

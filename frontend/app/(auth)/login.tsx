@@ -4,6 +4,7 @@ import { View, Text, TextInput, Pressable, StyleSheet, Alert, ScrollView } from 
 import { supabase } from '@/lib/supabase';
 import { useScrollToTop } from '@react-navigation/native';
 import { db } from '@/src/db/database';
+import { router } from 'expo-router';
 
 export default function LoginScreen() {
     const [email, setEmail] = useState("");
@@ -51,67 +52,7 @@ export default function LoginScreen() {
     }
 
     async function handleSignup() {
-        try {
-            if (!email || !password) {
-                Alert.alert('Error', 'Enter email and password',
-                    [{ text: "OK" }],
-                    {cancelable: true,});
-                return;
-            }
-
-            setLoading(true);
-
-            const { data, error } = await supabase.auth.signUp({
-                email,
-                password,
-            });
-
-            if (error) {
-                Alert.alert('Signup failed', error.message,
-                    [{ text: "OK" }],
-                    {cancelable: true,});
-                return;
-            }
-
-            const user = data.user;
-
-            if (!user) {
-                Alert.alert("Signup incomplete", "Account was created, but no user information was returned.",
-                    [{ text: "OK" }],
-                    {cancelable: true,});
-                return;
-            }
-
-            const { error: profileError } = await supabase
-                .from("profiles")
-                .upsert({
-                    id: user.id,
-                    email: email,
-                });
-
-            if (profileError) {
-                console.error("Profile creation failed:", profileError);
-
-                Alert.alert(
-                    "Profile creation failed",
-                    profileError.message,
-                    [{ text: "OK" }],
-                    {cancelable: true,}
-                );
-
-                return;
-            }
-
-            Alert.alert(
-                'Success',
-                'Account created successfully!',
-                    [{ text: "OK" }],
-                    {cancelable: true,}
-            );
-
-        } finally {
-            setLoading(false);
-        }
+        router.push("/signup");
     }
 
     return (
