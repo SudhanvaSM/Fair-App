@@ -423,15 +423,10 @@ def parse_receipt(result):
     return data
 
 def clean_name(name: str) -> str:
-    from app.services.replace_service import clean_common_ocr
-    name = re.sub(r'[^a-zA-Z\s]', ' ', name)
-    name = re.sub(r'[^\w\s\-\(\)\/]', ' ', name)
-    name = re.sub(r'\s{2,}', ' ', name).strip()
-    name = re.sub(r'\bfl\b|\bth\b|\bi\b', '', name, flags=re.IGNORECASE)
-    name = re.sub(r'\b\d+\b', '', name)
-    name = re.sub(r'\b[xX]\b', '', name)
-    name = clean_common_ocr(name)
-    return name.title() 
+    name = re.sub(r"[₹$]|Rs\.?", " ", name)
+    name = re.sub(r"[^\w\s&'()/.\-]", " ", name)      # keep letters, digits, & ' ( ) / . -
+    name = re.sub(r"\s+", " ", name).strip(" -./")
+    return name.title() if name.isupper() or name.islower() else name
 
 # Used for debugging
 # if __name__ == "__main__":

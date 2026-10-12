@@ -6,7 +6,6 @@ export const syncMembers = async() => {
 	const { data: { user } } = await supabase.auth.getUser();
 
 	const profileName = getName();
-	console.log(profileName);
 
 	const members = db.getAllSync<{
 		id: string;

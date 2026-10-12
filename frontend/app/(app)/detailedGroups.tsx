@@ -15,7 +15,6 @@ import useScrollToTop from "./hooks/useScrollToTop";
 import { simplifyBalances } from "@/utils/simplifyBalances";
 import { getMemberBalances } from "@/utils/getMemberBalances";
 import { insertSettlement } from "@/src/services/settlement.service";
-import AddBlock from "@/components/AddBlock";
 import AddMember from "@/components/AddMember";
 import { randomUUID } from "expo-crypto";
 import { addMemberIntoGroup } from "@/src/services/member.service";

@@ -229,14 +229,6 @@ export function clearReceiptHistory() {
     });
 }
 
-export function getReceiptTitle() {
-	return db.execSync(`
-		SELECT title
-		FROM receipts
-		WHERE id = 2
-	`)
-}
-
 export function changeReceiptTitle(receiptId: string, updatedTitle: string) {
 	db.runSync(`
 		UPDATE receipts
