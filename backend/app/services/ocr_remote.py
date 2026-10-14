@@ -1,8 +1,10 @@
 import os
 import tempfile
 
+from dotenv import load_dotenv
 from gradio_client import Client, handle_file
 
+load_dotenv()
 
 OCR_SERVICE_URL = os.environ["OCR_SERVICE_URL"]
 HF_TOKEN = os.environ["HF_TOKEN"]
@@ -11,7 +13,6 @@ client = Client(
     OCR_SERVICE_URL,
     token=HF_TOKEN
 )
-
 
 def run_remote_ocr(image_bytes: bytes):
     temp_path = None

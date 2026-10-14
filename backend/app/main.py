@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
 
-from backend.app.limiter import limiter
+from app.limiter.limiter import limiter
 
 app = FastAPI()
 app.state.limiter = limiter
