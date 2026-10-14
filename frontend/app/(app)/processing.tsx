@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, Animated } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Animated, Pressable } from "react-native";
 import { Stack, useRouter, useLocalSearchParams } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useEffect, useRef, useState } from "react";
@@ -63,45 +63,77 @@ export default function Processing() {
 
 	const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
-	const controller = new AbortController();
-	const signal = controller.signal;
+	const TIMEOUT_MS = 45000;
+
+type Failure = { message: string; canRetry: boolean };
+
+	const failureForStatus = (status: number): Failure => {
+		switch (status) {
+			case 401: return { message: "Your session expired. Please log out and log in again.", canRetry: false };
+			case 413: return { message: "That photo is too large. Try a smaller one.", canRetry: false };
+			case 415: return { message: "Please use a JPEG, PNG or WebP photo.", canRetry: false };
+			case 422: return { message: "We couldn't read this receipt. Try a clearer, flatter photo.", canRetry: true };
+			case 429: return { message: "Too many scans. Wait a minute and try again.", canRetry: true };
+			case 502:
+			case 503:
+			case 504: return { message: "The scanner is unavailable right now. Try again in a moment.", canRetry: true };
+			default:  return { message: `Something went wrong (${status}).`, canRetry: true };
+		}
+	};
+	const [failure, setFailure] = useState<Failure | null>(null);
+	const [attempt, setAttempt] = useState(0);
 
 	useEffect(() => {
-		const run = async () => {
-			const { data: { session }, error } = await supabase.auth.getSession();
+		const controller = new AbortController();
+		let timedOut = false;
+		const timer = setTimeout(() => {
+			timedOut = true;
+			controller.abort();
+		}, TIMEOUT_MS);
 
-			if (error || !session) {
-				console.error("User is not logged in or session expired")
-				return
-			}
-			const token = session.access_token
+		const run = async () => {
+			setFailure(null);
+			updateStep(0);
+
 			try {
-				const timeout = 30000;
+				const { data: { session }, error } = await supabase.auth.getSession();
+				if (error || !session) {
+					setFailure({ message: "Please log in again.", canRetry: false });
+        			return;
+				}
+				if (!uri) {
+					setFailure({ message: "No image was selected.", canRetry: false });
+					return;
+				}
 				const formData = new FormData();
 
 				formData.append("file", {
 					uri,
 					name: "receipt.jpeg",
-					type: "image/jpg",
+					type: "image/jpeg",
 				} as any);
+				updateStep(1);
 
-
-				const fetchPromise = fetch(`${API_URL}/upload`, {
-					signal,
+				const res = await fetch(`${API_URL}/upload`, {
+					signal: controller.signal,
 					method: "POST",
 					body: formData,
 					headers: {
-						'Authorization': `Bearer ${token}`,
+						'Authorization': `Bearer ${session.access_token}`,
 					}
 				});
-
-				updateStep(1);
-
-				const res = await fetchPromise;
 				if (!res.ok) {
-					throw new Error(`Upload failed: ${res.status}`);
+					setFailure(failureForStatus(res.status));
 				}
 				const data = await res.json();
+				const items = data?.raw?.items;
+				if (!Array.isArray(items) || items.length === 0) {
+					setFailure({
+					message: "We couldn't find any items on this receipt. Try a clearer photo.",
+					canRetry: true,
+					});
+					return;
+				}
 
 				const normalisedData = {
 					...data,
@@ -121,8 +153,9 @@ export default function Processing() {
 				await delay(50);
 				
 				updateStep(3);
-
 				await delay(250);
+
+				if (controller.signal.aborted) return;
 
 				router.replace({
 					pathname: "../review",
@@ -134,17 +167,23 @@ export default function Processing() {
 				});
 			} 
 			catch (error) {
-				if (error instanceof Error && error.name === "TimeoutError") {
-					console.error("The upload took too long and timed out.")
-				} else if (error instanceof Error && error.name === "AbortError") {
-					console.error("The upload was manually cancelled by the user");
+				if (timedOut) {
+					setFailure({ message: "Scanning took too long. Try again.", canRetry: true });
+				} else if (controller.signal.aborted) {
+					return
 				} else {
-					console.error("A standard network or server error occurred:", error);
+					setFailure({ message: "Couldn't reach the server. Check your connection.", canRetry: true });
 				}
+			} finally {
+				clearTimeout(timer);
 			}
 		};
 		run();
-	}, []);
+		return() => {
+			clearTimeout(timer);
+			controller.abort();
+		};
+	}, [attempt]);
 
 	return (
 		<>
@@ -160,56 +199,72 @@ export default function Processing() {
 		/>
 
 		<ScrollView style={styles.scrollView}>
-			<View style={styles.card}>
-			<View style={styles.scan}>
-				<MaterialIcons
-				name="receipt-long"
-				size={150}
-				color="#cbd5f5"
-				/>
-
-				<Animated.View
-				style={[
-					styles.scanLine,
-					{ transform: [{ translateY }] },
-				]}
-				>
-				<LinearGradient
-					colors={[
-					"transparent",
-					"rgb(99, 101, 241)",
-					"transparent",
-					]}
-					start={{ x: 0, y: 0.5 }}
-					end={{ x: 1, y: 0.5 }}
-					style={StyleSheet.absoluteFill}
-				/>
-				</Animated.View>
-			</View>
-			</View>
-
-			<View style={{ gap: 16, marginTop: 24 }}>
-			{steps.map((step, index) => (
-				<View key={index} style={styles.status}>
-				<Text
-					style={[
-						styles.text,
-						step.status === "waiting" && styles.textWaiting,
-						step.status === "active" && styles.textActive,
-						step.status === "done" && styles.textDone,
-					]}>
-						{step.label}
-					</Text>
-				<Status title={step.status} subtle={false} variant={step.status} />
+			{failure ? (
+				<View style={{ padding: 24, gap: 16, alignItems: "center" }}>
+					<Text style={{ color: "#fff", fontSize: 18, textAlign: "center" }}>{failure.message}</Text>
+					{failure.canRetry && (
+					<Pressable onPress={() => setAttempt(a => a + 1)}>
+						<Text style={{ color: "#6366f1", fontSize: 16 }}>Try again</Text>
+					</Pressable>
+					)}
+					<Pressable onPress={() => router.back()}>
+					<Text style={{ color: "#cbd5f5", fontSize: 16 }}>Go back</Text>
+					</Pressable>
 				</View>
-			))}
-			</View>
+				) : (
+					<>
+						<View style={styles.card}>
+						<View style={styles.scan}>
+							<MaterialIcons
+							name="receipt-long"
+							size={150}
+							color="#cbd5f5"
+							/>
 
-			<View style={styles.footer}>
-			<Text style={styles.footerText}>
-				Usually takes 2-3 seconds
-			</Text>
-			</View>
+							<Animated.View
+							style={[
+								styles.scanLine,
+								{ transform: [{ translateY }] },
+							]}
+							>
+							<LinearGradient
+								colors={[
+								"transparent",
+								"rgb(99, 101, 241)",
+								"transparent",
+								]}
+								start={{ x: 0, y: 0.5 }}
+								end={{ x: 1, y: 0.5 }}
+								style={StyleSheet.absoluteFill}
+							/>
+							</Animated.View>
+						</View>
+						</View>
+
+						<View style={{ gap: 16, marginTop: 24 }}>
+						{steps.map((step, index) => (
+							<View key={index} style={styles.status}>
+							<Text
+								style={[
+									styles.text,
+									step.status === "waiting" && styles.textWaiting,
+									step.status === "active" && styles.textActive,
+									step.status === "done" && styles.textDone,
+								]}>
+									{step.label}
+								</Text>
+							<Status title={step.status} subtle={false} variant={step.status} />
+							</View>
+						))}
+						</View>
+
+						<View style={styles.footer}>
+						<Text style={styles.footerText}>
+							Usually takes 2-3 seconds
+						</Text>
+						</View>
+					</>
+				)}
 		</ScrollView>
 		</>
 	);
