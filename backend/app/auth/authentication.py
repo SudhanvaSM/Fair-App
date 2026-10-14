@@ -1,30 +1,24 @@
-from fastapi import Header, HTTPException
+from fastapi import Depends, HTTPException, status
 from app.database import supabase
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-def get_current_user(authorisation: str = Header(...)):
-	if not authorisation.startswith("Bearer "):
+security = HTTPBearer()
+
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+	
+	token = credentials.credentials
+
+	if not token:
 		raise HTTPException(
-			status_code = 401,
-			detail = "Invalid authorisation header"
-		)
-
-	token = authorisation.split(" ", 1)[1]
-
-	try:
-		response = supabase.auth.get_claims(token)
-
-		claims = response.get("claims")
-
-		if not claims:
-			raise HTTPException(
-				status_code = 401,
-				detail = "Invalid token"
-			)
-
-		return claims["sub"]
-
-	except Exception:
-		raise HTTPException(
-			status_code = 401,
+			status_code = status.HTTP_401_UNAUTHORIZED,
 			detail = "Invalid or expired token"
 		)
+	
+	response = supabase.auth.get_claims(token)
+	claims = response.get("claims")
+	if not claims:
+		raise HTTPException(
+			status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+			detail="Server unavailable"
+		)
+	return claims["sub"]

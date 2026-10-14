@@ -1,11 +1,12 @@
 # cd backend
 # uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
-from fastapi import APIRouter, UploadFile, File
+from fastapi import APIRouter, UploadFile, File, Depends
 import os
 
 from app.services.ocr_remote import run_remote_ocr
 from app.services.parser import parse_receipt
+from app.auth.authentication import get_current_user
 
 # Set this is to True to print parsing results along with confidence scoring
 DEBUG = False
@@ -15,8 +16,9 @@ router = APIRouter()
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
+
 @router.post("/upload")
-async def upload(file: UploadFile = File(...)):
+async def upload(file: UploadFile = File(...), curr_user=Depends(get_current_user)):
     try:
         # Read the image file as bytes
         contents = await file.read()
@@ -24,7 +26,6 @@ async def upload(file: UploadFile = File(...)):
         raw_text = run_remote_ocr(contents)
 
         raw_json = parse_receipt(raw_text)
-
 
         return {
             "raw": raw_json

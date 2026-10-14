@@ -5,9 +5,9 @@ import { useEffect, useRef, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 
 import Status from "@/components/Status";
+import { supabase } from "@/lib/supabase";
 
-
-export default function Processing() {
+export default async function Processing() {
 	type StepStatus = "waiting" | "active" | "done";
 
 	type Step = {
@@ -63,7 +63,16 @@ export default function Processing() {
 
 	const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
+	const { data: { session }, error } = await supabase.auth.getSession();
+
+	if (error || !session) {
+		console.error("User is not logged in or session expired")
+		return
+	}
+
 	useEffect(() => {
+		const token = session.access_token
+
 		const run = async () => {
 			try {
 				const formData = new FormData();
@@ -71,12 +80,15 @@ export default function Processing() {
 				formData.append("file", {
 					uri,
 					name: "receipt.jpeg",
-					type: "image/jpg",
+					type: "image/jpeg",
 				} as any);
 
 				const fetchPromise = fetch(`${API_URL}/upload`, {
 					method: "POST",
 					body: formData,
+					headers: {
+						'Authorization': `Bearer ${token}`
+					}
 				});
 
 
