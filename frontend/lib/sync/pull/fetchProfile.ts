@@ -9,9 +9,9 @@ export default async function fetchProfile() {
 
     const { data, error } = await supabase
         .from("profiles")
-        .select(`id, email, name, created_at`)
+        .select(`id, name, created_at`)
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
     if (error) {
         throw error;

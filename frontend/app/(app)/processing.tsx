@@ -7,7 +7,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import Status from "@/components/Status";
 import { supabase } from "@/lib/supabase";
 
-export default async function Processing() {
+export default function Processing() {
 	type StepStatus = "waiting" | "active" | "done";
 
 	type Step = {
@@ -63,43 +63,45 @@ export default async function Processing() {
 
 	const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
-	const { data: { session }, error } = await supabase.auth.getSession();
-
-	if (error || !session) {
-		console.error("User is not logged in or session expired")
-		return
-	}
+	const controller = new AbortController();
+	const signal = controller.signal;
 
 	useEffect(() => {
-		const token = session.access_token
-
 		const run = async () => {
+			const { data: { session }, error } = await supabase.auth.getSession();
+
+			if (error || !session) {
+				console.error("User is not logged in or session expired")
+				return
+			}
+			const token = session.access_token
 			try {
+				const timeout = 30000;
 				const formData = new FormData();
 
 				formData.append("file", {
 					uri,
 					name: "receipt.jpeg",
-					type: "image/jpeg",
+					type: "image/jpg",
 				} as any);
 
+
 				const fetchPromise = fetch(`${API_URL}/upload`, {
+					signal,
 					method: "POST",
 					body: formData,
 					headers: {
-						'Authorization': `Bearer ${token}`
+						'Authorization': `Bearer ${token}`,
 					}
 				});
-
 
 				updateStep(1);
 
 				const res = await fetchPromise;
-				const data = await res.json();
-
 				if (!res.ok) {
 					throw new Error(`Upload failed: ${res.status}`);
 				}
+				const data = await res.json();
 
 				const normalisedData = {
 					...data,
@@ -131,8 +133,14 @@ export default async function Processing() {
 					},
 				});
 			} 
-			catch (err) {
-				console.error("Processing error:", err);
+			catch (error) {
+				if (error instanceof Error && error.name === "TimeoutError") {
+					console.error("The upload took too long and timed out.")
+				} else if (error instanceof Error && error.name === "AbortError") {
+					console.error("The upload was manually cancelled by the user");
+				} else {
+					console.error("A standard network or server error occurred:", error);
+				}
 			}
 		};
 		run();
