@@ -1,6 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import  React from "react";
-import { Pressable, Text, View, TextInput, StyleSheet } from "react-native";
+import { Pressable, Text, View, TextInput, StyleSheet, Alert } from "react-native";
 
 type Props = {
 	showInput: boolean;
@@ -38,6 +38,7 @@ const AddBlock = React.memo((props: Props) => {
       <Pressable
         onPress={() => setShowInput(true)}
         style={{ flexDirection: "row", marginTop: 20, gap: 5, alignItems: "center" }}
+		hitSlop={10}
       >
         <MaterialIcons name={"add-circle-outline"} size={20} color="orange" />
         <Text style={{ color: "#cbd5f5", fontWeight: "500", fontSize: 16 }}>
@@ -73,7 +74,13 @@ const AddBlock = React.memo((props: Props) => {
 							<Pressable
 								onPress={() => {
 									if (!memberInput.trim()) return;
-									if (members.includes(memberInput.trim())) return;
+									if (members.includes(memberInput.trim())) {
+										Alert.alert("Duplicate Name", "Member already exists in the group.",
+											[{ text: "OK" }],
+											{cancelable: true,})
+											setMemberInput("");
+											return;
+									};
 									setMembers((prev: string[]) => [...prev, memberInput.trim()]);
 									setMemberInput("");
 								}}

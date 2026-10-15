@@ -49,7 +49,6 @@ export default function ProfileScreen() {
 			<View style={{ flex: 1, backgroundColor: "#0F172A" }} />
 		);
 	}
-	console.log(session.access_token)
 
 	const email = session?.user?.email;
 
