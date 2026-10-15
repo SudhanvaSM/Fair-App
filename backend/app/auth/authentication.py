@@ -2,7 +2,7 @@ import logging
 from fastapi import Depends, HTTPException, Request, status
 from app.database import supabase
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from gotrue.errors import AuthApiError 
+from supabase_auth.errors import AuthError 
 
 security = HTTPBearer()
 logger = logging.getLogger("fair.auth")
@@ -22,24 +22,25 @@ def get_current_user(request: Request, credentials: HTTPAuthorizationCredentials
 		response = supabase.auth.get_claims(token)
 		claims = response.get("claims")
 
-		
-		if not isinstance(claims, dict):
-			return _unauthorized
+		if not claims:
+			raise _unauthorized()
 
 		user_id = claims.get("sub")
-		if not isinstance(user_id, str):
-			return _unauthorized
+		if not user_id:
+			raise _unauthorized()
+
+		request.state.user_id = user_id
 
 		return user_id
 
 	except HTTPException:
 		raise
 
-	except AuthApiError as e:
-		return _unauthorized
+	except AuthError:
+		raise _unauthorized()
 
 	except Exception:
 		raise HTTPException(
-			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
 			detail="Server unavailable",
 		)

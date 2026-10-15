@@ -22,9 +22,9 @@ MAX_BYTES = 8 * 1024 * 1024
 
 def _is_supported_image(b: bytes) -> bool:
     return (
-        b.startswith(b"\xff\xd8\xff")                      # JPEG
-        or b.startswith(b"\x89PNG\r\n\x1a\n")              # PNG
-        or (b[:4] == b"RIFF" and b[8:12] == b"WEBP")       # WebP
+        b.startswith(b"\xff\xd8\xff")                      # JPEG magic code
+        or b.startswith(b"\x89PNG\r\n\x1a\n")              # PNG magic code
+        or (b[:4] == b"RIFF" and b[8:12] == b"WEBP")       # WebP magic code
     )
 
 UPLOAD_DIR = "uploads"
