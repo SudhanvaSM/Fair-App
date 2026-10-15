@@ -1,3 +1,7 @@
+"""
+This file is for testing if paddleOCR runs locally.
+"""
+
 import cv2, numpy as np
 from paddleocr import PaddleOCR   # written for 3.x; 2.x uses ocr.ocr(img, cls=False)
 
