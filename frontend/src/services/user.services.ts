@@ -4,8 +4,8 @@ import { randomUUID } from "expo-crypto";
 
 export function getProfileDetails(): ProfileDetails {
 
-	const profile = db.getFirstSync<{name: string; email: string}>(`
-		SELECT name, email
+	const profile = db.getFirstSync<{name: string;}>(`
+		SELECT name
 		FROM profile
 	`);
 
@@ -89,7 +89,6 @@ export function getProfileDetails(): ProfileDetails {
 
 	return {
 		name: profile?.name ?? "0",
-		email: profile?.email ?? "0",
 		totalSpent: receipt?.totalSpent ?? 0,
 		totalGroups: groups?.totalGroups ?? 0,
 		totalBillsScanned: receipt?.totalBillsScanned ?? 0,

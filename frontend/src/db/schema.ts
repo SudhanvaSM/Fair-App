@@ -76,8 +76,6 @@ sync_deletions
 profile
 - user_id
 - name
-- email
-- phone l
 - created_at
 
 app_state
@@ -216,7 +214,6 @@ export function initializeDatabase() {
 		CREATE TABLE IF NOT EXISTS profile (
  			user_id TEXT PRIMARY KEY NOT NULL,
 			name TEXT NOT NULL,
-			email TEXT NOT NULL,
 			created_at TEXT DEFAULT CURRENT_TIMESTAMP
 		);
 

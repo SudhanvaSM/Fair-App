@@ -6,8 +6,6 @@ import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { db } from '@/src/db/database';
-import { supabase } from '@/lib/supabase';
-import { deleteLocalData } from '@/src/services/user.services';
 
 export default function LoadingScreen() {
 	const insets = useSafeAreaInsets();

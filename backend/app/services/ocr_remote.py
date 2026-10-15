@@ -28,7 +28,7 @@ def run_remote_ocr(image_bytes: bytes):
             f.write(image_bytes)
             temp_path = f.name
 
-        result = get_client.predict(
+        result = get_client().predict(
             handle_file(temp_path),
             api_name="/gradio_wrapper"
         )

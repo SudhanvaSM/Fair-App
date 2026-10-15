@@ -49,6 +49,9 @@ export default function ProfileScreen() {
 			<View style={{ flex: 1, backgroundColor: "#0F172A" }} />
 		);
 	}
+	console.log(session.access_token)
+
+	const email = session?.user?.email;
 
 	const recentActivity = DateFormat(profileDetails.recentActivity);
 	
@@ -212,7 +215,7 @@ export default function ProfileScreen() {
 						<View style={styles.textContainer}>
 							<Text style={{ color: "white", fontSize: 18, fontWeight: "600" }}>{profileDetails.name}</Text>
 							<Text style={{ color: "white", fontSize: 14, fontWeight: "400" }}>+91 XXXXX XXXXX</Text>
-							<Text style={{ color: "white", fontSize: 12, fontWeight: "400" }} ellipsizeMode="tail" numberOfLines={1}>{profileDetails.email}</Text>
+							<Text style={{ color: "white", fontSize: 12, fontWeight: "400" }} ellipsizeMode="tail" numberOfLines={1}>{email}</Text>
 						</View>
 					</View>
 

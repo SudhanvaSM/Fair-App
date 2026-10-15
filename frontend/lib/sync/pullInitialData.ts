@@ -43,15 +43,14 @@ export default async function pullInitialData(onProgress?: (step: SyncStep) => v
 	// console.log("settlements fetched");
 
 	db.withTransactionSync(() => {
-		// db.runSync(
-		// 	`
-		// 		INSERT INTO profile(user_id, name, created_at)
-		// 		VALUES (?, ?, ?)
-		// 		ON CONFLICT(user_id) DO UPDATE SET
-        // 			email = excluded.email,
-		// 			name = excluded.name
-		// 	`, [profile.id, profile.name, profile.created_at]
-		// );
+		db.runSync(
+			`
+				INSERT INTO profile(user_id, name, created_at)
+				VALUES (?, ?, ?)
+				ON CONFLICT(user_id) DO UPDATE SET
+					name = excluded.name
+			`, [profile.id, profile.name, profile.created_at]
+		);
 
 		for (const group of groups) {
 			db.runSync(

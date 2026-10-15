@@ -6,6 +6,9 @@ import { Alert, ScrollView, View, Text, TextInput, Pressable, StyleSheet } from 
 
 export default function SignUp() {
 
+	const delay = (ms: number) =>
+		new Promise(resolve => setTimeout(resolve, ms));
+
 	const [email, setEmail] = useState("");
 	const [name, setName] = useState("");
 	const [password, setPassword] = useState("");
@@ -52,33 +55,14 @@ export default function SignUp() {
 				return;
 			}
 
-			const { error: profileError } = await supabase
-				.from("profiles")
-				.upsert({
-					id: user.id,
-					email: email,
-					name: name,
-				});
-
-			if (profileError) {
-				console.error("Profile creation failed:", profileError);
-
-				Alert.alert(
-					"Profile creation failed",
-					profileError.message,
-					[{ text: "OK" }],
-					{cancelable: true,}
-				);
-
-				return;
-			}
-
 			Alert.alert(
 				'Success',
 				'Account created successfully!',
 					[{ text: "OK" }],
 					{cancelable: true,}
 			);
+
+			await delay(100);
 
 		} finally {
 			setLoading(false);

@@ -4,6 +4,8 @@ import { View, Text, TextInput, Pressable, StyleSheet, Alert, ScrollView } from 
 import { supabase } from '@/lib/supabase';
 import { useScrollToTop } from '@react-navigation/native';
 import { router } from 'expo-router';
+import { db } from '@/src/db/database';
+import fetchProfile from '@/lib/sync/pull/fetchProfile';
 
 export default function LoginScreen() {
     const [email, setEmail] = useState("");
@@ -37,7 +39,6 @@ export default function LoginScreen() {
                 setPassword("");
                 return;
             }
-
         } finally {
             setLoading(false);
         }
