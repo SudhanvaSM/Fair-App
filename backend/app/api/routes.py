@@ -61,3 +61,7 @@ async def upload(
     logger.info("scan ok user=%s bytes=%d items=%d", user_id, len(data), len(parsed.get("items", [])))
 
     return {"raw": parsed}
+
+@router.get("/health")
+async def health_check():
+    return {"status": "ok"}
