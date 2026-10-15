@@ -15,10 +15,9 @@ export function createReceipt (data: Receipt) {
 				final_tip,
 				service_charge,
 				created_at,
-				total,
-				receipt_image_uri
+				total
 			)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		`,
 		[
 			data.id,
@@ -30,8 +29,7 @@ export function createReceipt (data: Receipt) {
 			data.finalTip,
 			data.serviceCharge,
 			data.createdAt,
-			data.total,
-			data.imageUri,
+			data.total
 		]
 	);
 }
@@ -114,8 +112,7 @@ export function getDetailedReceipt(receiptId: string): Receipt {
 			final_tip AS finalTip,
 			service_charge AS serviceCharge,
 			created_at AS createdAt,
-			total,
-			receipt_image_uri as imageUri
+			total
 		FROM receipts
 		WHERE id = ?
 		`,

@@ -13,7 +13,7 @@ import { getMembersByGroupId } from "@/src/services/member.service";
 
 export default function Assignment() {
 
-	const { data, groupId, imageUri } = useLocalSearchParams();
+	const { data, groupId } = useLocalSearchParams();
 	const parsedParam = Array.isArray(data) ? data[0] : data;
 	const parsedData = parsedParam ? JSON.parse(parsedParam) : null;
 
@@ -119,7 +119,6 @@ export default function Assignment() {
 					finalTip: parsedData.raw.finalTip
 				},
 				groupId: parsedGroupId,
-				imageUri,
 			})
 			}
 		});

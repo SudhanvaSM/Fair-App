@@ -40,7 +40,7 @@ const AddBlock = React.memo((props: Props) => {
         style={{ flexDirection: "row", marginTop: 20, gap: 5, alignItems: "center" }}
 		hitSlop={10}
       >
-        <MaterialIcons name={"add-circle-outline"} size={20} color="orange" />
+        <MaterialIcons name={"add-circle-outline"} size={20} color="#3B82F6" />
         <Text style={{ color: "#cbd5f5", fontWeight: "500", fontSize: 16 }}>
           {showMembers ? "Add New Group" : "Add New Item"}
         </Text>

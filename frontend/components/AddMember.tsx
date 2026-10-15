@@ -45,7 +45,7 @@ const AddMember = React.memo((props: Props) => {
 			onPress={() => setShowInput(true)}
 			style={styles.addMemberButton}
 		>
-			<MaterialIcons name={"add-circle-outline"} size={20} color="orange" />
+			<MaterialIcons name={"add-circle-outline"} size={20} color="#3B82F6" />
 			<Text style={styles.addMemberText}>
 				Add new member
 			</Text>

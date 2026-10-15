@@ -13,43 +13,36 @@ import syncAll from "@/lib/sync/syncAll";
 import { getName } from "@/src/services/user.services";
 
 export default function Summary() {
+	const { data } = useLocalSearchParams(); 
+	const parsedParam = Array.isArray(data) ? data[0] : data; 
+	const parsedData = parsedParam ? JSON.parse(parsedParam) : null; 
 
-	const { data } = useLocalSearchParams();
-	const parsedParam = Array.isArray(data) ? data[0] : data;
-	const parsedData = parsedParam ? JSON.parse(parsedParam) : null;
-
-	const profileName: string = getName();
-	
-	if (!parsedData || !parsedData.result.perPerson) {
-		console.log("BROKEN DATA:", parsedData);
-		return <Text style={{ color: "white" }}>No Data</Text>;
-	}
-
-	const imageUri = parsedData.imageUri;
-
-	const groupId: string = parsedData.groupId;
+	const groupId: string = parsedData?.groupId || "";
 	const members = getMembersByGroupId(groupId);
 
-	const [payerId, setPayerId] = useState<string>(members[0]?.memberId);
-	const payer = members.find((m) => m.memberId === payerId);
-
-	const result = parsedData.result;
-
-	const getTime = (date: Date) => {
-			const time = date.getHours();
-			if (time >= 4 && time < 12) return "Breakfast";
-			if (time >= 12 && time < 16) return "Lunch";
-			if (time >= 16 && time < 20) return "Snacks";
-			return "Dinner";
-	}
-
-	const createdAt = new Date();
-	const defaultTitle = getTime(createdAt);
-
+	const [payerId, setPayerId] = useState<string>(members[0]?.memberId || "");
 	const [receiptName, setReceiptName] = useState("");
 
-	const receiptTitle = receiptName ? receiptName : defaultTitle;
+	if (!parsedData || !parsedData.result?.perPerson) { 
+	console.log("BROKEN DATA:", parsedData); 
+	return <Text style={{ color: "white" }}>No Data</Text>; 
+	} 
 
+	const profileName: string = getName(); 
+	const payer = members.find((m) => m.memberId === payerId); 
+	const result = parsedData.result; 
+
+	const getTime = (date: Date) => { 
+	const time = date.getHours(); 
+	if (time >= 4 && time < 12) return "Breakfast"; 
+	if (time >= 12 && time < 16) return "Lunch"; 
+	if (time >= 16 && time < 20) return "Snacks"; 
+	return "Dinner"; 
+	};
+
+	const createdAt = new Date(); 
+	const defaultTitle = getTime(createdAt); 
+	const receiptTitle = receiptName ? receiptName : defaultTitle; 
 	const receiptId: string = randomUUID();
 	
 	const receipt: Receipt = {
@@ -63,7 +56,6 @@ export default function Summary() {
 		serviceCharge: parsedData.raw?.serviceCharge ?? 0,
 		createdAt: createdAt.toISOString(),
 		total: parsedData.raw?.total ?? 0,
-		imageUri,
 	};
 
 	const items: ItemWithSelection[] = parsedData.raw?.items ?? [];

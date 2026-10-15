@@ -27,7 +27,6 @@ receipts
 - service_charge
 - total
 - created_at
-- receipt_image_uri
 - sync_status
 - updated_at
 
@@ -136,7 +135,6 @@ export function initializeDatabase() {
 			service_charge INTEGER DEFAULT 0,
 			total INTEGER NOT NULL,
 			created_at TEXT NOT NULL,
-			receipt_image_uri TEXT,
 			sync_status TEXT DEFAULT 'not_synced',
 			updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE,

@@ -65,7 +65,7 @@ export default function Processing() {
 
 	const TIMEOUT_MS = 45000;
 
-type Failure = { message: string; canRetry: boolean };
+	type Failure = { message: string; canRetry: boolean };
 
 	const failureForStatus = (status: number): Failure => {
 		switch (status) {
@@ -162,7 +162,6 @@ type Failure = { message: string; canRetry: boolean };
 					params: {
 						items: JSON.stringify(normalisedData),
 						groupId: String(groupId),
-						imageUri: uri,
 					},
 				});
 			} 
@@ -203,9 +202,14 @@ type Failure = { message: string; canRetry: boolean };
 				<View style={{ padding: 24, gap: 16, alignItems: "center" }}>
 					<Text style={{ color: "#fff", fontSize: 18, textAlign: "center" }}>{failure.message}</Text>
 					{failure.canRetry && (
-					<Pressable onPress={() => setAttempt(a => a + 1)}>
-						<Text style={{ color: "#6366f1", fontSize: 16 }}>Try again</Text>
-					</Pressable>
+						<>
+							<Pressable onPress={() => setAttempt(a => a + 1)}>
+								<Text style={{ color: "#6366f1", fontSize: 16 }}>Try again</Text>
+							</Pressable>
+							<Pressable onPress={() => router.back()}>
+								<Text style={{ color: "#6366f1", fontSize: 16 }}>Enter items manually</Text>
+							</Pressable>
+						</>
 					)}
 					<Pressable onPress={() => router.back()}>
 					<Text style={{ color: "#cbd5f5", fontSize: 16 }}>Go back</Text>

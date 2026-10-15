@@ -36,7 +36,6 @@ export default function LoginScreen() {
                     [{ text: "OK" }],
                     {cancelable: true,});
                 setEmail("");
-                setPassword("");
                 return;
             }
         } finally {

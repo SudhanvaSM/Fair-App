@@ -11,7 +11,7 @@ import { randomUUID } from "expo-crypto";
 import { getName } from "@/src/services/user.services";
 
 export default function GroupInput() {
-	const { data, imageUri } = useLocalSearchParams();
+	const { data } = useLocalSearchParams();
 	const parsedParam = Array.isArray(data) ? data[0] : data;
 	const parsedData = parsedParam ? JSON.parse(parsedParam) : null;
 	
@@ -63,8 +63,7 @@ export default function GroupInput() {
 			pathname: "/assignment",
 			params: {
 				data: JSON.stringify(parsedData),
-				groupId: String(group.id),
-				imageUri,
+				groupId: String(group.id)
 			},
 		});
 	};

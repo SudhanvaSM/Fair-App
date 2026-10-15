@@ -14,7 +14,6 @@ export default async function fetchReceipts() {
 			service_charge,
 			total,
 			created_at,
-			receipt_image_uri,
 			updated_at
 		`);
 

@@ -10,7 +10,7 @@ import Edit from "@/components/Edit";
 import AddBlock from "@/components/AddBlock";
 
 export default function Review() {
-	const { items, groupId, imageUri } = useLocalSearchParams();
+	const { items, groupId } = useLocalSearchParams();
 	const parsedParam = Array.isArray(items) ? items[0] : items;
 	const data = parsedParam ? JSON.parse(parsedParam) : null;
 
@@ -356,7 +356,6 @@ export default function Review() {
 							pathname: "/groupInput",
 							params: {
 								data: JSON.stringify(updatedData),
-								imageUri,
 							},
 							});
 					}
@@ -366,7 +365,6 @@ export default function Review() {
 							params: {
 								data: JSON.stringify(updatedData),
 								groupId: String(groupId),
-								imageUri,
 							},
 						});
 					}

@@ -1,4 +1,4 @@
-import {Text, View, StyleSheet, ScrollView, Pressable, Alert, Image, Share, TextInput } from "react-native"
+import {Text, View, StyleSheet, ScrollView, Pressable, Alert, Share, TextInput } from "react-native"
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import * as Clipboard from "expo-clipboard";
 import { useState } from "react";
@@ -338,21 +338,6 @@ export default function DetailedHistory() {
 								<Text style={styles.text}>Group Name</Text>
 								<Text style={styles.text}>{groupTitle}</Text>
 							</View>
-					</View>
-
-					<View style ={{ alignItems: "center", marginTop: 40, width: "100%" }}>
-						<View style={[styles.container, { backgroundColor: "#2B3648" }]}>
-							<Text style={styles.title}>Receipt Image</Text>
-							{receipt.imageUri ? (
-								<Image
-									source={{ uri: receipt.imageUri }}
-									style={{ width: 300, height: 400, borderRadius: 18, marginBottom: 20 }}
-									resizeMode="stretch"
-								/>
-							) : (
-								<Text style={styles.text}>No receipt image</Text>
-							)}
-						</View>
 					</View>
 				</View>
 			</ScrollView>
