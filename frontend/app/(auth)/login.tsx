@@ -4,8 +4,7 @@ import { View, Text, TextInput, Pressable, StyleSheet, Alert, ScrollView } from 
 import { supabase } from '@/lib/supabase';
 import { useScrollToTop } from '@react-navigation/native';
 import { router } from 'expo-router';
-import { db } from '@/src/db/database';
-import fetchProfile from '@/lib/sync/pull/fetchProfile';
+import { dismiss } from 'expo-router/build/global-state/routing';
 
 export default function LoginScreen() {
     const [email, setEmail] = useState("");
@@ -47,6 +46,40 @@ export default function LoginScreen() {
         router.push("/signup");
     }
 
+    async function resetPassword() {
+        const trimmedEmail = email.trim();
+        if(!trimmedEmail){
+            Alert.alert(
+                "Email Required",
+                "Enter your email address first",
+                [{ text: "OK" }],
+                {cancelable: true,}
+            );
+            return;
+        }
+        try {
+            setLoading(true);
+            const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+                redirectTo: 'exp://y_zx7zg-anonymous-8081.exp.direct/--/reset-password',
+            });
+            if (error) {
+                Alert.alert("Unable to send email", "Please try again later.");
+                return;
+            }
+            Alert.alert(
+                "Check you email",
+                "We've sent password-reset instructions if an account exists for this email."
+            );
+        } catch {
+            Alert.alert(
+                "Error",
+                "Something went wrong. Please try again later."
+            );
+        } finally {
+            setLoading(false);
+        }
+    }
+
     return (
         <ScrollView
             style={styles.scrollView}
@@ -85,6 +118,16 @@ export default function LoginScreen() {
                     <Text style={styles.buttonText}>
                         {loading ? 'Loading...' : 'Login'}
                     </Text>
+                </Pressable>
+
+                <Pressable
+                    style={styles.signupButton}
+                    onPress={resetPassword}
+                    disabled={loading}
+                >
+                    <Text
+                        style={{ color: '#ffffff' }}
+                    >Forgot Password? Click here to reset</Text>
                 </Pressable>
 
                 <Pressable
