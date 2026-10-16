@@ -145,6 +145,7 @@ export default function Processing() {
 							qty: item.qty,
 							unitPrice: item.unit_price ?? 0,
 							totalPrice: item.total_price ?? 0,
+							confidence: item.confidence ?? 0,
 						})),
 					}
 				};
@@ -206,7 +207,12 @@ export default function Processing() {
 							<Pressable onPress={() => setAttempt(a => a + 1)}>
 								<Text style={{ color: "#6366f1", fontSize: 16 }}>Try again</Text>
 							</Pressable>
-							<Pressable onPress={() => router.back()}>
+							<Pressable onPress={() => router.replace({
+								pathname: "../review",
+								params: {
+									groupId: String(groupId),
+								},
+							})}>
 								<Text style={{ color: "#6366f1", fontSize: 16 }}>Enter items manually</Text>
 							</Pressable>
 						</>

@@ -83,7 +83,7 @@ export default function Review() {
 	const parsedTip = parseFloat(tipInput)
 	const finalTip = !isNaN(parsedTip) ? parsedTip : 0;
 
-	const serviceCharge = includeServiceCharge ? (raw.serviceCharge ?? 0) : 0;
+	const serviceCharge = includeServiceCharge ? (raw.service_charge ?? 0) : 0;
 
 	const total = computedSubtotal + finalTax + finalTip + serviceCharge;
 	
@@ -158,6 +158,15 @@ export default function Review() {
 							style={styles.row}
 							onPress={() => setEditingId(item.itemId)}
 							>
+								{typeof item.confidence === "number" && 
+								item.confidence <= 80 && (
+									<MaterialIcons
+									name={"warning"} 
+									size={18} 
+									color={"orange"}
+									style={{ justifyContent: "center" }}
+								/>
+								)}
 							<Text style={styles.itemName}>
 								{item.qty} x {item.name}
 							</Text>
@@ -166,7 +175,7 @@ export default function Review() {
 							onPress={(e) => {
 								e.stopPropagation();
 								removeItem(item.itemId)}}
-							style={{justifyContent: "center"}}
+							style={{ justifyContent: "center" }}
 							>
 								<MaterialIcons 
 								name={"highlight-remove"} 
@@ -189,7 +198,7 @@ export default function Review() {
 					{/* Divider */}
 					<View style={styles.divider} />
 
-					{/* 💰 SUMMARY */}
+					{/* SUMMARY */}
 					<View style={styles.row}>
 						<Text style={styles.label}>Subtotal</Text>
 						<Text style={styles.price}>₹{computedSubtotal.toFixed(2)}</Text>
@@ -251,13 +260,13 @@ export default function Review() {
 						)}
 					</View>
 
-					{includeServiceCharge && raw.serviceCharge != 0 && (
+					{includeServiceCharge && raw.service_charge != 0 && (
 						<View style={styles.row}>
 							<Text style={styles.label}>Service Charge</Text>
 							<Text style={styles.price}>₹{serviceCharge.toFixed(2)}</Text>
 						</View>
 					)}
-					{raw.serviceCharge != 0 && (<Pressable onPress={() => setIncludeServiceCharge(prev => !prev)}>
+					{raw.service_charge != 0 && (<Pressable onPress={() => setIncludeServiceCharge(prev => !prev)}>
 						<Text style={{ color: "orange", marginTop: 10 }}>
 							{includeServiceCharge ? "Remove Service Charge" : "Add Service Charge"}
 						</Text>

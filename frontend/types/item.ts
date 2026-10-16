@@ -4,6 +4,7 @@ export type Item = {
     qty: number;
     unitPrice: number;
     totalPrice: number;
+    confidence?: number;
 };
 
 export type ItemPerPerson = {

@@ -77,8 +77,8 @@ def run_ocr(image_bytes):
     
     return out
 
-if __name__ == "__main__":
-    with open("backend/uploads/Images/Test/7.jpg", "rb") as f:
-        raw = run_ocr(f.read())
-    print("── RAW OCR ──────────────────────────────")
-    print(raw)
+# if __name__ == "__main__":
+#     with open("backend/uploads/Images/Test/7.jpg", "rb") as f:
+#         raw = run_ocr(f.read())
+#     print("── RAW OCR ──────────────────────────────")
+#     print(raw)

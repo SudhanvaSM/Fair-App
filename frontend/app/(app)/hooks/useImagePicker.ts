@@ -18,7 +18,7 @@ const requestPermission = async () => {
 const pickImageAsync = async () => {
 	let result = await ImagePicker.launchImageLibraryAsync({
 	  	allowsEditing: true,
-	  	quality: 0.8,
+	  	quality: 1,
 		mediaTypes: ['images'],
 	});
 	if (!result.assets?.[0]) {
