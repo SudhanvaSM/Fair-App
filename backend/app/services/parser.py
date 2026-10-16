@@ -1,437 +1,446 @@
+"""Coordinate-aware receipt parsing for the PaddleOCR word output.
+
+The public ``parse_receipt`` result keeps the API's existing fields.  Monetary
+values are INR, and item confidence is a 0-100 completeness/reconciliation score.
+"""
+
 import re
-import json
+from collections import defaultdict
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
-# Set this is to True to print parsing results along with confidence scoring
-DEBUG = False 
-
-PRICE_REGEX = re.compile(r'\d+(?:[.,]\d{1,2})?\s*$')
-
-NUMBER_REGEX = re.compile(r'\d+(?:[.,]\d{1,2})?')
+from ocr_paddleocr import run_ocr
 
 
-SKIP_KEYWORDS = re.compile(
-        r'\b(gst|tax|vat|service\s*charge|rounding|round|sub\s*tota[l|]?|sub-total|st|'
-    r'total|visa|mastercard|cash|change|approval|cashier|sales\s*person|server|cust|'
-    r'date|invoice|receipt|qty|price|amount|description|thank\s*you|service|'
-    r'goods\s*sold|not\s*return|table|guests|business|have\s*a\s*nice|'
-    r'tel|phone|restaurant|address|order|'
-    r'card|number|txn|transaction|auth|bank|upi|ref|id|gstin|cost|nate|cst|sis|cgst|sga|sgst)\b',
-    re.IGNORECASE
+DEBUG = False
+_MONEY_RE = re.compile(r"(?<![A-Za-z])(?:₹|Rs\.?\s*)?\(?[-+]?\d[\d,]*(?:\.\d{1,2})?\)?")
+_NUMERIC_TOKEN_RE = re.compile(r"^(?:₹|Rs\.?\s*)?\(?[-+]?\d[\d,]*(?:\.\d{1,2})?\)?$", re.I)
+_WORD_RE = re.compile(r"[A-Za-zÀ-ÿ]")
+_HEADER_RE = re.compile(r"\b(item|description|qty|quantity|qnt|rate|price|amount|amt)\b", re.I)
+_TOTAL_LABELS = {
+    "subtotal": re.compile(r"\b(sub\s*total|subtotal|net\s*amount)\b", re.I),
+    "tax": re.compile(r"\b(cgst|sgst|igst|gst(?!\s*in\b)|vat|sales\s*tax|tax)\b", re.I),
+    "service_charge": re.compile(r"\b(service(?:\s*charge)?|staff\s*contribution|sc)\b", re.I),
+    "rounding": re.compile(r"\b(round\s*off|rounding|round\s*off)\b", re.I),
+    "total": re.compile(r"\b(grand\s*total|total\s*due|amount\s*due|bill\s*total|total)\b", re.I),
+    "discount": re.compile(r"\b(discount|less)\b", re.I),
+}
+_NON_ITEM_RE = re.compile(
+    r"\b(date|time|cashier|server|served|table|token|bill|invoice|receipt|restaurant|"
+    r"phone|mobile|address|pin\s*code|gst\s*in|gstin|fssai|thank|visit|payment|cash|"
+    r"card|upi|change|tender|balance|total\s*qty|qty\s*total|authorization|approval)\b", re.I
 )
-
-def normalize_price_spaces(line):
-    # 1. normalize spacing
-    line = re.sub(r'\s+', ' ', line)
-
-    # 2. fix dot/comma decimals
-    line = re.sub(r'(\d+)\s*[.,]\s*(\d{2})\b', r'\1.\2', line)
-
-    # 3. fix space decimals
-    line = re.sub(r'\b(\d{1,3})\s+(\d{2})(?!\.)\b', r'\1.\2', line)
-
-    return line
-
-def item_confidence_score(line: str):
-    score = 0
-    reasons = []
-
-    if not any(c.isalpha() for c in line):
-        return {"score": 0, "reasons": ["no letters"]}
+_POSTAL_CODE_RE = re.compile(r"(?<!\d)\d{6}(?!\d)")
+_DATE_RE = re.compile(r"\b\d{1,4}[-/]\d{1,2}[-/]\d{1,4}\b")
+_TIME_RE = re.compile(r"\b\d{1,2}:\d{2}(?:\s*[AP]M)?\b",re.IGNORECASE)
+_PHONE_LABEL_RE = re.compile(r"\b(?:phone|mobile|ph)\s*[:.]?",re.IGNORECASE)
 
 
-    if '@' in line or '%' in line:
-        score -= 3
+def _price(value):
+    """Parse price, including comma groups and parenthesized negatives."""
+    if value is None:
+        return None
+    text = str(value).strip().replace("₹", "").replace("Rs", "").replace("rs", "")
+    text = text.replace(" ", "")
+    negative = text.startswith("-") or (text.startswith("(") and text.endswith(")"))
+    text = text.strip("()").lstrip("+-")
+    # OCR often reads the decimal point as a comma: "290,00" is 290.00, not 29,000.
+    # A thousands group always has 3 digits, so comma + 1-2 digits at the end is a decimal.
+    if re.fullmatch(r"\d+,\d{1,2}", text):
+        text = text.replace(",", ".")
+    text = text.replace(",", "")
+    try:
+        amount = Decimal(text)
+        if negative:
+            amount = -amount
+        # Used for precision. So, 0.1 == 0.2 returns true
+        return amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    except (InvalidOperation, ValueError):
+        return None
 
-    # Words check
-    words = line.split()
-    if len(words) >= 2:
-        score += 1
-        reasons.append("multi-word (+1)")
-    else:
-        score -= 1
-        reasons.append("single-word (-1)")
 
-    # Price detection
-    price_match = PRICE_REGEX.search(line)
-    if price_match:
-        score += 2
-        reasons.append("price detected (+2)")
-    else:
-        score -= 2
-        reasons.append("no ending price (-2)")
+def normalize_ocr_output(raw_text):
+    """Normalize parallel PaddleOCR arrays into word records; accept records too."""
+    if not isinstance(raw_text, dict):
+        raise TypeError("OCR output must be a dictionary")
+    required = (
+        "text", "left", "top", "width",
+        "height", "conf", "block_num", "line_num"
+    )
+    missing = [key for key in required if key not in raw_text]
+    if missing:
+        raise ValueError(f"OCR output missing fields: {', '.join(missing)}")
 
-    # Numbers
-    numbers = NUMBER_REGEX.findall(line)
-    if numbers:
-        score += 2
-        reasons.append("has number (+1)")
-    if len(numbers) > 4:
-        score -= 1
-        reasons.append("too many numbers (-1)")
+    lengths = {len(raw_text[key]) for key in required}
+    if len(lengths) != 1:
+        raise ValueError("OCR output arrays have different lengths")
 
-    # Length
-    if 5 <= len(line) <= 60:
-        score += 1
-        reasons.append("reasonable length (+1)")
-    else:
-        score -= 1
-        reasons.append("bad length (-1)")
+    count = len(raw_text["text"])
+    return [
+        {
+            "id": i,
+            **{key: raw_text[key][i] for key in required}
+        }
+        for i in range(count)
+    ]
 
-    # Keywords
-    if SKIP_KEYWORDS.search(line):
-        score -= 5
-        reasons.append("skip keyword (-3)")
 
-    return {"score": score, "reasons": reasons}
-
-def fix_merged_words(line):
-    # Add space between digit and letter: 2Gobi → 2 Gobi
-    line = re.sub(r'(\d)([A-Za-z])', r'\1 \2', line)
-
-    # Add space between lowercase-uppercase: GobiManchurian → Gobi Manchurian
-    line = re.sub(r'([a-z])([A-Z])', r'\1 \2', line)
-
-    return line
-
-def extract_price(line: str):
-    match = PRICE_REGEX.search(line)
-    if not match:
-        return None, line
-    
-    price_str = match.group()
-    price = parse_price(price_str)
-    line_body = line[:match.start()].strip()
-
-    return price, line_body
-
-def group_words_into_lines(result):
+def group_words_into_lines(normalized_ocr_data):
+    """Group normalized words by block and line."""
     lines = {}
-    
-    n = len(result["text"])
-    for i in range(n):
-        word = result["text"][i]
+    for word_data in normalized_ocr_data:
+        word = str(word_data["text"]).strip()
         if not word:
             continue
-        
         key = (
-            result["block_num"][i],
-            result["line_num"][i]
+            word_data["block_num"],
+            word_data["line_num"]
         )
         if key not in lines:
             lines[key] = []
-            
+
+        left = float(word_data["left"])
+        width = float(word_data["width"])
+
         lines[key].append({
             "text": word,
-            "left": result["left"][i]
+            "left": left,
+            "right": left + width,
+            "conf": float(word_data.get("conf", 0) or 0)
         })
-        
+    
     # Sort words
     final_lines = []
     for key in sorted(lines.keys()):
         words = sorted(lines[key], key=lambda x: x["left"])
         final_lines.append(words)
-        
+    
     return final_lines
 
 def line_to_text(words):
-    return " ".join(w["text"] for w in words)
+    return " ".join(word["text"] for word in words)
 
-def detect_columns(lines):
 
-    columns = {
-        "qty_x": None,
-        "rate_x": None,
-        "amount_x": None
-    }
+def _line_money_values(text):
+    return [value for match in _MONEY_RE.findall(text) if (value := _price(match)) is not None]
 
+
+_GLUED_LABEL_RE = re.compile(r"\b(total|subtotal|amount|due|payable|off)(?=\d)", re.I)
+_BARE_SUB_RE = re.compile(r"\s*(?:total\s+)?sub\s*", re.I)
+
+
+def _split_glued_label(text):
+    """'Grand Total1376.00' -> 'Grand Total 1376.00' (the rupee sign is often dropped by OCR)."""
+    return _GLUED_LABEL_RE.sub(r"\1 ", text)
+
+
+def _label_kind(text):
+    if re.search(r"\bTOTAL\s+GST\b", text, re.IGNORECASE):
+        return "total_tax"
+
+    if re.search(r"\bBL\.?\s*TOT\b", text, re.IGNORECASE):
+        return "total"
+
+    if re.match(r"^\s*CASH\s+\d", text, re.IGNORECASE):
+        return "total"
+    # "Sub" alone (its "Total" is printed on the next row). Only when nothing else is
+    # on the row, so an item such as "Veg Sub 6 inch" is not mistaken for a subtotal.
+    if _BARE_SUB_RE.fullmatch(re.sub(r"[\d.,₹@%+\-()]+", " ", text)):
+        return "subtotal"
+    # Specific labels must win over the generic "total" in Sub Total / Grand Total.
+    for kind in ("subtotal", "tax", "service_charge", "rounding", "discount", "total"):
+        if _TOTAL_LABELS[kind].search(text):
+            return kind
+    return None
+
+
+def _clean_name(text):
+    text = re.sub(r"(?:₹|Rs\.?)", " ", text, flags=re.I)
+    text = re.sub(r"^\s*#?\d{1,3}[.)]?\s+", "", text)
+    text = re.sub(r"[^\w\s&'()/.,-]", " ", text, flags=re.UNICODE)
+    return re.sub(r"\s+", " ", text).strip(" -.,/")
+
+
+def _header_columns(lines):
+    """x centers of qty / unit price / amount from the first real table-header row.
+
+    Only a row with at least two of the labels counts, so later rows such as
+    "Total Qty: 6" cannot overwrite the column positions.
+    """
     for words in lines:
-
+        found = {}
         for word in words:
-
-            text = word["text"].upper()
-
-            if text in ["QTY", "QNTY", "QUANTITY"]:
-                columns["qty_x"] = word["left"]
-
-            elif text in ["RATE", "PRICE"]:
-                columns["rate_x"] = word["left"]
-
-            elif text in ["AMOUNT", "TOTAL", "AMT", "VALUE"]:
-                columns["amount_x"] = word["left"]
-
-    return columns
+            label = re.sub(r"[^a-z]", "", word["text"].lower())
+            center = (word["left"] + word["right"]) / 2
+            if label in {"qty", "qnt", "quantity", "qnty"}:
+                found["qty"] = center
+            elif label in {"price", "rate", "unitprice"}:
+                found["unit"] = center
+            elif label in {"amount", "amt", "value"}:
+                found["amount"] = center
+        if len(found) >= 2:
+            return {"qty": None, "unit": None, "amount": None, **found}
+    return {"qty": None, "unit": None, "amount": None}
 
 
-def extract_columns(words, columns):
+def _numeric_cells(words, columns):
+    """Numeric table cells: the unbroken run of numbers at the right end of the row.
 
-    item_words = []
-    qty = None
-    rate = None
-    total = None
+    Numbers left of the item name (serial no.) or inside it ("Pizza 12") are not cells.
+    When the header columns are known, anything left of the qty column is also name.
+    """
+    cells = []
+    for word in reversed(words):
+        token = word["text"].strip().replace(" ", "")
+        value = _price(token) if _NUMERIC_TOKEN_RE.fullmatch(token) else None
+        if value is None:
+            break
+        cells.append((word["left"], word["right"], token, value))
+    cells.reverse()
+    if columns["qty"] is not None and columns["amount"] is not None:
+        floor = columns["qty"] - 0.3 * (columns["amount"] - columns["qty"])
+        cells = [c for c in cells if (c[0] + c[1]) / 2 >= floor]
+    return cells
 
-    qty_x = columns["qty_x"]
-    rate_x = columns["rate_x"]
-    amount_x = columns["amount_x"]
 
-    if qty_x is None:
-        return {
-            "name": None,
-            "qty": None,
-            "rate": None,
-            "total": None
-        }
+def _assign_numbers(numbers, columns):
+    """Assign numeric cells using header x positions, then common receipt patterns."""
+    if not numbers:
+        return None, None, None
+    qty = unit = amount = None
+    if columns["qty"] is not None and columns["amount"] is not None:
+        centers = {name: x for name, x in columns.items() if x is not None}
+        for left, right, token, value in numbers:
+            x = (left + right) / 2
+            # Find closest header column to number
+            closest = min(centers, key=lambda name: abs(x - centers[name]))
+            threshold = max(24, (max(centers.values()) - min(centers.values())) * .22)
+            if abs(x - centers[closest]) <= threshold:
+                if closest == "qty" and value == value.to_integral_value():
+                    qty = int(value)
+                elif closest == "unit":
+                    unit = value
+                elif closest == "amount":
+                    amount = value
+        if amount is not None:
+            return qty, unit, amount
+        
+    # Qty, Price, Amount
+    vals = [entry[3] for entry in numbers]
+    if len(vals) >= 3 and vals[-3] == vals[-3].to_integral_value() and 0 < vals[-3] <= 100:
+        return int(vals[-3]), vals[-2], vals[-1]
+    
+    # Qty, Amount
+    if len(vals) >= 2 and vals[-2] == vals[-2].to_integral_value() and 0 < vals[-2] <= 100:
+        return int(vals[-2]), None, vals[-1]
+    
+    return 1, None, vals[-1]
 
-    for word in words:
-        text = word["text"]
-        x = word["left"]
 
-        distances = {
-            "qty": abs(x - qty_x),
-            "rate": abs(x - rate_x),
-            "amount": abs(x - amount_x)
-        }
-
-        closest = min(distances, key=distances.get)
-        closest_distance = distances[closest]
-
-        if x < qty_x - 100:
-            text = re.sub(r'[^A-Za-z\s]', '', text)
-            if text:
-                item_words.append(text)
-
-        elif closest == "qty" and closest_distance < 80:
-            qty = text
-
-        elif closest == "rate" and closest_distance < 80:
-            rate = text
-
-        elif closest == "amount" and closest_distance < 120:
-            total = text
-
-    return {
-        "name": " ".join(item_words),
-        "qty": qty,
-        "rate": rate,
-        "total": total
+def _make_score(name, qty, unit, amount, item_sum=None, subtotal=None, totals_match=None):
+    checks = {
+        "name": bool(name and _WORD_RE.search(name)),
+        "qty": qty is not None and qty > 0,
+        "unit_price": unit is not None and unit >= 0,
+        "total_price": amount is not None and amount >= 0,
     }
-
-def parse_price(price_str):
-    """
-    Robustly parses price strings:
-    - Removes $ signs
-    - Handles comma-as-decimal: '86,50' → 86.50
-    - Handles thousand separators: '1,876.50' → 1876.50
-    - Handles whole numbers: '480' → 480.00
-    """
-    cleaned = re.sub(r'[$\s]', '', price_str).strip()
-
-    # Count commas and dots to decide which is decimal separator
-    comma_count = cleaned.count(',')
-    dot_count   = cleaned.count('.')
-
-    if comma_count == 0 and dot_count == 0:
-        # Plain integer: "480"
-        return round(float(cleaned), 2)
-
-    if comma_count == 1 and dot_count == 0:
-        # Could be "1,500" (thousands) or "86,50" (decimal)
-        parts = cleaned.split(',')
-        if len(parts[1]) == 2:
-            # 2 digits after comma → decimal separator: "86,50" → 86.50
-            return round(float(parts[0] + '.' + parts[1]), 2)
-        elif int(parts[0]) < 100:
-            return round(float(parts[0] + '.' + parts[1][:2]), 2)
-        else:
-            # 3 digits after comma → thousands separator: "1,500" → 1500
-            return round(float(cleaned.replace(',', '')), 2)
-
-    if dot_count == 1 and comma_count == 0:
-        # Standard: "1876.50"
-        return round(float(cleaned), 2)
-
-    if comma_count >= 1 and dot_count == 1:
-        # Standard with thousands: "1,876.50" → remove commas
-        return round(float(cleaned.replace(',', '')), 2)
-
-    if comma_count >= 2 and dot_count == 0:
-        # "71,876,50" → "71876.50"
-        parts = cleaned.split(',')
-        if len(parts[-1]) == 2:
-            integer_part = ''.join(parts[:-1])
-            return round(float(integer_part + '.' + parts[-1]), 2)
-        else:
-            return round(float(cleaned.replace(',', '')), 2)
-
-    # Fallback: strip all commas
-    return round(float(cleaned.replace(',', '')), 2)
+    arithmetic = None
+    # A line has name + qty + unit price + total price => Complete
+    if checks["qty"] and checks["unit_price"] and checks["total_price"]:
+        arithmetic = abs(unit * qty - amount) <= Decimal("0.02")
+    # Completeness contributes 80 points; 
+    # arithmetic and receipt reconciliation contribute 10 each when those checks can be evaluated.
+    score = round(80 * sum(checks.values()) / 4)
+    if arithmetic is not None:
+        score += 10 if arithmetic else 0
+    if totals_match is not None:
+        score += 10 if totals_match else 0
+    return {"score": min(100, score), "checks": checks,
+            "unit_times_qty_matches_total": arithmetic,
+            "receipt_totals_reconcile": totals_match}
 
 
 def parse_receipt(result):
-    data = {
-        "items": [],
-        "subtotal": 0.0,
-        "tax": 0.0,
-        "serviceCharge": 0.0,
-        "rounding": 0.0,
-        "total": 0.0
-    }
+    """Extract item rows and receipt totals from PaddleOCR output."""
+    words = normalize_ocr_output(result)
+    lines = group_words_into_lines(words)
+    columns = _header_columns(lines)
+    has_any_table_header = any(
+        re.search(r"\b(item|description|particulars)\b", re.sub(r"[^a-z]+", " ", line_to_text(row).lower()))
+        and re.search(r"\b(qty|quantity|price|rate|amount|amt)\b", re.sub(r"[^a-z]+", " ", line_to_text(row).lower()))
+        for row in lines
+    )
+    data = {"items": [], "subtotal": 0.0, "tax": 0.0, "service_charge": 0.0,
+            "rounding": 0.0, "total": 0.0}
+    raw_totals = {key: Decimal("0.00") for key in ("subtotal", "tax", "service_charge", "rounding", "total", "discount")}
+    seen_totals = set()
+    candidates = []
+    pending_name = None
+    table_started = False
+    table_ended = False
 
-    SUBTOTAL_LINE = re.compile(r'\bsub\s*tota[l|]?\b', re.IGNORECASE)
-    TAX_LINE = re.compile(r'\b(gst|tax|vat)\b', re.IGNORECASE)
-    SERVICE_LINE = re.compile(r'\bservice(?:\s*charge)?\b', re.IGNORECASE)
-    TOTAL_LINE = re.compile(r'\btotal\b', re.IGNORECASE)
-    ROUND_LINE = re.compile(r'\b(round|rounding)\b', re.IGNORECASE)
-    QTY_PREFIX1 = re.compile(r'^(\d{1,2})\s*[xX*]\s*(.+)$')
-    QTY_PREFIX2 = re.compile(r'^(\d{1,2})\s+([A-Za-z].+)$')
-
-    lines = group_words_into_lines(result)
-    columns = detect_columns(lines)
-    
-    i = 1
-
-    for words in lines:
-        price = None
-        total = None
-        name = None
-        qty = None
-
-        line = line_to_text(words)
-        line = fix_merged_words(line)
-
-        parsed = extract_columns(words, columns)
-
-        name = parsed["name"]
-        qty = parsed["qty"]
-        total = parsed["total"]
-
-        if total:
-            try:
-                total = parse_price(total)
-                if total <= 0 or total > 10000:
-                    total = None
-            except:
-                total = None
-
-        # fallback to regex parser if spatial parsing failed
-        if not total:
-            line = normalize_price_spaces(line)
-
-            price, line_body = extract_price(line)
-
-            if price is None:
+    for words_on_line in lines:
+        line = line_to_text(words_on_line)
+        normalized_line = re.sub(r"[^a-z]+", " ", line.lower()).strip()
+        has_item_header = (
+            re.search(r"\b(item|description|particulars)\b", normalized_line)
+            and re.search(r"\b(qty|quantity|price|rate|amount|amt)\b", normalized_line)
+        )
+        if has_item_header:
+            table_started = True
+            continue
+        line = _split_glued_label(line)
+        qty_total = re.search(r"\b(?:total\s+qty|qty\s+total)\b\s*:?\s*\d*", line, re.I)
+        if qty_total:
+            line = (line[:qty_total.start()] + " " + line[qty_total.end():]).strip()
+            if not line:
                 continue
-
-            total = price
-            name = line_body.strip()
-        else:
-            try:
-                total = parse_price(total)
-            except:
-                continue
-
-        if SKIP_KEYWORDS.search(name):
-            if SUBTOTAL_LINE.search(name):
-                data["subtotal"] = price
-                continue
-            elif TAX_LINE.search(name):
-                data["tax"] += price
-                continue
-            elif SERVICE_LINE.search(name):
-                data["serviceCharge"] = price
-                continue
-            elif TOTAL_LINE.search(name):
-                data["total"] = price
-                continue
-            elif ROUND_LINE.search(name):
-                data["rounding"] = price
-                continue
+        kind = _label_kind(line)
+        values = _line_money_values(line)
+        # GST identification numbers are not tax amounts.
+        if re.search(r"\bGSTIN\b|\bGST\s*[-:]?\s*\d{2}[A-Z0-9]{10,}\b", line, re.IGNORECASE):
+            continue
+        if kind:
+            if kind in ("subtotal", "total"):
+                table_ended = True
+            # Tax can appear as CGST and SGST on separate rows, so accumulate it.
+            # For repeated subtotal/total labels, keep the last explicit value.
+            if values:
+                value = values[-1]
+                if value > 100000:
+                    continue
+                if kind == "total_tax":
+                    raw_totals["tax"] = values[-1]
+                    seen_totals.add("tax")
+                elif kind == "tax":
+                    raw_totals[kind] += value
+                else:
+                    raw_totals[kind] = value
+                seen_totals.add(kind)
+            continue
+        if table_ended:
+            continue
+        if _NON_ITEM_RE.search(line) or _HEADER_RE.search(line):
+            continue
+        if has_any_table_header and not table_started:
             continue
 
-        score_data = item_confidence_score(line)
-
-        if score_data["score"] < 4: 
+        if (
+            _PHONE_LABEL_RE.search(line)
+            or _DATE_RE.search(line)
+            or _TIME_RE.search(line)
+        ):
             continue
 
-        # ── Extract item quantity────────────────────────────────
-        try:
-            qty = int(qty) if qty else None
-        except:
-            qty = None
+        numeric = _numeric_cells(words_on_line, columns)
 
-        # fallback inline qty parsing
-        if qty is None:
-            qty_match = QTY_PREFIX1.match(name)
+        leading_qty = None
+        if not has_any_table_header and numeric:
+            first_numeric_left = min(entry[0] for entry in numeric)
 
-            if not qty_match:
-                qty_match = QTY_PREFIX2.match(name)
+            # Find standalone integer tokens before the item name.
+            leading_qty_words = [
+                word for word in words_on_line
+                if word["right"] < first_numeric_left
+                and word["text"].strip().isdigit()
+                and 0 < int(word["text"].strip()) <= 100
+            ]
 
-            if qty_match:
-                qty = int(qty_match.group(1))
-                name = qty_match.group(2)
+            if leading_qty_words:
+                # The leftmost standalone integer is the quantity in this layout.
+                leading_qty = int(leading_qty_words[0]["text"].strip())
 
-        # final fallback
-        if qty is None:
-            qty = 1
+        if numeric:
+            qty, unit, amount = _assign_numbers(numeric, columns)
+            # Indian PIN codes in the address/header area must never be treated
+            # as line-item prices, even when OCR groups the address into a row.
+            if _POSTAL_CODE_RE.search(line) or amount is None or amount <= 0 or amount > 100000:
+                continue
+            # Headerless receipts are allowed; their first plausible priced row
+            # begins the item table.
+            if leading_qty is not None:
+                qty = leading_qty
+            if not table_started:
+                table_started = True
+            first_num_left = min(entry[0] for entry in numeric)
+            name_cutoff = first_num_left
+            name_part = " ".join(word["text"] for word in words_on_line
+                                 if word["right"] <= name_cutoff + 2)
+            name_part = _clean_name(name_part)
 
-        # STRICT FILTER (prevents garbage items)
-        if not name or len(name) < 3:
+            # Handles cases where item names are printed
+            # on two different lines
+            if pending_name:
+                name_part = (pending_name + " " + name_part).strip()
+                pending_name = None
+            if name_part and amount is not None and amount > 0:
+                if qty is None or qty <= 0:
+                    qty = 1
+                if unit is None:
+                    unit = (amount / Decimal(qty)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+                if unit < 0 or unit > 100000:
+                    continue
+                candidates.append({"name": name_part, "qty": qty, "unit": unit, "amount": amount})
             continue
-        if len(name.split()) > 5:
+
+        # Receipt item descriptions often wrap onto a following line. Append a
+        # continuation to the previous candidate, or hold it for the next row.
+        cleaned = _clean_name(line)
+        if table_started and not table_ended and cleaned and _WORD_RE.search(cleaned):
+            if candidates:
+                candidates[-1]["name"] = (candidates[-1]["name"] + " " + cleaned).strip()
+            else:
+                pending_name = (pending_name + " " + cleaned).strip() if pending_name else cleaned
+
+    # Paddle OCR layouts in the supplied service are line-grouped already.  A
+    # conservative candidate filter avoids treating payment/reference rows as food.
+    for index, item in enumerate(candidates, start=1):
+        name = _clean_name(item["name"])
+        if len(name) < 2 or not _WORD_RE.search(name):
             continue
+        data["items"].append({"item_id": index, "name": name, "qty": int(item["qty"]),
+                              "unit_price": float(item["unit"]), "total_price": float(item["amount"]),
+                              "confidence": 0})
 
-        if total > 10000 or total <= 0:
-            continue
+    item_sum = sum((_price(item["total_price"]) for item in data["items"]), Decimal("0.00"))
+    if "subtotal" not in seen_totals:
+        raw_totals["subtotal"] = item_sum
 
-        name = clean_name(name)
+    # If a receipt has a final total but no itemized tax labels, 
+    # those fields remain zero and reconciliation is false.
+    for key in ("subtotal", "tax", "service_charge", "rounding", "total"):
+        data[key] = float(raw_totals[key])
 
-        if DEBUG:
-            print({
-                "FINAL_NAME": name,
-                "FINAL_TOTAL": total,
-                "FINAL_QTY": qty,
-                "LINE": line
-            })
+    # Discount is tracked internally in reconciliation (receipts often list it).
+    discount_effect = (raw_totals["discount"] if raw_totals["discount"] < 0
+                       else -raw_totals["discount"])
+    expected = (raw_totals["subtotal"] + raw_totals["tax"] + raw_totals["service_charge"]
+                + raw_totals["rounding"] + discount_effect)
+    receipt_has_equation = bool(seen_totals.intersection({"subtotal", "tax", "service_charge", "rounding", "total"}))
+    totals_match = (abs(expected - raw_totals["total"]) <= Decimal("0.05")
+                    if "total" in seen_totals and receipt_has_equation else None)
+    item_sum_match = (abs(item_sum - raw_totals["subtotal"]) <= Decimal("0.02")
+                      if "subtotal" in seen_totals else None)
 
-        data["items"].append({
-            "confidence": score_data["score"],
-            "item_id": i,
-            "name": name,
-            "qty": qty,
-            "unit_price": round(total / qty, 2),
-            "total_price": total
-        })
-        
-        i = i + 1
-
-    # ── Fix totals ─────────────────────────────────────
-    calculated_sum = round(sum(i["total_price"] for i in data["items"]), 2)
-
-    if data["subtotal"] == 0:
-        data["subtotal"] = calculated_sum
-
-    if data["tax"] == 0 and data["total"] > 0:
-        data["tax"] = round(data["total"] - data["subtotal"] - data["serviceCharge"], 2)
-
-    if data["serviceCharge"] == 0 and data["total"] > 0:
-        data["serviceCharge"] = round(data["total"] - data["subtotal"] - data["tax"], 2)
-
-    expected_total = data["subtotal"] + data["tax"] + data["serviceCharge"]
-
-    if data["total"] == 0 or abs(data["total"] - expected_total) > 1:
-        data["total"] = round(expected_total, 2)
-
+    for item in data["items"]:
+        details = _make_score(item["name"], item["qty"], _price(item["unit_price"]),
+                              _price(item["total_price"]), item_sum=item_sum,
+                              subtotal=raw_totals["subtotal"] if "subtotal" in seen_totals else None,
+                              totals_match=totals_match)
+        if item_sum_match is not None and not item_sum_match:
+            # The receipt-level item/subtotal mismatch lowers each row score.
+            details["score"] = max(0, details["score"] - 10)
+        item["confidence"] = details["score"]
+        item["score_details"] = details
+    if DEBUG:
+        print(data)
     return data
 
-def clean_name(name: str) -> str:
-    name = re.sub(r"[₹$]|Rs\.?", " ", name)
-    name = re.sub(r"[^\w\s&'()/.\-]", " ", name)      # keep letters, digits, & ' ( ) / . -
-    name = re.sub(r"\s+", " ", name).strip(" -./")
-    return name.title() if name.isupper() or name.islower() else name
 
-# Used for debugging
-# if __name__ == "__main__":
-#     from app.services.ocr_paddleocr import run_ocr
-#     with open("uploads/Images/dhabha.jpeg", "rb") as f:
-#         raw_text = run_ocr(f.read())
-#     result = parse_receipt(raw_text)
-#     print(json.dumps(result, indent=4))
+def main():
+    import json
+    with open("backend/uploads/Images/receipt4.jpeg", "rb") as f:
+        raw_text = run_ocr(f.read())
+        print(json.dumps(parse_receipt(raw_text), indent=2))
+
+if __name__ == "__main__":
+    main()
