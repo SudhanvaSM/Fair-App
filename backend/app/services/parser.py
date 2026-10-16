@@ -5,10 +5,7 @@ values are INR, and item confidence is a 0-100 completeness/reconciliation score
 """
 
 import re
-from collections import defaultdict
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
-
-from ocr_paddleocr import run_ocr
 
 
 DEBUG = False
@@ -436,11 +433,12 @@ def parse_receipt(result):
     return data
 
 
-def main():
-    import json
-    with open("backend/uploads/Images/receipt4.jpeg", "rb") as f:
-        raw_text = run_ocr(f.read())
-        print(json.dumps(parse_receipt(raw_text), indent=2))
+# def main():
+#     import json
+#     from ocr_paddleocr import run_ocr
+#     with open("backend/uploads/Images/receipt4.jpeg", "rb") as f:
+#         raw_text = run_ocr(f.read())
+#         print(json.dumps(parse_receipt(raw_text), indent=2))
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()

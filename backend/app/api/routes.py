@@ -2,7 +2,7 @@
 # uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 import logging
-from fastapi import APIRouter, HTTPException, Request, Response, UploadFile, File, Depends, status
+from fastapi import APIRouter, HTTPException, Request, UploadFile, File, Depends, status
 from fastapi.concurrency import run_in_threadpool
 
 import os
