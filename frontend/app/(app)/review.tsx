@@ -63,7 +63,7 @@ export default function Review() {
 
 	const subtotalDiff = Math.abs((raw.subtotal ?? 0) - computedSubtotal);
 
-	const [taxInput, setTaxInput] = useState(isEdit ? String(raw.tax ?? 0) : "");
+	const [taxInput, setTaxInput] = useState(String(raw.tax ?? 0));
 	const [tempTaxInput, setTempTaxInput] = useState("");
 	const [isEditingTax, setIsEditingTax] = useState(false);
 
@@ -71,32 +71,22 @@ export default function Review() {
 	const [tempTipInput, setTempTipInput] = useState("");
 	const [isEditingTip, setIsEditingTip] = useState(false);
 
-	let tax = 0;
-	let taxRate = 0;
-
-	if (subtotalDiff > 5) {
-		taxRate = 0.05
-		tax = computedSubtotal * taxRate;
-	} 
-	else {
-		if (raw.subtotal > 0)
-			taxRate = raw.tax / raw.subtotal;
-		else taxRate = 0.05;
-		if (taxRate < 0.04 || taxRate > 0.06) {
-			taxRate = 0.05;
-		}
-		tax = computedSubtotal * taxRate;
-	}
+	const [roundingInput, setRoundingInput] = useState(String(raw.rounding ?? 0));
+	const [tempRoundingInput, setTempRoundingInput] = useState("");
+	const [isEditingRounding, setIsEditingRounding] = useState(false);
 
 	const parsedTax = parseFloat(taxInput)
-	const finalTax = !isNaN(parsedTax) ? parsedTax : tax;
+	const finalTax = !isNaN(parsedTax) ? parsedTax : 0;
 
 	const parsedTip = parseFloat(tipInput)
 	const finalTip = !isNaN(parsedTip) ? parsedTip : 0;
 
+	const parsedRounding = parseFloat(roundingInput)
+	const finalRounding = !isNaN(parsedRounding) ? parsedRounding : 0;
+
 	const serviceCharge = includeServiceCharge ? (raw.service_charge ?? raw.serviceCharge ?? 0) : 0;
 
-	const total = computedSubtotal + finalTax + finalTip + serviceCharge;
+	const total = computedSubtotal + finalTax + finalTip + serviceCharge + finalRounding;
 	
 	const updatedData = {
 		...data,
@@ -222,7 +212,7 @@ export default function Review() {
 					</View>
 
 					<View style={styles.row}>
-						<Text style={styles.label}>Estimated Tax @ {Math.round(taxRate * 100)}%</Text>
+						<Text style={styles.label}>Estimated Tax</Text>
 						{isEditingTax ? (
 							<View style={[styles.input, { gap: 8, paddingVertical: 8}]}>
 								<TextInput 
@@ -341,6 +331,62 @@ export default function Review() {
 							>
 								<Text style={styles.price}>
 									₹{finalTip.toFixed(2)}
+								</Text>
+							</Pressable>
+						)}
+					</View>
+
+					<View style={styles.row}>
+						<Text style={styles.label}>Rounding</Text>
+						{isEditingRounding ? (
+							<View style={[styles.input, { gap: 8, paddingVertical: 8}]}>
+								<TextInput 
+									style={[{ color: "#fff", borderBottomWidth: 1, borderColor: "#888" }]}
+									onChangeText={setTempRoundingInput}
+									placeholder="Enter tip value"
+									placeholderTextColor="#888"
+									value={tempRoundingInput}
+									keyboardType="numeric"
+									autoFocus
+								/>
+								<View style={{ flexDirection: "row", justifyContent: "space-between", gap: 20 }}>
+									<Pressable
+										hitSlop={10}
+										onPress={() => {
+											setIsEditingRounding(false);
+											setTempRoundingInput("");
+										}}
+									>
+										<Text style={{ color: "red" }}>Cancel</Text>
+									</Pressable>
+
+									<Pressable
+										hitSlop={10}
+										onPress={() => {
+											const paresdRounding = parseFloat(tempRoundingInput);
+											if (isNaN(paresdRounding) || paresdRounding > 9999) {
+												Alert.alert("Invalid input", "Enter a valid number.",
+													[{ text: "OK" }],
+													{cancelable: true,});
+												return;
+											}
+											setIsEditingRounding(false);
+											setRoundingInput(paresdRounding.toFixed(2));
+										}}
+									>
+										<Text style={{ color: "#10B981" }}>Save</Text>
+									</Pressable>
+								</View>
+							</View>
+						) : (
+							<Pressable 
+								onPress={() => {
+									setTempTipInput(roundingInput || finalRounding.toFixed(2));
+									setIsEditingRounding(true)
+								}}
+							>
+								<Text style={styles.price}>
+									₹{finalRounding.toFixed(2)}
 								</Text>
 							</Pressable>
 						)}

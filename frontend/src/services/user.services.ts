@@ -26,51 +26,47 @@ export function getProfileDetails(userId: string): ProfileDetails {
 		FROM groups
 	`);
 
-	// need to change min uuid, add user_id column to members
 	const debts = db.getFirstSync<{ pendingBalance: number }>(`
 		WITH self_members AS (
-			SELECT m.group_id, m.id AS self_id
-			FROM members m
-			JOIN profile p ON p.user_id = m.user_id 
-			WHERE p.user_id = ?
-			GROUP BY group_id
-		)
-			
-		SELECT 
-			COALESCE(
-				SUM(
-					CASE
-						WHEN d.to_member_id = sm.self_id
-						THEN d.amount
-
-						WHEN d.from_member_id = sm.self_id
-						THEN -(d.amount)
-
-						ELSE 0
-					END
-				), 0
-			) 
-			+
-			COALESCE(
-				(
-					SELECT SUM(
-						CASE
-							WHEN s.from_member_id = sm.self_id
-							THEN s.amount
-
-							WHEN s.to_member_id = sm.self_id
-							THEN -(s.amount)
-
-							ELSE 0
-						END
-					)
-					FROM settlements s
-					WHERE s.group_id = sm.group_id
-				), 0
-			) AS pendingBalance
-		FROM debts d
-		JOIN self_members sm
+			SELECT id AS self_id, group_id
+			FROM members
+			WHERE user_id = ?
+		),
+		debt_balance AS (
+			SELECT COALESCE(SUM(
+				CASE
+					WHEN d.to_member_id = sm.self_id THEN d.amount
+					WHEN d.from_member_id = sm.self_id THEN -d.amount
+					ELSE 0
+				END
+			), 0) AS total
+			FROM debts d
+			JOIN self_members sm
 			ON sm.group_id = d.group_id
+			AND (
+				d.to_member_id = sm.self_id
+				OR d.from_member_id = sm.self_id
+			)
+		),
+		settlement_balance AS (
+			SELECT COALESCE(SUM(
+				CASE
+					WHEN s.to_member_id = sm.self_id THEN s.amount
+					WHEN s.from_member_id = sm.self_id THEN -s.amount
+					ELSE 0
+				END
+			), 0) AS total
+			FROM settlements s
+			JOIN self_members sm
+			ON sm.group_id = s.group_id
+			AND (
+				s.from_member_id = sm.self_id
+				OR s.to_member_id = sm.self_id
+			)
+		)
+		SELECT
+			debt_balance.total - settlement_balance.total AS pendingBalance
+		FROM debt_balance, settlement_balance
 	`, [userId]);
 
 	const activeGroup = db.getFirstSync<{ name: string }>(`
@@ -140,4 +136,13 @@ export function getName() {
 	`);
 
 	return profile?.name ?? "0";
+}
+
+export function getId() {
+	const profile = db.getFirstSync<{name: string}>(`
+		SELECT name
+		FROM profile
+	`);
+
+	return profile?.id ?? "0";
 }

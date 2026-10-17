@@ -1,137 +1,105 @@
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import * as ImagePicker from "expo-image-picker";
-import { ImageManipulator } from 'expo-image-manipulator';
+import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 
-// Bounds
+// Maximum dimensions for images sent to the receipt scanner.
 const MAX_WIDTH = 1024;
 const MAX_HEIGHT = 1024;
 
 const requestPermission = async () => {
-	const { status } = await ImagePicker.requestCameraPermissionsAsync();
-	if (status !== 'granted') {
-		alert('Camera permission is required');
-		return false;
-	}
-	return true;
-}
-
-const pickImageAsync = async () => {
-	let result = await ImagePicker.launchImageLibraryAsync({
-	  	allowsEditing: true,
-	  	quality: 1,
-		mediaTypes: ['images'],
-	});
-	if (!result.assets?.[0]) {
-		return null;
-	}
-	if (result.canceled) {
-		return null;
-	}
-
-	const { uri, width, height } = result.assets[0];
-
-	let finalUri = uri;
-
-	// 2. Check if the image exceeds the maximum dimensions
-	if (width > MAX_WIDTH || height > MAX_HEIGHT) {
-		const actions = [];
-
-		// Determine the constraint based on orientation
-		if (width > height) {
-		actions.push({ resize: { width: MAX_WIDTH } });
-		} else {
-		actions.push({ resize: { height: MAX_HEIGHT } });
-		}
-		const context = await ImageManipulator.manipulate(uri);
-
-		const imageRef = await context.renderAsync();
-
-		const manipResult = await imageRef.saveAsync({
-		compress: 0.8,
-		format: ImageManipulator.SaveFormat.JPEG,
-		});
-
-		finalUri = manipResult.uri;
-	}
-
-	console.log("Resized image path:", finalUri);
-	return finalUri;
+  const { status } = await ImagePicker.requestCameraPermissionsAsync();
+  if (status !== "granted") {
+    alert("Camera permission is required");
+    return false;
+  }
+  return true;
 };
 
-const openCamera = async () => {
-	const hasPermission = await requestPermission();
-	if (!hasPermission) return null;
+/** Resize oversized images while preserving their aspect ratio. */
+const resizeImageIfNeeded = async (
+  uri: string,
+  width: number,
+  height: number,
+): Promise<string> => {
+  if (width <= MAX_WIDTH && height <= MAX_HEIGHT) {
+    return uri;
+  }
 
-	let result = await ImagePicker.launchCameraAsync({
-		allowsEditing: true,
-		quality: 1,
-		mediaTypes: ['images']
-	});
+  const context = ImageManipulator.manipulate(uri);
 
-	if (!result.assets?.[0]) {
-		return null;
-	}
+  // Resize the longer dimension to its limit; the other dimension scales
+  // proportionally, so the image's aspect ratio is preserved.
+  if (width >= height) {
+    context.resize({ width: MAX_WIDTH });
+  } else {
+    context.resize({ height: MAX_HEIGHT });
+  }
 
-	if (result.canceled) {
-		return null;
-	}
-	const { uri, width, height } = result.assets[0];
+  const imageRef = await context.renderAsync();
+  const result = await imageRef.saveAsync({
+    compress: 0.8,
+    format: SaveFormat.JPEG,
+  });
 
-	let finalUri = uri;
+  console.log("Resized image path:", result.uri);
+  return result.uri;
+};
 
-	// 2. Check if the image exceeds the maximum dimensions
-	if (width > MAX_WIDTH || height > MAX_HEIGHT) {
-		const actions = [];
+const pickImageAsync = async (): Promise<string | null> => {
+  const result = await ImagePicker.launchImageLibraryAsync({
+    allowsEditing: true,
+    quality: 1,
+    mediaTypes: ["images"],
+  });
 
-		// Determine the constraint based on orientation
-		if (width > height) {
-		actions.push({ resize: { width: MAX_WIDTH } });
-		} else {
-		actions.push({ resize: { height: MAX_HEIGHT } });
-		}
-		const context = await ImageManipulator.manipulate(uri);
+  if (result.canceled || !result.assets?.[0]) {
+    return null;
+  }
 
-		const imageRef = await context.renderAsync();
+  const asset = result.assets[0];
+  return resizeImageIfNeeded(asset.uri, asset.width, asset.height);
+};
 
-		const manipResult = await imageRef.saveAsync({
-		compress: 0.8,
-		format: ImageManipulator.SaveFormat.JPEG,
-		});
+const openCamera = async (): Promise<string | null> => {
+  const hasPermission = await requestPermission();
+  if (!hasPermission) return null;
 
-		finalUri = manipResult.uri;
-	}
+  const result = await ImagePicker.launchCameraAsync({
+    allowsEditing: true,
+    quality: 1,
+    mediaTypes: ["images"],
+  });
 
-	console.log("Resized image path:", finalUri);
-	return finalUri;
+  if (result.canceled || !result.assets?.[0]) {
+    return null;
+  }
+
+  const asset = result.assets[0];
+  return resizeImageIfNeeded(asset.uri, asset.width, asset.height);
 };
 
 export default function useImagePicker() {
-	const { showActionSheetWithOptions } = useActionSheet();
+  const { showActionSheetWithOptions } = useActionSheet();
 
-	const handleScan = (): Promise<string | null> => {
-		return new Promise((resolve) => {
-			const options = ['Take Photo', 'Choose from Gallery', 'Cancel'];
-				const cancelButtonIndex = 2;
+  const handleScan = (): Promise<string | null> => {
+    return new Promise((resolve) => {
+      const options = ["Take Photo", "Choose from Gallery", "Cancel"];
+      const cancelButtonIndex = 2;
 
-				showActionSheetWithOptions({ options, cancelButtonIndex, },
-				async (selectedIndex) => {
-					if (selectedIndex === 0) {
-						// Camera
-						const uri = await openCamera();
-						resolve(uri);
-					} 
-					else if (selectedIndex === 1) {
-						// Gallery
-						const uri = await pickImageAsync();
-						resolve(uri);
-					}
-					else {
-						resolve(null);
-					}
-				}	
-			);
-		});
-	};
+      showActionSheetWithOptions(
+        { options, cancelButtonIndex },
+        async (selectedIndex) => {
+          if (selectedIndex === 0) {
+            resolve(await openCamera());
+          } else if (selectedIndex === 1) {
+            resolve(await pickImageAsync());
+          } else {
+            resolve(null);
+          }
+        },
+      );
+    });
+  };
 
-	return { handleScan }
+  return { handleScan };
 }

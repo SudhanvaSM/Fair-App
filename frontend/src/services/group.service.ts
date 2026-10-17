@@ -3,9 +3,9 @@ import { DebtDetails, DetailedGroup, Group, GroupDraft, GroupSummary, GroupSumma
 import { createMember } from "./member.service";
 import { randomUUID } from "expo-crypto";
 
-export function createGroupWithMembers (group: GroupDraft) {
+export function createGroupWithMembers (group: GroupDraft, userId: string) {
 	db.withTransactionSync(() => {
-		db.runSync(
+		db.runSync(s
 			`
 			INSERT INTO groups (id, name)
 			VALUES (?, ?)
@@ -14,7 +14,8 @@ export function createGroupWithMembers (group: GroupDraft) {
 		);
 
     for (const memberName of group.members) {
-    	createMember(group.id, memberName)
+		const isCreator = memberName === group.members[0];
+    	createMember(group.id, memberName, isCreator ? userId : null)
     }
   });
 }

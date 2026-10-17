@@ -8,7 +8,7 @@ import { createGroupWithMembers, getGroupsWithMembers } from "@/src/services/gro
 
 import AddBlock from "@/components/AddBlock";
 import { randomUUID } from "expo-crypto";
-import { getName } from "@/src/services/user.services";
+import { getName, getId } from "@/src/services/user.services";
 
 export default function GroupInput() {
 	const { data } = useLocalSearchParams();
@@ -21,6 +21,7 @@ export default function GroupInput() {
 	}
 
 	const profileName: string = getName();
+	const userId: string = getId();
 
 	const [showInput, setShowInput] = useState(false);
 	const [newItemName, setNewItemName] = useState("");
@@ -48,7 +49,7 @@ export default function GroupInput() {
 			id: groupId,
 			name,
 			members: members.map((m) => m.trim()),
-		});
+		}, userId);
 		setItemsState(getGroupsWithMembers());
 		setMemberInput("");
 		setMembers([profileName]);

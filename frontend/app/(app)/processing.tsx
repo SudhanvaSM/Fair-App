@@ -113,7 +113,6 @@ export default function Processing() {
 					type: "image/jpeg",
 				} as any);
 				updateStep(1);
-
 				const res = await fetch(`${API_URL}/upload`, {
 					signal: controller.signal,
 					method: "POST",
@@ -134,6 +133,7 @@ export default function Processing() {
 					});
 					return;
 				}
+				console.log(JSON.stringify(data));
 
 				const normalisedData = {
 					...data,

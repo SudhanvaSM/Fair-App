@@ -7,6 +7,7 @@ from fastapi.concurrency import run_in_threadpool
 
 import os
 
+#from app.services.ocr_remote import run_remote_ocr
 from app.services.ocr_remote import run_remote_ocr
 from app.services.parser import parse_receipt
 from app.auth.authentication import get_current_user

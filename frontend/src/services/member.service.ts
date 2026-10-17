@@ -3,15 +3,16 @@ import { randomUUID } from "expo-crypto";
 
 export function createMember(
 	groupId: string,
-	memberName: string
+	memberName: string,
+	userId: string | null = null
 ) {
 	const memberId = randomUUID();
 	db.runSync(
 		`
-		INSERT INTO members (id, group_id, name)
-		VALUES (?, ?, ?)
+		INSERT INTO members (id, group_id, name, user_id)
+		VALUES (?, ?, ?, ?)
 		`,
-		[memberId, groupId, memberName]
+		[memberId, groupId, memberName, userId]
 	);
 
 	return memberId;
