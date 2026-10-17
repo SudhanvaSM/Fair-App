@@ -57,6 +57,7 @@ export default function ProfileScreen() {
 	const pendingBalance = profileDetails.pendingBalance;
 
 	const deleteAllData = () => {
+		closeMenu();
 		Alert.alert (
 			"Reset Data",
 			"Are you sure you want to reset all data? This action deletes existing groups and splits.\nTHIS ACTION CANNOT BE UNDONE.",
@@ -89,6 +90,7 @@ export default function ProfileScreen() {
 	}
 
 	const logout = async () => {
+		closeMenu();
 		const success = await syncAll();
 
 		if (!success) {
@@ -113,11 +115,11 @@ export default function ProfileScreen() {
 			{cancelable: true,});
             return;
         }
-
 		deleteLocalData();
 	}
 
 	const forceLogout = async() => {
+		closeMenu();
 		try {
 			deleteLocalData();
 			const { error } = await supabase.auth.signOut({ scope: "local" });
@@ -154,13 +156,15 @@ export default function ProfileScreen() {
 			Alert.alert("Upload Complete", "All local changes uploaded to cloud database.",
 			[{ text: "OK" }],
 			{cancelable: true,});
+			closeMenu();
 		} finally {
 			setIsSyncing(false);
 		}
 	};
 
 	const deleteAccount = () => {
-		router.replace("/deleteAccount");
+		router.push("/deleteAccount");
+		closeMenu();
 	}
 
 	return (
@@ -240,7 +244,7 @@ export default function ProfileScreen() {
 				ref={scrollRef}
 			>
 				<View style={{ alignItems: "center" }}>
-					<View style={[styles.container, { flexDirection: "row", gap: 20 }]}>
+					<View style={[styles.container, { flexDirection: "row" }]}>
 						<View style={styles.avatar}>
 							<MaterialIcons
 								name="person"
@@ -250,8 +254,7 @@ export default function ProfileScreen() {
 						</View>
 						<View style={styles.textContainer}>
 							<Text style={{ color: "white", fontSize: 18, fontWeight: "600" }}>{profileDetails.name}</Text>
-							<Text style={{ color: "white", fontSize: 14, fontWeight: "400" }}>+91 XXXXX XXXXX</Text>
-							<Text style={{ color: "white", fontSize: 12, fontWeight: "400" }} ellipsizeMode="tail" numberOfLines={1}>{email}</Text>
+							<Text style={{ color: "white", fontSize: 14, fontWeight: "400" }} ellipsizeMode="tail" numberOfLines={1}>{email}</Text>
 						</View>
 					</View>
 

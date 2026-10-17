@@ -95,46 +95,17 @@ export default function DeleteAccount() {
 				}
 			);
 
-			if (error) {
-				console.error("Edge Function error:", error);
-				console.error("Error name:", error.name);
-				console.error("Error message:", error.message);
-
-				if ("context" in error && error.context) {
-					try {
-						const response = error.context as Response;
-
-						console.error("HTTP status:", response.status);
-
-						const responseBody = await response.clone().text();
-						console.error("Response body:", responseBody);
-
-						Alert.alert(
-							"Account deletion failed",
-							`HTTP ${response.status}: ${responseBody || error.message}`
-						);
-					} catch (loggingError) {
-						console.error("Could not read error response:", loggingError);
-
-						Alert.alert(
-							"Account deletion failed",
-							error.message
-						);
-					}
-				} else {
-					Alert.alert("Account deletion failed", error.message);
-				}
-
-				return;
-			}
-
-			if (!data?.success) {
-				console.error("Unexpected Edge Function response:", data);
+			if (error || !data?.success) {
+				console.error(
+					"Account deletion failed:",
+					error ?? data
+				);
 
 				Alert.alert(
-					"Account deletion failed",
-					data?.error ?? "The server did not confirm account deletion."
+					"Deletion failed",
+					"Your account could not be deleted. Please try again."
 				);
+
 				return;
 			}
 

@@ -83,7 +83,7 @@ export default function GroupsScreen() {
 		closeMenu();
 		Alert.alert (
 			"Confirm Action",
-			"Are you sure you want to delete all groups?\nThis will RESET app data and delete existing splits.",
+			"Are you sure you want to delete all groups?\nThis will DELETE all data and delete existing splits.",
 			[
 				{
 					text: "Cancel",
@@ -134,7 +134,7 @@ export default function GroupsScreen() {
 					anchor={
 						<Pressable 
 							style={{ justifyContent: "center", alignItems: "center", paddingRight: 20 }}
-							hitSlop={10} 
+							hitSlop={5} 
 							onPress={openMenu}
 						>
 							<MaterialCommunityIcons

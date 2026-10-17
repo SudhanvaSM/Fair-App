@@ -60,7 +60,6 @@ export default function LoginScreen() {
         try {
             setLoading(true);
             const redirectTo = Linking.createURL('reset-password');
-            console.log("redirect link: ", redirectTo);
             const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
                 redirectTo,
             });

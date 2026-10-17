@@ -16,7 +16,7 @@ export default function TabsLayout() {
 		<ActionSheetProvider>
 			<Tabs
 				screenOptions={{
-					tabBarActiveTintColor: "#10B981",
+					tabBarActiveTintColor: "#1c72fe",
 					tabBarInactiveTintColor: "#94A3B8",
 					headerTitleAlign: "center",
 					headerStyle: {
