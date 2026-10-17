@@ -1,12 +1,12 @@
-import { syncDebts } from "lib/sync/push/syncDebts";
-import { syncGroups } from "lib/sync/push/syncGroups";
-import { syncItemAssignments } from "lib/sync/push/syncItemAssignments";
-import { syncItems } from "lib/sync/push/syncItems";
-import { syncMembers } from "lib/sync/push/syncMembers";
-import { syncReceipts } from "lib/sync/push/syncReceipts";
-import { syncReceiptDeletions } from "lib/sync/push/syncReceiptDeletions";
-import { syncGroupDeletions } from "lib/sync/push/syncGroupDeletions";
-import { syncSettlements } from "lib/sync/push/syncSettlements";
+import { syncDebts } from "@/lib/sync/push/syncDebts";
+import { syncGroups } from "@/lib/sync/push/syncGroups";
+import { syncItemAssignments } from "@/lib/sync/push/syncItemAssignments";
+import { syncItems } from "@/lib/sync/push/syncItems";
+import { syncMembers } from "@/lib/sync/push/syncMembers";
+import { syncReceipts } from "@/lib/sync/push/syncReceipts";
+import { syncReceiptDeletions } from "@/lib/sync/push/syncReceiptDeletions";
+import { syncGroupDeletions } from "@/lib/sync/push/syncGroupDeletions";
+import { syncSettlements } from "@/lib/sync/push/syncSettlements";
 
 export default async function syncAll(): Promise<boolean> {
     try {

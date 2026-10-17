@@ -1,6 +1,6 @@
 import { db } from "@/src/db/database";
 import { SyncStep } from "@/types/item";
-import { supabase } from "lib/supabase";
+import { supabase } from "@/lib/supabase";
 
 async function fetchProfile() {
     const { data: { user } } = await supabase.auth.getUser();

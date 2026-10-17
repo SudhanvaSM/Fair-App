@@ -1,5 +1,5 @@
 import { db } from "@/src/db/database"
-import { supabase } from "lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { getName } from "@/src/services/user.services";
 
 export const syncMembers = async() => {
