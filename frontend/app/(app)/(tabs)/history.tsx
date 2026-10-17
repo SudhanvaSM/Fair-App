@@ -68,7 +68,20 @@ export default function History() {
 				cancelable: true,
 			}
 		);
-	}
+	};
+
+	const [isAscending, setIsAscending] = useState<boolean>(true);
+	const sortData = (type: "name" | "total") => {
+		const sorted = [...history].sort((a, b) => {
+			if (type === "name") {
+				return isAscending ? a.title.localeCompare(b.title) : b.title.localeCompare(a.title);
+			} else {
+				return isAscending ? a.price - b.price : b.price - a.price;
+			}
+		});
+		setHistory(sorted);
+		setIsAscending(!isAscending);
+	};
 
 	return (
 		<>
@@ -93,6 +106,18 @@ export default function History() {
 							</Pressable>
 						}
 					>
+					<Menu.Item
+						hitSlop={10}
+						onPress={() => sortData("name")}
+						title="Sort by group name"
+						titleStyle={{ color: "white" }}
+					/>
+					<Menu.Item
+						hitSlop={10}
+						onPress={() => sortData("total")}
+						title="Sort by total expenses"
+						titleStyle={{ color: "white" }}
+					/>
 					<Menu.Item
 						hitSlop={10}
 						onPress={() => deleteAllSplits()}

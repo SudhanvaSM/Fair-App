@@ -109,6 +109,19 @@ export default function GroupsScreen() {
 		);
 	}
 
+	const [isAscending, setIsAscending] = useState<boolean>(true);
+	const sortData = (type: "name" | "total") => {
+		const sorted = [...groupState].sort((a, b) => {
+			if (type === "name") {
+				return isAscending ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
+			} else {
+				return isAscending ? a.totalExpenses - b.totalExpenses : b.totalExpenses - a.totalExpenses;
+			}
+		});
+		setGroupState(sorted);
+		setIsAscending(!isAscending);
+	};
+
 	return (
 		<>
 		<Stack.Screen
@@ -132,6 +145,18 @@ export default function GroupsScreen() {
 						</Pressable>
 					}
 				>
+				<Menu.Item
+					hitSlop={10}
+					onPress={() => sortData("name")}
+					title="Sort by group name"
+					titleStyle={{ color: "white" }}
+				/>
+				<Menu.Item
+					hitSlop={10}
+					onPress={() => sortData("total")}
+					title="Sort by total expenses"
+					titleStyle={{ color: "white" }}
+				/>
 				<Menu.Item
 					hitSlop={10}
 					onPress={() => deleteAllGroups()}

@@ -1,5 +1,5 @@
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
-import { Redirect, Stack, useFocusEffect } from "expo-router";
+import { Redirect, router, Stack, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import {Text, View, StyleSheet, ScrollView, Pressable, Alert, ActivityIndicator  } from "react-native";
 import { Menu } from "react-native-paper";
@@ -159,6 +159,10 @@ export default function ProfileScreen() {
 		}
 	};
 
+	const deleteAccount = () => {
+		router.replace("/deleteAccount");
+	}
+
 	return (
 		<>
 			<Stack.Screen
@@ -215,6 +219,13 @@ export default function ProfileScreen() {
 							hitSlop={10}
 							onPress={() => logout()}
 							title="Log Out"
+							titleStyle={{ color: "red" }}
+						/>
+
+						<Menu.Item
+							hitSlop={10}
+							onPress={() => deleteAccount()}
+							title="Delete Account"
 							titleStyle={{ color: "red" }}
 						/>
 						</Menu>
