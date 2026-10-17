@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet, Alert, ScrollView } from 'react-native';
 
-import { supabase } from 'lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { useScrollToTop } from '@react-navigation/native';
 import { router } from 'expo-router';
 import * as Linking from 'expo-linking';

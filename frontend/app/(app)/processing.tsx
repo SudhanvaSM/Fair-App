@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 
 import Status from "@/components/Status";
-import { supabase } from "lib/supabase";
+import { supabase } from "@/lib/supabase";
 
 export default function Processing() {
 	type StepStatus = "waiting" | "active" | "done";

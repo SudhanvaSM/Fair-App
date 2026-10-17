@@ -1,4 +1,4 @@
-import { supabase } from "lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { useScrollToTop } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useRef, useState } from "react";

@@ -1,5 +1,4 @@
-import { supabase } from "lib/supabase";
-import syncAll from "lib/sync/syncAll";
+import { supabase } from "@/lib/supabase";
 import { deleteLocalData, getName } from "@/src/services/user.services";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useScrollToTop } from "@react-navigation/native";
