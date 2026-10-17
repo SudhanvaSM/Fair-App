@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, ScrollView, Pressable, Alert } from "react-nati
 import { Stack, useLocalSearchParams, router } from "expo-router";
 import { useState } from "react";
 
-import { ItemWithSelection, ItemPerPerson } from "@/types/item";
+import { ItemWithSelection } from "@/types/item";
 
 import ItemBox from "@/components/ItemBox";
 
@@ -20,24 +20,19 @@ export default function Assignment() {
 	const parsedGroupId = String(groupId);
 	const members = getMembersByGroupId(parsedGroupId);
 	
-	if (!parsedData || !parsedData.raw) {
-		console.log("BROKEN DATA:", parsedData);
-		return <Text style={{ color: "white" }}>No Data</Text>;
-	}
+	const raw = parsedData?.raw ?? { items: [] };
+	const items = raw.items ?? [];
+	const includeServiceCharge = raw.includeServiceCharge;
 
-	const raw = parsedData.raw;
-	const items = raw.items;
-	const includeServiceCharge = parsedData.raw.includeServiceCharge;
-
-	const [thing, setThing] = useState(
+	const [thing, setThing] = useState<ItemWithSelection[]>(
 		items.map((item: ItemWithSelection) => ({
 			...item,
-			selectedPeople: [],
+			selectedPeople: parsedData.mode === "edit" ? [...(item.selectedPeople ?? [])] : [],
 		}))
 	);
 
 	const selectAllPeople = (index: number) => {
-		setThing((prev: ItemPerPerson[]) => {
+		setThing((prev: ItemWithSelection[]) => {
 			const updated = [...prev];
 
 			const isAllSelected = updated[index].selectedPeople.length === people.length;
@@ -49,6 +44,10 @@ export default function Assignment() {
 	}
 
 	const people = members.map((m) => m.name);
+	if (!parsedData || !parsedData.raw) {
+		console.log("BROKEN DATA:", parsedData);
+		return <Text style={{ color: "white" }}>No Data</Text>;
+	}
 
 	const showAlert = (name: string) => {
 		Alert.alert(
@@ -64,7 +63,7 @@ export default function Assignment() {
 	};
 
 	const splitEverythingEqually = () => {
-		setThing((prev: ItemPerPerson[]) => {
+		setThing((prev: ItemWithSelection[]) => {
 			const isSplitEqually = prev.every(
 				(item) => item.selectedPeople.length === people.length
 			);
@@ -76,7 +75,7 @@ export default function Assignment() {
 	}
 	
 	const togglePerson = (index: number, person: string) => {
-		setThing((prev: ItemPerPerson[]) => {
+		setThing((prev: ItemWithSelection[]) => {
 			const updated = [...prev];
 			const selected = updated[index].selectedPeople;
 
@@ -108,15 +107,12 @@ export default function Assignment() {
 		router.push({
 			pathname: "/summary",
 			params: {
-			data: JSON.stringify({
+				data: JSON.stringify({
+				...parsedData,
 				result,
 				raw: {
+					...parsedData.raw,
 					items: thing,
-					subtotal: parsedData.raw.subtotal,
-					tax: parsedData.raw.tax,
-					total: parsedData.raw.total,
-					serviceCharge: parsedData.raw.serviceCharge,
-					finalTip: parsedData.raw.finalTip
 				},
 				groupId: parsedGroupId,
 			})
@@ -148,8 +144,8 @@ export default function Assignment() {
 						onPress={splitEverythingEqually}>
 							<Text style={styles.text}>Split All Equally</Text>
 					</Pressable>
-					{thing.map((item: ItemPerPerson, index: number) => (
-						<View key={index} style={{width: "90%"}}>
+					{thing.map((item: ItemWithSelection, index: number) => (
+						<View key={item.itemId} style={{width: "90%"}}>
 							<ItemBox
 								name={item.name}
 								price={item.totalPrice}

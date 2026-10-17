@@ -1,11 +1,11 @@
-import { View, Text, StyleSheet, ScrollView, Pressable, Alert, TextInput, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Pressable, Alert, TextInput } from "react-native";
 import { Stack, useLocalSearchParams, router } from "expo-router";
-import { useState } from "react";
-import { Receipt, ItemWithSelection } from "@/types/item";
+import { useRef, useState } from "react";
+import { Debt, Receipt, ItemWithSelection } from "@/types/item";
 import { Picker } from "@react-native-picker/picker"
 
 import { db } from "@/src/db/database";
-import { createItemAssignment, createReceipt, createReceiptItem } from "@/src/services/receipt.service";
+import { createItemAssignment, createReceipt, createReceiptItem, replaceReceipt } from "@/src/services/receipt.service";
 import { getMembersByGroupId } from "@/src/services/member.service";
 import { createDebt } from "@/src/services/debt.service";
 import { randomUUID } from "expo-crypto";
@@ -20,17 +20,13 @@ export default function Summary() {
 	const groupId: string = parsedData?.groupId || "";
 	const members = getMembersByGroupId(groupId);
 
-	const [payerId, setPayerId] = useState<string>(members[0]?.memberId || "");
-	const [receiptName, setReceiptName] = useState("");
-
-	if (!parsedData || !parsedData.result?.perPerson) { 
-	console.log("BROKEN DATA:", parsedData); 
-	return <Text style={{ color: "white" }}>No Data</Text>; 
-	} 
+	const isEdit = parsedData?.mode === "edit";
+	const [payerId, setPayerId] = useState<string>(isEdit ? parsedData.payerMemberId : (members[0]?.memberId || ""));
+	const [receiptName, setReceiptName] = useState<string>(isEdit ? (parsedData.title ?? "") : "");
 
 	const profileName: string = getName(); 
 	const payer = members.find((m) => m.memberId === payerId); 
-	const result = parsedData.result; 
+	const result = parsedData?.result ?? { perPerson: {} }; 
 
 	const getTime = (date: Date) => { 
 	const time = date.getHours(); 
@@ -40,73 +36,68 @@ export default function Summary() {
 	return "Dinner"; 
 	};
 
-	const createdAt = new Date(); 
-	const defaultTitle = getTime(createdAt); 
-	const receiptTitle = receiptName ? receiptName : defaultTitle; 
-	const receiptId: string = randomUUID();
+	const createdAt = isEdit ? new Date(parsedData.createdAt) : new Date();
+	const defaultTitle = getTime(createdAt);
+	const receiptTitle = receiptName.trim() ? receiptName.trim() : defaultTitle;
+	const receiptIdRef = useRef<string>(randomUUID());
+	const receiptId = receiptIdRef.current;
 	
 	const receipt: Receipt = {
 		id: receiptId, 
 		title: receiptTitle,
 		groupId,
-		payerMemberId: payer?.memberId ?? members[0].memberId,
+		payerMemberId: payer?.memberId ?? parsedData?.payerMemberId ?? members[0]?.memberId ?? "",
 		subtotal: parsedData.raw?.subtotal ?? 0,
 		tax: parsedData.raw?.tax ?? 0,
 		finalTip: parsedData.raw?.finalTip ?? 0,
 		serviceCharge: parsedData.raw?.serviceCharge ?? 0,
-		createdAt: createdAt.toISOString(),
+		createdAt: isEdit ? parsedData.createdAt : createdAt.toISOString(),
 		total: parsedData.raw?.total ?? 0,
 	};
 
 	const items: ItemWithSelection[] = parsedData.raw?.items ?? [];
 
 	const [saving, setSaving] = useState(false);
+	const savingRef = useRef(false);
+	if (!parsedData || !parsedData.result?.perPerson) {
+		console.log("BROKEN DATA:", parsedData);
+		return <Text style={{ color: "white" }}>No Data</Text>;
+	}
 
 	const handleSaveAndGoHome = async () => {
-		if (saving) return;
+		if (savingRef.current || saving) return;
+		savingRef.current = true;
 		setSaving(true);
 
 		try {
-			db.withTransactionSync(() => {
-				createReceipt(receipt);
-				for (const item of items) {
-					const itemId = createReceiptItem(item, receiptId);
-
-					for (const personName of item.selectedPeople) {
-						const member = members.find((m) => m.name === personName);
-						if (!member) {
-							throw new Error(
-								`Member "${personName}" not found in group ${groupId}`
-							);
+			const debts: Debt[] = [];
+			for (const [personName, amount] of Object.entries(result.perPerson as Record<string, number>)) {
+				const member = members.find((m) => m.name === personName);
+				if (!member) throw new Error(`Member "${personName}" not found in group ${groupId}`);
+				if (member.memberId !== receipt.payerMemberId && amount > 0) debts.push({
+					id: randomUUID(), receiptId, groupId,
+					fromMemberId: member.memberId, toMemberId: receipt.payerMemberId, amount,
+				});
+			}
+			if (isEdit) {
+				const memberIdsByName = new Map(members.map(member => [member.name, member.memberId]));
+				replaceReceipt(parsedData.originalReceiptId, receipt, items, memberIdsByName, debts);
+			} else {
+				db.withTransactionSync(() => {
+					createReceipt(receipt);
+					for (const item of items) {
+						const itemId = createReceiptItem(item, receiptId);
+						for (const personName of item.selectedPeople) {
+							const member = members.find((m) => m.name === personName);
+						if (!member) throw new Error(`Member "${personName}" not found in group ${groupId}`);
+							createItemAssignment(itemId, member.memberId);
 						}
-						createItemAssignment(itemId, member.memberId);
 					}
-				}
-				
-				for (const [personName, amount] of Object.entries(result.perPerson as Record<string, number>)) {
-					if (personName === payer?.name) continue;
-
-					const member = members.find((m) => m.name === personName);
-
-					if (!member) {
-						throw new Error(
-							`Member "${personName}" not found in group ${groupId}`
-						);
-					}
-					const debtId = randomUUID();
-
-					createDebt({
-						id: debtId,
-						receiptId,
-						groupId,
-						fromMemberId: member.memberId,
-						toMemberId: receipt.payerMemberId,
-						amount
-					})
-					
-				}
-			});
+					for (const debt of debts) createDebt(debt);
+				});
+			}
 			setSaving(false);
+			savingRef.current = false;
 
 			router.replace("/(app)/(tabs)/home");
 
@@ -123,6 +114,7 @@ export default function Summary() {
 				{cancelable: true,}
 			);
 			setSaving(false);
+			savingRef.current = false;
 		}
 	};
 
@@ -219,8 +211,7 @@ export default function Summary() {
 				</View>
 
 				<View style={{ marginVertical: 28 }}>
-					<Text style={styles.subText}>Review totals before saving</Text>
-					<Text style={styles.subText}>Saved receipts cannot be edited later</Text>
+					<Text style={styles.subText}>{isEdit ? "Save changes to replace this receipt" : "Review totals before saving"}</Text>
 				</View>
 
 				<View style={{alignItems: "center" }}>

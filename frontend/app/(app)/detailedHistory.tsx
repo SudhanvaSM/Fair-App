@@ -65,6 +65,41 @@ export default function DetailedHistory() {
 
 	const summary = genereteReceiptSummary(receipt, debts, items, groupTitle, payer.name);
 
+	const editSavedReceipt = () => {
+		closeMenu();
+		const selectedByItem = new Map<string, string[]>();
+		for (const assignment of assignments) {
+			const existing = selectedByItem.get(assignment.itemId) ?? [];
+			existing.push(assignment.memberName);
+			selectedByItem.set(assignment.itemId, existing);
+		}
+		const editData = {
+			mode: "edit",
+			originalReceiptId: receipt.id,
+			createdAt: receipt.createdAt,
+			title: receipt.title,
+			payerMemberId: receipt.payerMemberId,
+			groupId: receipt.groupId,
+			raw: {
+				items: items.map(item => ({
+					...item,
+					selectedPeople: selectedByItem.get(item.itemId) ?? [],
+				})),
+				subtotal: receipt.subtotal,
+				tax: receipt.tax,
+				finalTip: receipt.finalTip,
+				service_charge: receipt.serviceCharge,
+				serviceCharge: receipt.serviceCharge,
+				total: receipt.total,
+				includeServiceCharge: receipt.serviceCharge > 0,
+			},
+		};
+		router.push({
+			pathname: "/review",
+			params: { items: JSON.stringify(editData), groupId: receipt.groupId },
+		});
+	};
+
 	const copyToClipboard = async() => {
 		await Clipboard.setStringAsync(summary);
 	}
@@ -160,6 +195,12 @@ export default function DetailedHistory() {
 								</Pressable>
 							}
 						>
+							<Menu.Item
+								hitSlop={10}
+								onPress={editSavedReceipt}
+								title="Edit Receipt"
+								titleStyle={{ color: "#fff" }}
+							/>
 							<Menu.Item
 								hitSlop={10}
 								onPress={editReceiptName}

@@ -1,13 +1,156 @@
 import { db } from "@/src/db/database";
-import fetchDebts from "./pull/fetchDebts";
-import fetchGroups from "./pull/fetchGroups";
-import fetchItemAssignments from "./pull/fetchItemAssignments";
-import fetchItems from "./pull/fetchItems";
-import fetchMembers from "./pull/fetchMembers";
-import fetchReceipts from "./pull/fetchReceipts";
 import { SyncStep } from "@/types/item";
-import fetchSettlements from "./pull/fetchSettlements";
-import fetchProfile from "./pull/fetchProfile";
+import { supabase } from "../supabase";
+
+async function fetchProfile() {
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        throw new Error("No authenticated user");
+    }
+
+    const { data, error } = await supabase
+        .from("profiles")
+        .select(`*`)
+        .eq("id", user.id)
+        .single();
+
+    if (error) {
+        throw error;
+    }
+
+    return data;
+}
+
+async function fetchGroups() {
+	const { data, error } = await supabase
+		.from('groups')
+		.select(`
+			id,
+			name,
+			created_at,
+			updated_at
+		`);
+
+	if (error) {
+		throw error;
+	}
+	return data;
+}
+
+async function fetchMembers() {
+	const { data, error } = await supabase
+		.from('members')
+		.select(`
+			id,
+			group_id,
+			name,
+			active,
+			user_id,
+			created_at,
+			updated_at
+		`);
+
+	if (error) {
+		throw error;
+	}
+	return data;
+}
+
+async function fetchReceipts() {
+	const { data, error } = await supabase
+		.from('receipts')
+		.select(`
+			id,
+			title,
+			group_id,
+			payer_member_id,
+			subtotal,
+			tax,
+			final_tip,
+			service_charge,
+			total,
+			created_at,
+			updated_at
+		`);
+
+	if (error) {
+		throw error;
+	}
+	return data;
+}
+
+async function fetchItems() {
+	const { data, error } = await supabase
+		.from('items')
+		.select(`
+			id,
+			receipt_id,
+			name,
+			qty,
+			unit_price,
+			total_price,
+			created_at
+		`);
+
+	if (error) {
+		throw error;
+	}
+	return data;
+}
+
+async function fetchItemAssignments() {
+	const { data, error } = await supabase
+		.from('item_assignments')
+		.select(`
+			id,
+			member_id,
+			item_id,
+			created_at
+		`);
+
+	if (error) {
+		throw error;
+	}
+	return data;
+}
+
+async function fetchDebts() {
+	const { data, error } = await supabase
+		.from('debts')
+		.select(`
+			id,
+			receipt_id,
+			group_id,
+			from_member_id,
+			to_member_id,
+			amount,
+			created_at
+		`);
+
+	if (error) {
+		throw error;
+	}
+	return data;
+}
+
+async function fetchSettlements() {
+	const { data, error } = await supabase
+		.from('settlements')
+		.select(`
+			id,
+			group_id,
+			from_member_id,
+			to_member_id,
+			amount,
+			created_at
+		`);
+
+	if (error) {
+		throw error;
+	}
+	return data;
+}
 
 export default async function pullInitialData(onProgress?: (step: SyncStep) => void) {
 	onProgress?.("profile");

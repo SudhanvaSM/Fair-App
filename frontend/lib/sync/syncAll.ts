@@ -16,6 +16,10 @@ export default async function syncAll(): Promise<boolean> {
 
         if (!(await syncMembers())) success = false;
 
+        // Remove replaced receipts and their remote children before pushing
+        // the replacement rows so immutable records cannot linger remotely.
+        if (!(await syncReceiptDeletions())) success = false;
+
         if (!(await syncReceipts())) success = false;
 
         if (!(await syncItems())) success = false;
@@ -27,8 +31,6 @@ export default async function syncAll(): Promise<boolean> {
         if (!(await syncSettlements())) success = false;
 
         if (!(await syncGroupDeletions())) success = false;
-
-        if (!(await syncReceiptDeletions())) success = false;
 
         return success;
 

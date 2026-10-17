@@ -1,6 +1,6 @@
 import {  randomUUID } from "expo-crypto";
 import { db } from "../db/database";
-import { AssignmentList, DebtDetails, Item, Receipt, RecentSplit } from "@/types/item";
+import { AssignmentList, Debt, DebtDetails, Item, ItemWithSelection, Receipt, RecentSplit } from "@/types/item";
 
 export function createReceipt (data: Receipt) {
 	db.runSync(
@@ -184,24 +184,44 @@ export function getAssignmentsList (receiptId: string): AssignmentList[] {
 	return assignments;
 }
 
-export function clearReceipt(receiptId: string) {
-    db.withTransactionSync(() => {
-        db.runSync(
-            `
-            DELETE FROM receipts
-            WHERE id = ?
-            `,
-            [receiptId]
-        );
+function deleteReceiptAndMark(receiptId: string) {
+	db.runSync(`DELETE FROM receipts WHERE id = ?`, [receiptId]);
+	db.runSync(`
+		INSERT OR IGNORE INTO sync_deletions (id, table_name, record_id)
+		VALUES (?, 'receipts', ?)
+	`, [randomUUID(), receiptId]);
+}
 
-        db.runSync(
-            `
-            INSERT INTO sync_deletions (id, table_name, record_id)
-            VALUES (?, ?, ?)
-            `,
-            [randomUUID(), 'receipts', receiptId]
-        );
-    });
+export function clearReceipt(receiptId: string) {
+	db.withTransactionSync(() => deleteReceiptAndMark(receiptId));
+}
+
+/** Replace an immutable receipt and its dependent records in one transaction. */
+export function replaceReceipt(
+	oldReceiptId: string,
+	receipt: Receipt,
+	items: ItemWithSelection[],
+	memberIdsByName: Map<string, string>,
+	debts: Debt[],
+) {
+	db.withTransactionSync(() => {
+		deleteReceiptAndMark(oldReceiptId);
+		createReceipt(receipt);
+		for (const item of items) {
+			const newItemId = createReceiptItem(item, receipt.id);
+			for (const personName of item.selectedPeople) {
+				const memberId = memberIdsByName.get(personName);
+				if (!memberId) throw new Error(`Member "${personName}" is not in this group`);
+				createItemAssignment(newItemId, memberId);
+			}
+		}
+		for (const debt of debts) {
+			db.runSync(`
+				INSERT INTO debts (id, receipt_id, group_id, from_member_id, to_member_id, amount)
+				VALUES (?, ?, ?, ?, ?, ?)
+			`, [debt.id, receipt.id, debt.groupId, debt.fromMemberId, debt.toMemberId, debt.amount]);
+		}
+	});
 }
 
 export function clearReceiptHistory() {
@@ -215,7 +235,7 @@ export function clearReceiptHistory() {
         for (const receipt of receipts) {
 			db.runSync(
             `
-            INSERT INTO sync_deletions (id, table_name, record_id)
+			INSERT OR IGNORE INTO sync_deletions (id, table_name, record_id)
             VALUES (?, ?, ?)
             `,
             [randomUUID(), 'receipts', receipt.id]

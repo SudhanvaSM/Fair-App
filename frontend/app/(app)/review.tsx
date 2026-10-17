@@ -1,6 +1,6 @@
-import { router, Stack } from "expo-router";
-import { useLocalSearchParams } from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
+import { randomUUID } from "expo-crypto";
 import { MaterialIcons } from "@expo/vector-icons";
 import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Alert } from "react-native";
 
@@ -14,14 +14,25 @@ export default function Review() {
 	const parsedParam = Array.isArray(items) ? items[0] : items;
 	const data = parsedParam ? JSON.parse(parsedParam) : null;
 
-	if (!data || !data.raw || !data.raw.items) {
-		console.log("BROKEN DATA:", data);
-  		return <Text style={{ color: "white" }}>No Data</Text>;
-	}
+	const raw = data?.raw ?? { items: [], subtotal: 0, tax: 0 };
 
-	const raw = data.raw;
-
-	const [itemsState, setItemsState] = useState(raw.items);
+	const isEdit = data.mode === "edit";
+	const editMetadata = isEdit ? {
+		mode: "edit",
+		originalReceiptId: data.originalReceiptId,
+		createdAt: data.createdAt,
+		title: data.title,
+		payerMemberId: data.payerMemberId,
+		groupId: data.groupId ?? groupId,
+	} : {};
+	const [itemsState, setItemsState] = useState(() => {
+		const used = new Set<string>();
+		return raw.items.map((item: Item) => {
+			const itemId = item.itemId && !used.has(item.itemId) ? item.itemId : randomUUID();
+			used.add(itemId);
+			return { ...item, itemId };
+		});
+	});
 	const [editingId, setEditingId] = useState<string | null>(null);
 
 	const removeItem = (id: string) => {
@@ -34,7 +45,7 @@ export default function Review() {
 	const [newItemName, setNewItemName] = useState("");
 	const addItem = (name: string) => {
 		const newItem: Item = {
-			itemId: String(Date.now()),
+			itemId: randomUUID(),
 			name: name,
 			qty: 1,
 			unitPrice: 0,
@@ -44,19 +55,19 @@ export default function Review() {
 		setShowInput(false);
 	};
 	
-	const [includeServiceCharge, setIncludeServiceCharge] = useState(true);
+	const [includeServiceCharge, setIncludeServiceCharge] = useState<boolean>(raw.includeServiceCharge ?? (raw.service_charge ?? raw.serviceCharge ?? 0) > 0);
 
 	const computedSubtotal = itemsState.reduce(
   		(sum: number, item: Item) => sum + item.totalPrice, 0
 	);
 
-	const subtotalDiff = Math.abs(raw.subtotal - computedSubtotal);
+	const subtotalDiff = Math.abs((raw.subtotal ?? 0) - computedSubtotal);
 
-	const [taxInput, setTaxInput] = useState("");
+	const [taxInput, setTaxInput] = useState(isEdit ? String(raw.tax ?? 0) : "");
 	const [tempTaxInput, setTempTaxInput] = useState("");
 	const [isEditingTax, setIsEditingTax] = useState(false);
 
-	const [tipInput, setTipInput] = useState("");
+	const [tipInput, setTipInput] = useState(isEdit ? String(raw.finalTip ?? 0) : "");
 	const [tempTipInput, setTempTipInput] = useState("");
 	const [isEditingTip, setIsEditingTip] = useState(false);
 
@@ -83,12 +94,13 @@ export default function Review() {
 	const parsedTip = parseFloat(tipInput)
 	const finalTip = !isNaN(parsedTip) ? parsedTip : 0;
 
-	const serviceCharge = includeServiceCharge ? (raw.service_charge ?? 0) : 0;
+	const serviceCharge = includeServiceCharge ? (raw.service_charge ?? raw.serviceCharge ?? 0) : 0;
 
 	const total = computedSubtotal + finalTax + finalTip + serviceCharge;
 	
 	const updatedData = {
 		...data,
+		...editMetadata,
 		raw: {
 			...raw,
 			items: itemsState,
@@ -96,10 +108,15 @@ export default function Review() {
 			tax: finalTax,
 			total: total,
 			serviceCharge: serviceCharge,
+			service_charge: serviceCharge,
 			includeServiceCharge: includeServiceCharge,
 			finalTip: finalTip,
 		},
 	};
+	if (!data || !data.raw || !data.raw.items) {
+		console.log("BROKEN DATA:", data);
+		return <Text style={{ color: "white" }}>No Data</Text>;
+	}
 
   return (
 	<>
@@ -260,13 +277,13 @@ export default function Review() {
 						)}
 					</View>
 
-					{includeServiceCharge && raw.service_charge != 0 && (
+					{includeServiceCharge && (raw.service_charge ?? raw.serviceCharge ?? 0) !== 0 && (
 						<View style={styles.row}>
 							<Text style={styles.label}>Service Charge</Text>
 							<Text style={styles.price}>₹{serviceCharge.toFixed(2)}</Text>
 						</View>
 					)}
-					{raw.service_charge != 0 && (<Pressable onPress={() => setIncludeServiceCharge(prev => !prev)}>
+					{(raw.service_charge ?? raw.serviceCharge ?? 0) !== 0 && (<Pressable onPress={() => setIncludeServiceCharge((prev: boolean) => !prev)}>
 						<Text style={{ color: "orange", marginTop: 10 }}>
 							{includeServiceCharge ? "Remove Service Charge" : "Add Service Charge"}
 						</Text>
@@ -360,7 +377,13 @@ export default function Review() {
 					return;
 					}
 					
-					if (Number(groupId) === -1) {
+					if (isEdit) {
+						router.push({ pathname: "/assignment", 
+							params: { data: JSON.stringify(updatedData), 
+								groupId: String(editMetadata.groupId) 
+						} });
+					}
+					else if (Number(groupId) === -1) {
 						router.push({
 							pathname: "/groupInput",
 							params: {
