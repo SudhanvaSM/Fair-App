@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Split Fair. Anytime. Anywhere.",
+    "name": "Split Fair. Anytime. Anywhere",
     "slug": "frontend",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -19,7 +19,11 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.fairapp.frontend"
     },
     "web": {
       "output": "static",
@@ -54,6 +58,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "2f989714-b4cd-4509-ba0f-4010ebfb1eea"
+      }
     }
   }
 }

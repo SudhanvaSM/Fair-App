@@ -1,5 +1,5 @@
 import Ring from '@/components/LoadingWheel';
-import pullInitialData from '@/lib/sync/pullInitialData';
+import pullInitialData from 'lib/sync/pullInitialData';
 import { SyncStep } from '@/types/item';
 import { router, Stack } from 'expo-router';
 import { useEffect, useState } from 'react';

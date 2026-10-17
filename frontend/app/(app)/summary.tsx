@@ -9,7 +9,7 @@ import { createItemAssignment, createReceipt, createReceiptItem, replaceReceipt 
 import { getMembersByGroupId } from "@/src/services/member.service";
 import { createDebt } from "@/src/services/debt.service";
 import { randomUUID } from "expo-crypto";
-import syncAll from "@/lib/sync/syncAll";
+import syncAll from "lib/sync/syncAll";
 import { getName } from "@/src/services/user.services";
 
 export default function Summary() {

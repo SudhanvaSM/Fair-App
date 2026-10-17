@@ -1,5 +1,5 @@
 import { db } from "@/src/db/database"
-import { supabase } from "../../supabase";
+import { supabase } from "lib/supabase";
 
 export const syncSettlements = async() => {
 	const settlements = db.getAllSync<{

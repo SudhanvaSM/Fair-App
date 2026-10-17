@@ -11,9 +11,9 @@ import { deleteLocalData, getProfileDetails, resetAppData, getId } from "@/src/s
 import DateFormat from "@/utils/dateFormat";
 
 import useScrollToTop from "../hooks/useScrollToTop";
-import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/lib/AuthProvider";
-import syncAll from "@/lib/sync/syncAll";
+import { supabase } from "lib/supabase";
+import { useAuth } from "lib/AuthProvider";
+import syncAll from "lib/sync/syncAll";
 import Ring from "@/components/LoadingWheel";
 
 
