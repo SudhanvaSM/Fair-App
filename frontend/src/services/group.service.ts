@@ -5,7 +5,7 @@ import { randomUUID } from "expo-crypto";
 
 export function createGroupWithMembers (group: GroupDraft, userId: string) {
 	db.withTransactionSync(() => {
-		db.runSync(s
+		db.runSync(
 			`
 			INSERT INTO groups (id, name)
 			VALUES (?, ?)

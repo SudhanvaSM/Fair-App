@@ -139,8 +139,8 @@ export function getName() {
 }
 
 export function getId() {
-	const profile = db.getFirstSync<{name: string}>(`
-		SELECT name
+	const profile = db.getFirstSync<{id: string}>(`
+		SELECT user_id as id
 		FROM profile
 	`);
 

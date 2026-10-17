@@ -6,7 +6,7 @@ import { Menu } from "react-native-paper";
 
 import { ProfileDetails } from "@/types/item";
 
-import { deleteLocalData, getProfileDetails, resetAppData } from "@/src/services/user.services";
+import { deleteLocalData, getProfileDetails, resetAppData, getId } from "@/src/services/user.services";
 
 import DateFormat from "@/utils/dateFormat";
 
