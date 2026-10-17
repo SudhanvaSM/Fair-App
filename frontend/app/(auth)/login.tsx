@@ -4,7 +4,7 @@ import { View, Text, TextInput, Pressable, StyleSheet, Alert, ScrollView } from 
 import { supabase } from '@/lib/supabase';
 import { useScrollToTop } from '@react-navigation/native';
 import { router } from 'expo-router';
-import { dismiss } from 'expo-router/build/global-state/routing';
+import * as Linking from 'expo-linking';
 
 export default function LoginScreen() {
     const [email, setEmail] = useState("");
@@ -34,7 +34,7 @@ export default function LoginScreen() {
                 Alert.alert('Login failed', error.message,
                     [{ text: "OK" }],
                     {cancelable: true,});
-                setEmail("");
+                setPassword("");
                 return;
             }
         } finally {
@@ -59,21 +59,29 @@ export default function LoginScreen() {
         }
         try {
             setLoading(true);
-            const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-                redirectTo: 'exp://y_zx7zg-anonymous-8081.exp.direct/--/reset-password',
+            const redirectTo = Linking.createURL('reset-password');
+            console.log("redirect link: ", redirectTo);
+            const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
+                redirectTo,
             });
             if (error) {
-                Alert.alert("Unable to send email", "Please try again later.");
+                Alert.alert("Unable to send email", "Please try again later."),
+                [{ text: "OK" }],
+                {cancelable: true,};
                 return;
             }
             Alert.alert(
                 "Check you email",
-                "We've sent password-reset instructions if an account exists for this email."
+                "We've sent password-reset instructions if an account exists for this email.",
+                [{ text: "OK" }],
+                {cancelable: true,}
             );
         } catch {
             Alert.alert(
                 "Error",
-                "Something went wrong. Please try again later."
+                "Something went wrong. Please try again later.",
+                [{ text: "OK" }],
+                {cancelable: true,}
             );
         } finally {
             setLoading(false);

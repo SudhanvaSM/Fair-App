@@ -70,9 +70,9 @@ export default async function pullInitialData(onProgress?: (step: SyncStep) => v
 		for (const member of members) {
 			db.runSync(
 			`
-				INSERT INTO members (id, group_id, name, active, sync_status, created_at, updated_at)
-				VALUES (?, ?, ?, ?, 'synced', ?, ?)
-			`, [member.id, member.group_id, member.name, member.active ? 1 : 0, member.created_at, member.updated_at]
+				INSERT INTO members (id, group_id, name, active, user_id, sync_status, created_at, updated_at)
+				VALUES (?, ?, ?, ?, ?, 'synced', ?, ?)
+			`, [member.id, member.group_id, member.name, member.active ? 1 : 0, member.user_id, member.created_at, member.updated_at]
 		);
 		}
 
@@ -90,11 +90,10 @@ export default async function pullInitialData(onProgress?: (step: SyncStep) => v
 					service_charge,
 					total,
 					created_at,
-					receipt_image_uri,
 					sync_status,
 					updated_at
 				)
-				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'synced', ?)
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'synced', ?)
 			`, [receipt.id, 
 				receipt.title, 
 				receipt.group_id, 
@@ -105,7 +104,6 @@ export default async function pullInitialData(onProgress?: (step: SyncStep) => v
 				receipt.service_charge,
 				receipt.total,
 				receipt.created_at,
-				receipt.receipt_image_uri,
 				receipt.updated_at
 			]
 		);

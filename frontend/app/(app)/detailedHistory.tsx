@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Menu } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-import { AssignmentList, DebtDetails, Item, Receipt } from "@/types/item";
+import { AssignmentList, DebtDetails, Item } from "@/types/item";
 
 import { getDetailedReceipt, getItemsList, getDebtsList, getAssignmentsList, clearReceipt, changeReceiptTitle } from "@/src/services/receipt.service";
 import { getMemberName } from "@/src/services/member.service";

@@ -31,7 +31,7 @@ export default function ProfileScreen() {
 
 	useFocusEffect(
 		useCallback(() => {
-			setProfileDetails(getProfileDetails());
+			setProfileDetails(getProfileDetails(session?.user?.id ?? '0'));
 		}, [])
 	);
 
@@ -74,7 +74,7 @@ export default function ProfileScreen() {
 							syncAll().catch(error => {
 								console.error("Background sync failed:", error);
 							});
-							setProfileDetails(getProfileDetails());
+							setProfileDetails(getProfileDetails(session?.user?.id));
 						}
 						catch (e) {
 							console.error("Remove all splits failed: ", e);
@@ -92,8 +92,15 @@ export default function ProfileScreen() {
 		const success = await syncAll();
 
 		if (!success) {
-			Alert.alert("Could not complete sync", "Please try again before logging out.",
-			[{ text: "OK" }],
+			Alert.alert("Force Logut?", 
+				"Your data could not be synced. Logging out will delete locally stored data that may not exist in the cloud. These changes may be permanently lost.",
+			[{ text: "Cancel", style: "cancel" },
+			{
+				text: "Force Logout",
+				style: "destructive",
+				onPress: () => forceLogout()
+			},
+			],
 			{cancelable: true,});
 			return;
 		}
@@ -108,6 +115,25 @@ export default function ProfileScreen() {
         }
 
 		deleteLocalData();
+	}
+
+	const forceLogout = async() => {
+		try {
+			deleteLocalData();
+			const { error } = await supabase.auth.signOut({ scope: "local" });
+				if (error) {
+					Alert.alert('Logout incomplete', 
+						"Local data was cleared, but authentication cleanup failed. Please restart the app.",
+				[{ text: "OK" }],
+				{cancelable: true,});
+				return;
+			}
+		} catch (error) {
+			Alert.alert('Force Logout failed', 
+						"The app could not finish clearing local data. Please try again.",
+				[{ text: "OK" }],
+				{cancelable: true,});
+		}
 	}
 
 	const syncLocalChanges = async () => {

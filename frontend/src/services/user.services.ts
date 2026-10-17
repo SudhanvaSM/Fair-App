@@ -2,13 +2,13 @@ import { ProfileDetails } from "@/types/item";
 import { db } from "../db/database";
 import { randomUUID } from "expo-crypto";
 
-export function getProfileDetails(): ProfileDetails {
+export function getProfileDetails(userId: string): ProfileDetails {
 
 	const profile = db.getFirstSync<{name: string;}>(`
 		SELECT name
 		FROM profile
 	`);
-
+	
 	const receipt = db.getFirstSync<{
 		totalSpent: number, 
 		totalBillsScanned: number, 
@@ -29,8 +29,10 @@ export function getProfileDetails(): ProfileDetails {
 	// need to change min uuid, add user_id column to members
 	const debts = db.getFirstSync<{ pendingBalance: number }>(`
 		WITH self_members AS (
-			SELECT group_id, MIN(id) AS self_id
-			FROM members
+			SELECT m.group_id, m.id AS self_id
+			FROM members m
+			JOIN profile p ON p.user_id = m.user_id 
+			WHERE p.user_id = ?
 			GROUP BY group_id
 		)
 			
@@ -69,7 +71,7 @@ export function getProfileDetails(): ProfileDetails {
 		FROM debts d
 		JOIN self_members sm
 			ON sm.group_id = d.group_id
-	`);
+	`, [userId]);
 
 	const activeGroup = db.getFirstSync<{ name: string }>(`
 		SELECT g.name AS name

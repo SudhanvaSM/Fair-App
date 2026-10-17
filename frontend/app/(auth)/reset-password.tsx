@@ -12,21 +12,27 @@ export default function ResetPassword() {
 		if (!password || !confirmPassword) {
 			Alert.alert(
 				"Missing fields",
-				"Enter and confirm your new password."
+				"Enter and confirm your new password.",
+                [{ text: "OK" }],
+                {cancelable: true,}
 			);
 			return;
 		}
 		if (password.length < 8) {
             Alert.alert(
                 "Weak password",
-                "Your password must contain at least 8 characters."
+                "Your password must contain at least 8 characters.",
+                [{ text: "OK" }],
+                {cancelable: true,}
             );
             return;
         }
 		if (password !== confirmPassword) {
             Alert.alert(
                 "Passwords don't match",
-                "Please enter the same password in both fields."
+                "Please enter the same password in both fields.",
+                [{ text: "OK" }],
+                {cancelable: true,}
             );
             return;
         }
@@ -36,12 +42,18 @@ export default function ResetPassword() {
             if (error) {
                 Alert.alert(
                     "Password reset failed",
-                    error.message
+                    error.message,
+                [{ text: "OK" }],
+                {cancelable: true,}
                 );
                 return;
             }
             // Password updated successfully.
             // End the recovery session so the user returns to login.
+            const { error: signOutError } = await supabase.auth.signOut();
+            if (signOutError) {
+                console.error("Sign-out after password reset failed:", signOutError.message);
+            }
             Alert.alert(
                 "Password updated",
                 "Your password has been changed successfully. Please log in with your new password.",
@@ -52,16 +64,15 @@ export default function ResetPassword() {
                             router.replace("/login");
                         },
                     },
-                ]
+                ],
+                {cancelable: true,}
             );
-			const { error: signOutError } = await supabase.auth.signOut();
-            if (signOutError) {
-                console.error("Sign-out after password reset failed:", signOutError.message);
-            }
 		} catch {
 			Alert.alert(
                 "Error",
-                "Something went wrong. Please try again."
+                "Something went wrong. Please try again.",
+                [{ text: "OK" }],
+                {cancelable: true,}
             );
         } finally {
             setLoading(false);

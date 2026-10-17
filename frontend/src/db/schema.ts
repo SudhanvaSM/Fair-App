@@ -12,6 +12,7 @@ members
 - group_id
 - name
 - active
+- user_id
 - sync_status
 - created_at
 - updated_at
@@ -117,6 +118,7 @@ export function initializeDatabase() {
 			group_id TEXT NOT NULL,
 			name TEXT NOT NULL,
 			active INTEGER NOT NULL DEFAULT 1,
+			user_id TEXT,
 			sync_status TEXT DEFAULT 'not_synced',
 			updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
 			created_at TEXT DEFAULT CURRENT_TIMESTAMP,
