@@ -1,7 +1,6 @@
 import os
-from fastapi import HTTPException, Request
+from fastapi import HTTPException, Request, logger
 from limits import parse
-from limits.storage import storage_from_string
 from limits.strategies import MovingWindowRateLimiter
 
 from limits.storage import MemoryStorage
@@ -11,6 +10,7 @@ GLOBAL_LIMIT = parse(os.getenv("GLOBAL_OCR_DAILY", "2000/day"))  # set from your
 
 def ip_throttle(request: Request):
     ip = request.client.host if request.client else "unknown"
+    logger.info("ip=%s xff=%s", ip, request.headers.get("x-forwarded-for"))
     if not _strategy.hit(IP_LIMIT, "ip", ip):
         raise HTTPException(429, "Too many requests")
 

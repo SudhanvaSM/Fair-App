@@ -108,8 +108,8 @@ export default function ProfileScreen() {
 				{cancelable: true,});
 				return;
 			}
-			const { error } = await supabase.auth.signOut();
-			if (error) await supabase.auth.signOut({ scope: 'local' });
+			let { error } = await supabase.auth.signOut();
+			if (error) ({ error } = await supabase.auth.signOut({ scope: 'local' }));
 
 			if (error) {
 				Alert.alert('Logout failed', error.message,

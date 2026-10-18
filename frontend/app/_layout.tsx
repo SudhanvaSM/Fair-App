@@ -17,11 +17,15 @@ export default function RootLayout() {
         let isMounted = true;
 
         async function handleRecoveryUrl(url: string) {
-            const { path, queryParams } = Linking.parse(url);
-            const code = queryParams?.code;
-            if (path !== 'reset-password' || typeof code !== 'string') return;
-            const { error } = await supabase.auth.exchangeCodeForSession(code);
-            if (!error && isMounted) router.replace('/reset-password');
+            if (!/:\/\/\/?reset-password\/?(\?|#|$)/.test(url)) return;
+            const code = new URL(url).searchParams.get("code");
+            if (!code) return;
+            try {
+                const { error } = await supabase.auth.exchangeCodeForSession(code);
+                if (!error && isMounted) router.replace("/reset-password");
+            } catch (e) { 
+                console.error("Recovery failed"); 
+            }
         }
 
         Linking.getInitialURL().then((url) => {

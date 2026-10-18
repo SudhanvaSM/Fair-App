@@ -315,12 +315,16 @@ export default async function pullInitialData(onProgress?: (step: SyncStep) => v
 		}
 
 		db.runSync(
-			`
-				INSERT INTO app_state(key, value
-				VALUES (?, ?)
-				ON CONFLICT(key) DO UPDATE SET value = excluded.value
-			`, ["owner_user_id", profile.id]
-		)
+			`INSERT INTO app_state(key, value) VALUES (?, ?)
+			ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
+			["initial_sync_completed", "true"]
+			);
+		
+			db.runSync(
+			`INSERT INTO app_state(key, value) VALUES (?, ?)
+			ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
+			["owner_user_id", profile.id]
+		);
 	})
 
 	onProgress?.("complete");

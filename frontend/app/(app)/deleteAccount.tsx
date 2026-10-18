@@ -64,17 +64,14 @@ export default function DeleteAccount() {
 					context: error.context,
 				});
 
-				if (error.context instanceof Response) {
+				if (error.context.status === 401) {
 					try {
-					console.error(
-						"Edge Function HTTP status:",
-						error.context.status
-					);
-
-					console.error(
-						"Edge Function response:",
-						await error.context.clone().text()
-					);
+						Alert.alert(
+							"Incorrect Password",
+							"Password provided does not match the account. Please try again.",
+							[{text: "OK"}],
+							{cancelable: true}
+						)
 					} catch (loggingError) {
 					console.error(
 						"Could not read Edge Function response:",

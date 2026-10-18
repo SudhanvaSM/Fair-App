@@ -3,7 +3,7 @@
 
 import asyncio
 import logging
-from fastapi import APIRouter, HTTPException, Request, UploadFile, File, Depends, status
+from fastapi import APIRouter, FastAPI, HTTPException, Request, UploadFile, File, Depends, status
 from fastapi.concurrency import run_in_threadpool
 from PIL import Image
 import io
@@ -24,6 +24,11 @@ router = APIRouter()
 MAX_BYTES = 8 * 1024 * 1024
 
 OCR_SEM = asyncio.Semaphore(4)
+
+prod = os.getenv("ENV") == "production"
+app = FastAPI(docs_url=None if prod else "/docs",
+              redoc_url=None if prod else "/redoc",
+              openapi_url=None if prod else "/openapi.json")
 
 def _is_supported_image(b: bytes) -> bool:
     return (
@@ -49,7 +54,6 @@ async def upload(
     _ip: None = Depends(ip_throttle),
     file: UploadFile = File(...), 
     user_id: str = Depends(get_current_user),
-    _g: None = Depends(global_budget)
     ):
 
     data = await file.read()
@@ -61,14 +65,18 @@ async def upload(
         raise HTTPException(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, "Use a JPEG, PNG or WebP image")
 
     try:
-        await asyncio.wait_for(OCR_SEM.acquire(), timeout=2)
-    except asyncio.TimeoutError:
-        raise HTTPException(503, "Busy, try again")
+        await run_in_threadpool(_check_dims, data)
+    except Exception:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Invalid image")
+
+    global_budget()   # count only valid images;
 
     try:
-        raw_text = await asyncio.wait_for(run_in_threadpool(_check_dims, run_remote_ocr, data), timeout=2)
-    except Exception: 
-        raise HTTPException(422, "Invalid image")
+        await asyncio.wait_for(OCR_SEM.acquire(), timeout=2)
+    except asyncio.TimeoutError:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Busy, try again")
+    try:
+        raw_text = await asyncio.wait_for(run_in_threadpool(run_remote_ocr, data), timeout=45)
     except Exception:
         logger.exception("OCR service failed user=%s", user_id)
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, "OCR service unavailable, try again")
@@ -76,16 +84,10 @@ async def upload(
         OCR_SEM.release()
 
     try:
-        await asyncio.wait_for(OCR_SEM.acquire(), timeout=2)
-    except asyncio.TimeoutError:
-        raise HTTPException(503, "Busy, try again")
-    try:
-        parsed = await asyncio.wait_for(run_in_threadpool(parse_receipt, raw_text), timeout=2)
+        parsed = await run_in_threadpool(parse_receipt, raw_text)
     except Exception:
         logger.exception("Parse failed user=%s", user_id)
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Could not read this receipt")
-    finally:
-        OCR_SEM.release()
 
     logger.info("scan ok user=%s bytes=%d items=%d", user_id, len(data), len(parsed.get("items", [])))
 
