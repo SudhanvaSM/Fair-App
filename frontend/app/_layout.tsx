@@ -12,40 +12,6 @@ export default function RootLayout() {
     useEffect(() => {
       	initializeDatabase();
     }, []);
-
-    useEffect(() => {
-        let isMounted = true;
-
-        async function handleRecoveryUrl(url: string) {
-            if (!/:\/\/\/?reset-password\/?(\?|#|$)/.test(url)) return;
-            const code = new URL(url).searchParams.get("code");
-            if (!code) return;
-            try {
-                const { error } = await supabase.auth.exchangeCodeForSession(code);
-                if (!error && isMounted) router.replace("/reset-password");
-            } catch (e) { 
-                console.error("Recovery failed"); 
-            }
-        }
-
-        Linking.getInitialURL().then((url) => {
-            if (url) {
-                void handleRecoveryUrl(url);
-            }
-        });
-
-        const subscription = Linking.addEventListener(
-            "url",
-            ({ url }) => {
-                void handleRecoveryUrl(url);
-            }
-        );
-
-        return () => {
-            isMounted = false;
-            subscription.remove();
-        };
-    }, []);
     
     return (
         <AuthProvider>

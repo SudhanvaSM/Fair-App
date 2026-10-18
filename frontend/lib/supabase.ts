@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as SecureStore from 'expo-secure-store'
 import * as aesjs from 'aes-js';
-import * as crypto from 'expo-crypto';
+import * as Crypto from 'expo-crypto';
 
 const supabaseURL = process.env.EXPO_PUBLIC_SUPABASE_URL!;
 const supabasePublishableKey = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
@@ -64,6 +64,24 @@ class LargeSecureStore {
 		await AsyncStorage.setItem(key, encrypted)
 	}
 }
+
+const g = globalThis as any;
+g.crypto ??= {};
+g.crypto.getRandomValues ??= (arr: any) => Crypto.getRandomValues(arr);
+g.crypto.subtle ??= {
+  digest: async (algorithm: string | { name: string }, data: any) => {
+    const name = typeof algorithm === "string" ? algorithm : algorithm.name;
+    const bytes =
+      data instanceof Uint8Array
+        ? data
+        : ArrayBuffer.isView(data)
+          ? new Uint8Array(data.buffer, data.byteOffset, data.byteLength)
+          : new Uint8Array(data as ArrayBuffer);
+	const digestInput = new Uint8Array(bytes.byteLength);
+	digestInput.set(bytes);
+	return Crypto.digest(name as Crypto.CryptoDigestAlgorithm, digestInput);
+  },
+};
 
 export const supabase = createClient(
 	supabaseURL, 

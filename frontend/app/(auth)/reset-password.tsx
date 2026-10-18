@@ -1,12 +1,36 @@
 import { supabase } from "@/lib/supabase";
-import { router } from "expo-router";
-import { useState } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useRef, useState } from "react";
 import { Alert, View, Text, TextInput, Pressable, ActivityIndicator, StyleSheet } from "react-native";
 
 export default function ResetPassword() {
 	const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [loading, setLoading] = useState(false);
+
+    const { code } = useLocalSearchParams<{ code?: string }>();
+    const [ready, setReady] = useState(false);
+    const [linkError, setLinkError] = useState(false);
+    const exchanged = useRef(false);
+
+    useEffect(() => {
+        if (exchanged.current) return;
+        exchanged.current = true;
+        (async () => {
+            try {
+            if (typeof code === "string" && code) {
+                const { error } = await supabase.auth.exchangeCodeForSession(code);
+                if (error) { setLinkError(true); return; }
+                setReady(true);
+                return;
+            }
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) setReady(true); else setLinkError(true);
+            } catch {
+            setLinkError(true);
+            }
+        })();
+        }, [code]);
 
 	async function handleResetPassword() {
 		if (!password || !confirmPassword) {
@@ -108,19 +132,21 @@ export default function ResetPassword() {
                 style={styles.input}
             />
 
-            <Pressable
-                style={styles.button}
-                onPress={handleResetPassword}
-                disabled={loading}
-            >
-                {loading ? (
-                    <ActivityIndicator color="#000000" />
-                ) : (
-                    <Text style={styles.buttonText}>
-                        Update Password
-                    </Text>
+            {linkError && (
+                <Text style={styles.description}>
+                    This reset link is invalid or has expired. Request a new one from the login screen
+                    (on the same device).
+                </Text>
                 )}
-            </Pressable>
+                <Pressable style={styles.button} onPress={handleResetPassword} disabled={loading || !ready}>
+                    {loading ? (
+                        <ActivityIndicator color="#000000" />
+                    ) : (
+                        <Text style={styles.buttonText}>
+                            Update Password
+                        </Text>
+                    )}
+                </Pressable>
 
             <Pressable
                 onPress={() => router.replace("/login")}

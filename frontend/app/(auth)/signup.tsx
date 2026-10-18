@@ -27,6 +27,15 @@ export default function SignUp() {
 				return;
 			}
 
+			if (password.length < 8) {
+				Alert.alert("Weak password", 
+					"Your password must contain at least 8 characters.",
+					[{text: "OK"}],
+					{cancelable: true}
+				);
+			return;
+			}
+
 			setLoading(true);
 
 			const { data, error } = await supabase.auth.signUp({

@@ -121,8 +121,10 @@ export default function Processing() {
 						'Authorization': `Bearer ${session.access_token}`,
 					}
 				});
+
 				if (!res.ok) {
 					setFailure(failureForStatus(res.status));
+					return;
 				}
 				const data = await res.json();
 				const items = data?.raw?.items;
@@ -167,11 +169,20 @@ export default function Processing() {
 			} 
 			catch (error) {
 				if (timedOut) {
-					setFailure({ message: "Scanning took too long. Try again.", canRetry: true });
+					setFailure({
+						message: "Scanning took too long. Try again.",
+						canRetry: true,
+					});
 				} else if (controller.signal.aborted) {
-					return
+					return;
 				} else {
-					setFailure({ message: "Couldn't reach the server. Check your connection.", canRetry: true });
+					console.error("[FAIR] Upload request failed:", error);
+					console.error("[FAIR] API URL:", API_URL);
+
+					setFailure({
+						message: "Couldn't complete the scan. Please try again.",
+						canRetry: true,
+					});
 				}
 			} finally {
 				clearTimeout(timer);
@@ -269,7 +280,7 @@ export default function Processing() {
 
 						<View style={styles.footer}>
 						<Text style={styles.footerText}>
-							Usually takes 2-3 seconds
+							Usually takes 4-5 seconds
 						</Text>
 						</View>
 					</>

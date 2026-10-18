@@ -79,13 +79,6 @@ export default function DeleteAccount() {
 					);
 					}
 				}
-
-				Alert.alert(
-					"Deletion failed",
-					"Account deletion failed. Please try again."
-				);
-
-				return;
 			}
 
 			if (!data?.success) {
@@ -180,6 +173,9 @@ export default function DeleteAccount() {
 
 				<View style = {{ alignItems: "center", flex: 1, justifyContent: "center", padding: 30 }}>
 					<Text style={{ color: "white", fontSize: 15, fontWeight: "400", marginBottom: 20, }}>
+						Deleting your account also deletes all groups where you are the creator.
+						It does not delete the group if it has other members with valid FAIR account.
+						It does not delete the group if you are not the creator.
 						To confirm your identity, please verify your FAIR password.
 					</Text>
 

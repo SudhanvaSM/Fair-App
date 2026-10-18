@@ -1,5 +1,6 @@
+import logging
 import os
-from fastapi import HTTPException, Request, logger
+from fastapi import HTTPException, Request
 from limits import parse
 from limits.strategies import MovingWindowRateLimiter
 
@@ -7,6 +8,8 @@ from limits.storage import MemoryStorage
 _strategy = MovingWindowRateLimiter(MemoryStorage())
 IP_LIMIT = parse("30/minute")
 GLOBAL_LIMIT = parse(os.getenv("GLOBAL_OCR_DAILY", "2000/day"))  # set from your HF cost ceiling
+
+logger = logging.getLogger("fair.guard")
 
 def ip_throttle(request: Request):
     ip = request.client.host if request.client else "unknown"
