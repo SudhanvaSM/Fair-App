@@ -94,15 +94,46 @@ export default function DeleteAccount() {
 				}
 			);
 
-			if (error || !data?.success) {
-				console.error(
-					"Account deletion failed:",
-					error ?? data
-				);
+			if (error) {
+				console.error("Account deletion failed:", {
+					name: error.name,
+					message: error.message,
+					context: error.context,
+				});
+
+				if (error.context instanceof Response) {
+					try {
+					console.error(
+						"Edge Function HTTP status:",
+						error.context.status
+					);
+
+					console.error(
+						"Edge Function response:",
+						await error.context.clone().text()
+					);
+					} catch (loggingError) {
+					console.error(
+						"Could not read Edge Function response:",
+						loggingError
+					);
+					}
+				}
 
 				Alert.alert(
 					"Deletion failed",
-					"Your account could not be deleted. Please try again."
+					"Account deletion failed. Please try again."
+				);
+
+				return;
+			}
+
+			if (!data?.success) {
+				console.error("Unexpected deletion response:", data);
+
+				Alert.alert(
+					"Deletion failed",
+					"The server did not confirm account deletion."
 				);
 
 				return;
