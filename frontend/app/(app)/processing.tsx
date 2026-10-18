@@ -159,7 +159,7 @@ export default function Processing() {
 				if (controller.signal.aborted) return;
 
 				router.replace({
-					pathname: "../review",
+					pathname: "/review",
 					params: {
 						items: JSON.stringify(normalisedData),
 						groupId: String(groupId),
@@ -208,7 +208,7 @@ export default function Processing() {
 								<Text style={{ color: "#6366f1", fontSize: 16 }}>Try again</Text>
 							</Pressable>
 							<Pressable onPress={() => router.replace({
-								pathname: "../review",
+								pathname: "/review",
 								params: {
 									groupId: String(groupId),
 								},
