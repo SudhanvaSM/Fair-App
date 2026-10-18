@@ -133,7 +133,6 @@ export default function Processing() {
 					});
 					return;
 				}
-				console.log(JSON.stringify(data));
 
 				const normalisedData = {
 					...data,
@@ -207,7 +206,7 @@ export default function Processing() {
 							<Pressable onPress={() => setAttempt(a => a + 1)}>
 								<Text style={{ color: "#6366f1", fontSize: 16 }}>Try again</Text>
 							</Pressable>
-							<Pressable onPress={() => router.replace({
+							<Pressable onPress={() =>router.replace({
 								pathname: "/review",
 								params: {
 									groupId: String(groupId),

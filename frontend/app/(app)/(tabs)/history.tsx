@@ -109,13 +109,13 @@ export default function History() {
 					<Menu.Item
 						hitSlop={10}
 						onPress={() => sortData("name")}
-						title="Sort by group name"
+						title="Sort by receipt name"
 						titleStyle={{ color: "white" }}
 					/>
 					<Menu.Item
 						hitSlop={10}
 						onPress={() => sortData("total")}
-						title="Sort by total expenses"
+						title="Sort by total amount"
 						titleStyle={{ color: "white" }}
 					/>
 					<Menu.Item

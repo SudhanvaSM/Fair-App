@@ -16,7 +16,7 @@ export default function Review() {
 
 	const raw = data?.raw ?? { items: [], subtotal: 0, tax: 0 };
 
-	const isEdit = data.mode === "edit";
+	const isEdit = data?.mode === "edit";
 	const editMetadata = isEdit ? {
 		mode: "edit",
 		originalReceiptId: data.originalReceiptId,
@@ -104,8 +104,7 @@ export default function Review() {
 		},
 	};
 	if (!data || !data.raw || !data.raw.items) {
-		console.log("BROKEN DATA:", data);
-		return <Text style={{ color: "white" }}>No Data</Text>;
+		console.log("Manual entry mode: no receipt data provided");
 	}
 
   return (
@@ -413,7 +412,7 @@ export default function Review() {
 			</View>
 		)}
 		
-		<View style={{ alignItems: "center" }}>
+		<View style={{ alignItems: "center", marginTop: 30 }}>
 			<Pressable
 				onPress={() => {
 					if (itemsState.length === 0) {

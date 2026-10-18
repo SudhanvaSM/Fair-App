@@ -224,6 +224,21 @@ export default function ProfileScreen() {
 							onPress={() => logout()}
 							title="Log Out"
 							titleStyle={{ color: "red" }}
+							trailingIcon={() => (
+								<View style={{ width: 32, alignItems: "center" }}>
+									{isSyncing ? (
+									<Ring
+										size={20}
+										strokeWidth={2}
+										color={"#ffffff"}
+										duration={1500}
+									/>
+								) : (
+									null
+								)}
+								</View>
+							)
+							}
 						/>
 
 						<Menu.Item
