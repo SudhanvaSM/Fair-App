@@ -108,7 +108,8 @@ export default function ProfileScreen() {
 				{cancelable: true,});
 				return;
 			}
-			const { error } = await supabase.auth.signOut({ scope: "local" });
+			const { error } = await supabase.auth.signOut();
+			if (error) await supabase.auth.signOut({ scope: 'local' });
 
 			if (error) {
 				Alert.alert('Logout failed', error.message,
@@ -126,13 +127,9 @@ export default function ProfileScreen() {
 		closeMenu();
 		try {
 			deleteLocalData();
-			const { error } = await supabase.auth.signOut({ scope: "local" });
+			const { error } = await supabase.auth.signOut();
 				if (error) {
-					Alert.alert('Logout incomplete', 
-						"Local data was cleared, but authentication cleanup failed. Please restart the app.",
-				[{ text: "OK" }],
-				{cancelable: true,});
-				return;
+				await supabase.auth.signOut({ scope: 'local' });
 			}
 		} catch (error) {
 			Alert.alert('Force Logout failed', 

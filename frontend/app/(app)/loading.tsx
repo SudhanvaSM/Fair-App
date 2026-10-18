@@ -6,6 +6,8 @@ import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { db } from '@/src/db/database';
+import { supabase } from '@/lib/supabase';
+import { deleteLocalData } from '@/src/services/user.services';
 
 export default function LoadingScreen() {
 	const insets = useSafeAreaInsets();
@@ -17,6 +19,16 @@ export default function LoadingScreen() {
 	}
 
 	const loadData = async () => {
+		// Delete previous user's data
+		const { data: { session } } = await supabase.auth.getSession();
+		const uid = session?.user.id;
+		const owner = db.getFirstSync<{ value: string }>(`SELECT value FROM app_state WHERE key='owner_user_id'`)?.value;
+		if (owner && owner !== uid) deleteLocalData();  
+		else if (!owner && uid) {
+		// installs from before this change: claim the existing data
+			db.runSync(`INSERT OR REPLACE INTO app_state(key, value) VALUES ('owner_user_id', ?)`, [uid]);
+		}
+
 		// await supabase.auth.signOut({ scope: "local" });
 		// deleteLocalData();
 		const result = db.getFirstSync<{ value: string }>(`

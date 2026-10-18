@@ -24,6 +24,8 @@ def get_current_user(request: Request, credentials: HTTPAuthorizationCredentials
 
 		if not claims:
 			raise _unauthorized()
+		if claims.get("role") != "authenticated" or claims.get("is_anonymous"):
+			raise _unauthorized()
 
 		user_id = claims.get("sub")
 		if not user_id:

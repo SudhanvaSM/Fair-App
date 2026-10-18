@@ -14,7 +14,7 @@ _client = None
 def get_client():
     global _client
     if _client is None:
-        _client = Client(OCR_SERVICE_URL, token=HF_TOKEN)
+        _client = Client(OCR_SERVICE_URL, token=HF_TOKEN, httpx_kwargs={"timeout": 40})
     return _client
 
 def run_remote_ocr(image_bytes: bytes):

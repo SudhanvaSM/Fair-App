@@ -1,12 +1,7 @@
 import { db } from "@/src/db/database"
 import { supabase } from "@/lib/supabase";
-import { getName } from "@/src/services/user.services";
 
 export const syncMembers = async() => {
-	const { data: { user } } = await supabase.auth.getUser();
-
-	const profileName = getName();
-
 	const members = db.getAllSync<{
 		id: string;
 		group_id: string;
@@ -14,6 +9,7 @@ export const syncMembers = async() => {
 		active: number;
 		updated_at: string;
 		created_at: string;
+		user_id: string | null;
 	}> (
 		`
 			SELECT 
@@ -22,7 +18,8 @@ export const syncMembers = async() => {
 				name,
 				active,
 				updated_at,
-				created_at
+				created_at,
+				user_id
 			FROM members
 			WHERE sync_status = 'not_synced';
 		`
@@ -30,8 +27,6 @@ export const syncMembers = async() => {
 	let success = true;
 
 	for (const member of members) {
-
-		const userId = member.name === profileName ? user?.id : null;
 
 		const { data: cloudMember, error: fetchError } = await supabase
 			.from("members")
@@ -55,7 +50,7 @@ export const syncMembers = async() => {
 					active: member.active,
 					updated_at: member.updated_at,
 					created_at: member.created_at,
-					user_id: userId
+					user_id: member.user_id ?? null
 				});
 
 			if (error) {
@@ -86,7 +81,7 @@ export const syncMembers = async() => {
 					active: member.active,
 					updated_at: member.updated_at,
 					created_at: member.created_at,
-					user_id: userId
+					user_id: member.user_id ?? null
 				})
 				.eq("id", member.id);;
 

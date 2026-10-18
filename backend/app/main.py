@@ -1,5 +1,6 @@
 import os
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 from app.api.routes import router
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -21,6 +22,14 @@ if origins:
         allow_methods=["POST"],
         allow_headers=["Authorization", "Content-Type"],
     )
+
+@app.middleware("http")
+async def limit_upload_size(request, call_next):
+    if request.url.path == "/upload":
+        cl = request.headers.get("content-length")
+        if not cl or not cl.isdigit() or int(cl) > 9 * 1024 * 1024:
+            return JSONResponse({"detail": "Payload too large"}, status_code=413)
+    return await call_next(request)
 
 
 app.include_router(router)

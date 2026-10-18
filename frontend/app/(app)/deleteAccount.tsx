@@ -23,44 +23,9 @@ export default function DeleteAccount() {
 				{cancelable: true,});
 			return;
 		}
-		const { data: { user }, error } = await supabase.auth.getUser();
-		if (error || !user || !user.email) {
-			Alert.alert(
-				"Error",
-				"Unable to verify your account. Please log in again.",
-				[{text: "OK"}],
-				{cancelable: true}
-			);
-			return;
-		}
-		email = user.email;
-		userId = user.id;
 		try {
 			setLoading(true);
-
-			const { data, error } = await supabase.auth.signInWithPassword({
-				email,
-				password,
-			});
-
-			if (error || !data.user || data.user.id !== userId) {
-				Alert.alert('Verification failed', "Unable to verify your password. Please try again.",
-					[{ text: "OK" }],
-					{cancelable: true,});
-				setPassword("");
-				return;
-			}
-			
 			await deleteAcc();
-		} catch (err) {
-			console.error("Account deletion error:", err);
-
-			Alert.alert(
-				"Error",
-				"Something went wrong. Please try again.",
-				[{ text: "OK" }],
-				{cancelable: true,}
-			);
 		} finally {
 			setLoading(false);
 		}
@@ -88,9 +53,7 @@ export default function DeleteAccount() {
 			const { data, error } = await supabase.functions.invoke(
 				"delete-account",
 				{
-					headers: {
-						Authorization: `Bearer ${session.access_token}`,
-					},
+					body: { password }
 				}
 			);
 
