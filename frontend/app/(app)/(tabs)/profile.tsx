@@ -226,7 +226,7 @@ export default function ProfileScreen() {
 							title="Log Out"
 							titleStyle={{ color: "red" }}
 							trailingIcon={() => (
-								<View style={{ width: 32, alignItems: "center" }}>
+								<View style={{ marginLeft: -40, alignItems: "center" }}>
 									{isLogout ? (
 									<Ring
 										size={20}

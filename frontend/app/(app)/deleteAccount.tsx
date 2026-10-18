@@ -13,9 +13,6 @@ export default function DeleteAccount() {
 	const [password, setPassword] = useState("");
 	const [loading, setLoading] = useState(false);
 
-	let userId: string;
-	let email: string;
-
 	async function verifyPassword() {
 		if (!password) {
 			Alert.alert('Incomplete credentials', 'Password field cannot be empty',
@@ -24,7 +21,6 @@ export default function DeleteAccount() {
 			return;
 		}
 		try {
-			setLoading(true);
 			await deleteAcc();
 		} finally {
 			setLoading(false);
@@ -58,27 +54,24 @@ export default function DeleteAccount() {
 			);
 
 			if (error) {
-				console.error("Account deletion failed:", {
-					name: error.name,
-					message: error.message,
-					context: error.context,
-				});
 
-				if (error.context.status === 401) {
-					try {
-						Alert.alert(
-							"Incorrect Password",
-							"Password provided does not match the account. Please try again.",
-							[{text: "OK"}],
-							{cancelable: true}
-						)
-					} catch (loggingError) {
-					console.error(
-						"Could not read Edge Function response:",
-						loggingError
+				const status = (error as any)?.context?.status;
+				if (status === 401)  {
+					Alert.alert(
+						"Incorrect Password",
+						"Your session may have expired, or your credentials could not be verified. Please log in again and retry.",
+						[{text: "OK"}],
+						{cancelable: true}
+					)
+				} else {
+					Alert.alert(
+						"Deletion failed",
+						"We couldn't confirm that your account was deleted. Check your connection and try again.",
+						[{text: "OK"}],
+						{cancelable: true}
 					);
-					}
 				}
+				return;
 			}
 
 			if (!data?.success) {
@@ -94,9 +87,19 @@ export default function DeleteAccount() {
 
 			// 3. Account deletion succeeded on the server.
 			// Do NOT sync after this point.
-
-			// 4. Clear local data belonging to the deleted account.
-			await deleteLocalData();
+			try {
+				// 4. Clear local data belonging to the deleted account.
+				await deleteLocalData();
+			} catch (localError) {
+				console.error("Failed to clear local account data: ", localError);
+				Alert.alert(
+					"Account deleted",
+					"Your account was deleted, but some local data could not be cleared. Please clear the app's local data before using it again.",
+					[{text: "OK"}],
+					{cancelable: true}
+				);
+				return;
+			}
 
 			// 5. Clear the local authentication session.
 			const { error: signOutError } =
@@ -117,7 +120,7 @@ export default function DeleteAccount() {
 					{
 						text: "OK",
 						onPress: () => {
-							router.replace("/(auth)/login")
+							
 						},
 					},
 				],
@@ -172,11 +175,12 @@ export default function DeleteAccount() {
 				</View>
 
 				<View style = {{ alignItems: "center", flex: 1, justifyContent: "center", padding: 30 }}>
-					<Text style={{ color: "white", fontSize: 15, fontWeight: "400", marginBottom: 20, }}>
+					<Text style={{ color: "white", fontSize: 15, fontWeight: "400", marginBottom: 20, textAlign: "justify" }}>
 						Deleting your account also deletes all groups where you are the creator.
 						It does not delete the group if it has other members with valid FAIR account.
 						It does not delete the group if you are not the creator.
-						To confirm your identity, please verify your FAIR password.
+						This action cannot be undone.{"\n"}
+						{"\n"}To confirm your identity, please verify your FAIR password.
 					</Text>
 
 					<TextInput
