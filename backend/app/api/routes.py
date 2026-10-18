@@ -13,7 +13,7 @@ from app.services.ocr_remote import run_remote_ocr
 from app.services.parser import parse_receipt
 from app.auth.authentication import get_current_user
 from app.limiter.limiter import limiter
-from backend.app.limiter.guard import global_budget, ip_throttle
+from app.limiter.guard import global_budget, ip_throttle
 
 # Set this is to True to print parsing results along with confidence scoring
 DEBUG = False
