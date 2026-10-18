@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase";
 import { deleteLocalData, getName } from "@/src/services/user.services";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useScrollToTop } from "@react-navigation/native";
-import { Stack } from "expo-router";
+import { router, Stack } from "expo-router";
 import { useRef, useState } from "react";
 import { ScrollView, View, Text, Pressable, StyleSheet, Alert, TextInput } from "react-native";
 
@@ -133,8 +133,7 @@ export default function DeleteAccount() {
 					{
 						text: "OK",
 						onPress: () => {
-							// Navigate to the login screen here.
-							// Use your existing Expo Router navigation.
+							router.replace("/(auth)/login")
 						},
 					},
 				],
@@ -190,7 +189,6 @@ export default function DeleteAccount() {
 
 				<View style = {{ alignItems: "center", flex: 1, justifyContent: "center", padding: 30 }}>
 					<Text style={{ color: "white", fontSize: 15, fontWeight: "400", marginBottom: 20, }}>
-						Please note that deleting your account also deletes groups.
 						To confirm your identity, please verify your FAIR password.
 					</Text>
 

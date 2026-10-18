@@ -248,11 +248,12 @@ export default function DetailedHistory() {
 							<TextInput
 								keyboardType="default"
 								autoCapitalize="words"
-								placeholder="Enter group name..."
+								placeholder="Enter receipt name..."
 								placeholderTextColor={"#888"}
 								value={tempReceiptTitle}
 								onChangeText={setTempReceiptTitle}
 								style={styles.input}
+								maxLength={20}
 							/>
 
 							<View style={styles.actions}>

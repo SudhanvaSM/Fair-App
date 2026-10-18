@@ -24,6 +24,7 @@ export default function ProfileScreen() {
 	const closeMenu = () => setVisible(false);
 
 	const [isSyncing, setIsSyncing] = useState(false);
+	const [isLogout, setIsLogout] = useState(false);
 
 	const scrollRef = useScrollToTop();
 
@@ -90,32 +91,35 @@ export default function ProfileScreen() {
 	}
 
 	const logout = async () => {
-		closeMenu();
-		const success = await syncAll();
+		if (isLogout) return;
+		setIsLogout(true);
+		try {
+			const success = await syncAll();
+			if (!success) {
+				Alert.alert("Force Logut?", 
+					"Your data could not be synced. Logging out will delete locally stored data that may not exist in the cloud. These changes may be permanently lost.",
+				[{ text: "Cancel", style: "cancel" },
+				{
+					text: "Force Logout",
+					style: "destructive",
+					onPress: () => forceLogout()
+				},
+				],
+				{cancelable: true,});
+				return;
+			}
+			const { error } = await supabase.auth.signOut({ scope: "local" });
 
-		if (!success) {
-			Alert.alert("Force Logut?", 
-				"Your data could not be synced. Logging out will delete locally stored data that may not exist in the cloud. These changes may be permanently lost.",
-			[{ text: "Cancel", style: "cancel" },
-			{
-				text: "Force Logout",
-				style: "destructive",
-				onPress: () => forceLogout()
-			},
-			],
-			{cancelable: true,});
-			return;
+			if (error) {
+				Alert.alert('Logout failed', error.message,
+				[{ text: "OK" }],
+				{cancelable: true,});
+				return;
+			}
+			deleteLocalData();
+		} finally {
+			setIsLogout(false);
 		}
-
-		const { error } = await supabase.auth.signOut({ scope: "local" });
-
-		if (error) {
-            Alert.alert('Logout failed', error.message,
-			[{ text: "OK" }],
-			{cancelable: true,});
-            return;
-        }
-		deleteLocalData();
 	}
 
 	const forceLogout = async() => {
@@ -226,7 +230,7 @@ export default function ProfileScreen() {
 							titleStyle={{ color: "red" }}
 							trailingIcon={() => (
 								<View style={{ width: 32, alignItems: "center" }}>
-									{isSyncing ? (
+									{isLogout ? (
 									<Ring
 										size={20}
 										strokeWidth={2}

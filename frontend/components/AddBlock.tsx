@@ -57,6 +57,7 @@ const AddBlock = React.memo((props: Props) => {
 					value={newName}
 					onChangeText={setNewName}
 					style={styles.input}
+					maxLength={20}
 				/>
 				
 				{showMembers && (
@@ -69,6 +70,7 @@ const AddBlock = React.memo((props: Props) => {
 						value={memberInput}
 						onChangeText={setMemberInput}
 						style={styles.input}
+						maxLength={20}
 						/>
 						<View style={styles.actions}>
 							<Pressable
