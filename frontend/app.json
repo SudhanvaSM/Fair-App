@@ -19,9 +19,8 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "permissions": [
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
+        "android.permission.CAMERA",
+        "android.permission.READ_MEDIA_IMAGES"
       ],
       "blockedPermissions": [
         "android.permission.ACCESS_FINE_LOCATION",
@@ -51,8 +50,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow access to your photos",
-          "cameraPermission": "Allow access to your camera"
+          "photosPermission": "Allow FAIR access to your photos",
+          "cameraPermission": "Allow FAIR access to your camera"
         }
       ],
       "expo-sqlite",
