@@ -12,7 +12,7 @@ Receipt scanning requires an internet connection because receipt images
 are processed by a remote backend. If scanning fails or is unavailable,
 users can enter items manually.
 
-**Website:** [FAIR — Fair And Intelligent Reconciliation](YOUR_DEPLOYED_WEBSITE_URL)
+**Website:** [FAIR — Fair And Intelligent Reconciliation](https://fair-app.getfair.workers.dev/)
 
 ## Features
 
