@@ -339,14 +339,18 @@ p {
 }
 
 .label-symbol {
-	width: 31px;
-	height: 31px;
-	display: grid;
-	place-items: center;
-	background: var(--green);
-	color: var(--night);
-	border-radius: 10px;
-	font-size: 18px
+    width: 31px;
+    height: 31px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: var(--green);
+    color: var(--night);
+    border-radius: 10px;
+    font-size: 18px;
+	padding-left: 8px;
+	padding-top: 1px;
 }
 
 .float-label b,
