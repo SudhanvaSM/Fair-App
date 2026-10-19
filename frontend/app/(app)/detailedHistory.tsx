@@ -330,14 +330,17 @@ export default function DetailedHistory() {
 					</View>
 				</View>
 
-				<View style ={{ alignItems: "center", marginTop: 40}}>
+				<View style ={{ alignItems: "center", marginTop: 40, flex: 1, flexShrink: 1}}>
 					<View style={[styles.container, { backgroundColor: "#334155" }]}>
 						<Text style={styles.title}>Items</Text>
 						{items.map((item: Item) => {
 							return (
-								<View key={item.itemId} style={styles.row}>
-									<Text style={styles.text}>{item.qty} x {item.name}</Text>
-									<Text style={[styles.text, { flex: 1, textAlign: "right" }]}>
+								<View key={item.itemId} style={[styles.row, { alignItems: "flex-start" }]}>
+									<Text style={[styles.text, styles.itemName]}>
+										{item.qty} x {item.name}
+									</Text>
+
+									<Text style={[styles.text, styles.itemPrice]}>
 										₹{item.totalPrice.toFixed(2)}
 									</Text>
 								</View>
@@ -372,7 +375,7 @@ export default function DetailedHistory() {
 							</View>
 
 							<View style={styles.row}>
-								<Text style={styles.text}>Time</Text>
+								<Text style={styles.text}>Created At</Text>
 								<Text style={styles.text}>{date.toLocaleTimeString([], { hour:"2-digit", minute: "2-digit" }) ?? 0}</Text>
 							</View>
 
@@ -469,5 +472,14 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 15,
 		borderRadius: 30,
 		marginTop: 20,
+	},
+	itemName: {
+		flex: 1,
+		flexShrink: 1,
+		marginRight: 12,
+	},
+	itemPrice: {
+		flexShrink: 0,
+		textAlign: "right",
 	},
 });

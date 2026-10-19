@@ -86,16 +86,20 @@ const styles = StyleSheet.create({
     },
 	header: {
 		flexDirection: "row",
-		justifyContent: "space-between",
 		marginBottom: 10,
 		paddingHorizontal: 5,
+		alignItems: "flex-start",
 	},
     itemName: {
+		flex: 1,
+		flexShrink: 1,
         fontSize: 16,
         fontWeight: "600",
 		color: "#fff",
+		marginRight: 16
     },
 	price: {
+		flexShrink: 0,
 		fontSize: 16,
         fontWeight: "600",
 		color: "#fff",

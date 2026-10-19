@@ -112,7 +112,7 @@ export default function Review() {
 		<Stack.Screen
         options={{
           headerStyle: { backgroundColor: "#1E293B" },
-          headerTitle: "Review Receipt",
+          headerTitle: isEdit ? "Edit Receipt" : "Review Receipt",
           headerTitleAlign: "left",
           headerShadowVisible: false,
           headerTintColor: "#ffffff",

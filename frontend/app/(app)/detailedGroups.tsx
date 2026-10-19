@@ -72,21 +72,46 @@ export default function DetailedGroups() {
 			return;
 		}
 
-		simplifiedBalances.forEach(debt => {
+		const selectedDebts = simplifiedBalances.filter(debt => {
 			const key = settlementKey(
 				debt.fromMemberId,
 				debt.toMemberId
 			);
-
-			if (selectedSettlements[key]) {
-				insertSettlement(
-					id,
-					debt.fromMemberId,
-					debt.toMemberId,
-					debt.amount
-				);
-			}
+			return selectedSettlements[key];
 		});
+
+		const confirmationMessage = selectedDebts
+			.map(debt => `${memberMap.get(debt.fromMemberId)} owes ${memberMap.get(debt.toMemberId)}: ₹${debt.amount}`)
+			.join("\n");
+
+		Alert.alert( 
+			"Confirm Settlements", `Are you sure you want to mark the following debts as settled?\n\n${confirmationMessage}`, 
+			[ 
+				{ text: "Cancel", style: "cancel", }, 
+				{ text: "Save", onPress: () => { 
+					selectedDebts.forEach(debt => { 
+						insertSettlement( 
+							id, 
+							debt.fromMemberId, 
+							debt.toMemberId, 
+							debt.amount 
+						); 
+					}); 
+					// Clear selections 
+					setSelectedSettlements({}); // Re-fetch everything from SQLite 
+					const updatedGroup = getDetailedGroup(id); 
+					setGroups(updatedGroup); 
+					Alert.alert( 
+						"Settlements Saved", 
+						"The selected debts have been marked as settled.", 
+						[{ text: "OK" }], 
+						{ cancelable: true } 
+					); 
+					}, 
+				}, 
+			], 
+			{ cancelable: true } 
+		);
 
 		// Clear selections
 		setSelectedSettlements({});
@@ -499,7 +524,7 @@ export default function DetailedGroups() {
 										</Pressable>
 
 										<Text style={styles.helperText}>
-											Check a debt to mark it as paid, then tap Save to
+											Check a debt to mark it as paid, then click the button to
 											settle it.
 										</Text>
 									</>

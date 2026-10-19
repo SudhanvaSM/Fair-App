@@ -1,3 +1,4 @@
+import { getDebtsList } from "@/src/services/receipt.service";
 import { DebtDetails, Item, Receipt } from "@/types/item";
 
 export default function genereteReceiptSummary(
@@ -25,12 +26,18 @@ Receipt Title: ${receiptName}
 
 Items:
 ${items.map((item: Item) => 
-	`• ${item.qty} x ${item.name} - ₹${item.totalPrice.toFixed(2)}`
+	`• ${item.qty} x ${item.name}: ₹${item.totalPrice.toFixed(2)}`
 ).join("\n")}
 
 Subtotal: ₹${subTotal}
 Tax: ₹${tax}
 ${serviceCharge}${tip}Total: ₹${total}
 
-Paid By: ${payerName}`;
+Paid By: ${payerName}
+
+Debts:
+${debts.map((debt: DebtDetails) => 
+	`• ${debt.fromMember} owes ${debt.toMember}: ₹${debt.amount.toFixed(2)}`
+).join("\n")}
+`;
 }

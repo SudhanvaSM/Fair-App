@@ -39,11 +39,11 @@ export default function SignUp() {
 			setLoading(true);
 
 			const { data, error } = await supabase.auth.signUp({
-				email,
+				email: email.trim(),
 				password,
 				options: {
 					data: {
-						name: name,
+						name: name.trim(),
 					}
 				}
 			});

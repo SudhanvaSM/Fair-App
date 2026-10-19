@@ -132,14 +132,14 @@ const AddBlock = React.memo((props: Props) => {
 					<Pressable
 						onPress={() => onAdd(newName)}
 						style={{
-							width: "30%",
+							width: "35%",
 							backgroundColor: "#10B981",
 							padding: 10,
 							borderRadius: 10,
 							alignItems: "center",
 						}}
 						>
-						<Text style={{ color: "white" }}>Add</Text>
+						<Text style={{ color: "white" }}>{showMembers ? "Add Group" : "Add Item"}</Text>
 					</Pressable>
 				</View>
 			</View>
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
 	actions: {
 		flexDirection: "row",
 		justifyContent: "space-between",
-		gap: 45,
+		gap: 30,
 	},
 	chipContainer: {
 		flexDirection: "row",
