@@ -60,24 +60,14 @@ or operation.
 
 ## Technology Stack
 
-  -----------------------------------------------------------------------
-  Area                                Technologies
-  ----------------------------------- -----------------------------------
-  Mobile app                          React Native, Expo, Expo Router,
-                                      TypeScript
-
-  Local storage                       SQLite through `expo-sqlite`
-
-  Authentication / remote integration Supabase
-
-  Backend API                         Python, FastAPI, Uvicorn
-
-  Receipt processing                  OCR through a configured remote
-                                      Gradio service; rule-based parsing
-
-  Backend utilities                   Pillow, `python-dotenv`, `slowapi`,
-                                      `gradio_client`
-  -----------------------------------------------------------------------
+| Area | Technologies |
+|------|--------------|
+| Mobile app | React Native, Expo, Expo Router, TypeScript |
+| Local storage | SQLite through `expo-sqlite` |
+| Authentication | remote integration Supabase |
+| Backend API | Python, FastAPI, Uvicorn |
+| Receipt processing | OCR through a configured remote Gradio service; rule-based parsing |
+| Backend utilities | Pillow, `python-dotenv`, `slowapi`, `gradio_client` |
 
 The repository also contains a local PaddleOCR helper. Its dependencies
 and runtime requirements may differ from the default remote OCR path.
@@ -134,25 +124,14 @@ reference. Set the required values for the services you intend to use.
 
 The backend configuration uses these variables:
 
-  -----------------------------------------------------------------------
-  Variable                            Purpose
-  ----------------------------------- -----------------------------------
-  `SUPABASE_URL`                      Supabase project URL
-
-  `SUPABASE_PUBLISHABLE_KEY`          Supabase publishable key used by
-                                      the backend client
-
-  `OCR_SERVICE_URL`                   Remote OCR service endpoint
-
-  `HF_TOKEN`                          Token used to access the configured
-                                      remote OCR service, if required
-
-  `CORS_ORIGINS`                      Optional comma-separated allowed
-                                      origins
-
-  `ENV`                               Environment mode used for API
-                                      documentation visibility
-  -----------------------------------------------------------------------
+| Variable | Purpose |
+|------|--------------|
+| `SUPABASE_URL` | Supabase project URL |
+| `SUPABASE_PUBLISHABLE_KEY` | Supabase publishable key used by the backend client |
+| `OCR_SERVICE_URL` | Remote OCR service endpoint |
+| `HF_TOKEN` | Token used to access the configured remote OCR service, if required |
+| `CORS_ORIGINS` | Optional comma-separated allowed origins |
+| `ENV` | Environment mode used for API documentation visibility |
 
 Install dependencies and start the API:
 
@@ -176,18 +155,11 @@ server-side tokens such as `HF_TOKEN` private and out of source control.
 Create the frontend environment file using `frontend/.env-example` as a
 reference. The example file documents these variables:
 
-  ----------------------------------------------------------------------------
-  Variable                                 Purpose
-  ---------------------------------------- -----------------------------------
-  `EXPO_PUBLIC_SUPABASE_URL`               Supabase project URL for the mobile
-                                           app
-
-  `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`   Supabase publishable key for
-                                           client-side use
-
-  `EXPO_PUBLIC_API_URL`                    Base URL of the receipt-processing
-                                           API
-  ----------------------------------------------------------------------------
+| Variable | Purpose |
+|------|--------------|
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL for the mobile app |
+| `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase publishable key for client-side use |
+| `EXPO_PUBLIC_API_URL` | Base URL of the receipt-processing API |
 
 Install dependencies and start Expo:
 
@@ -251,7 +223,7 @@ Expected response:
 -   The remote OCR provider's own processing and retention practices are
     governed by that provider and should be reviewed separately.
 
-Do not assume that local storage means every feature works offline:
+Presence of local storage does not mean every feature works offline:
 receipt scanning requires connectivity to the backend and OCR service.
 Consult the published Privacy Policy for the app's complete
 data-handling disclosures once it is available.
@@ -304,10 +276,7 @@ Contributions and bug reports are welcome.
 
 ## License
 
-No `LICENSE` file was identified in the repository information used to
-prepare this README. Until a license is added, do not assume that the
-project is available for reuse, modification, or redistribution under an
-open-source license.
+**`MIT`** License
 
 ------------------------------------------------------------------------
 
