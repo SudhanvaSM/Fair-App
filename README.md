@@ -5,9 +5,14 @@ accurately. It combines receipt scanning, item-level assignment, expense
 calculation, and debt settlement, with local SQLite storage for core
 expense data.
 
+The project includes a static website that introduces FAIR, documents 
+its features, and provides access to its policies and project information.
+
 Receipt scanning requires an internet connection because receipt images
 are processed by a remote backend. If scanning fails or is unavailable,
 users can enter items manually.
+
+**Website:** [FAIR — Fair And Intelligent Reconciliation](YOUR_DEPLOYED_WEBSITE_URL)
 
 ## Features
 
@@ -38,6 +43,7 @@ FAIR has three main components:
 3.  **External services** --- The backend uses a configured remote
     Gradio OCR service. Supabase is used for authentication and the
     remote integrations implemented in the project.
+4.  **Static website** — A website built with HTML, CSS, and JavaScript that introduces FAIR, explains its features, and provides access to project documentation, the Privacy Policy, and Terms and Conditions.
 
 ``` mermaid
 flowchart LR
@@ -68,13 +74,15 @@ or operation.
 | Backend API | Python, FastAPI, Uvicorn |
 | Receipt processing | OCR through a configured remote Gradio service; rule-based parsing |
 | Backend utilities | Pillow, `python-dotenv`, `slowapi`, `gradio_client` |
+| Static website | HTML, CSS, JavaScript |
+| Website hosting | Cloudflare Pages |
 
 The repository also contains a local PaddleOCR helper. Its dependencies
 and runtime requirements may differ from the default remote OCR path.
 
 ## Project Structure
 
-``` text
+```text
 Fair-App/
 ├── backend/
 │   ├── app/
@@ -87,6 +95,7 @@ Fair-App/
 │   ├── .env-example
 │   ├── .python-version
 │   └── requirements.txt
+│
 ├── frontend/
 │   ├── app/                  # App screens and navigation
 │   ├── components/           # Reusable UI components
@@ -97,6 +106,15 @@ Fair-App/
 │   ├── .env-example
 │   ├── app.json
 │   └── package.json
+│
+├── website/
+│   ├── index.html            # Website landing page
+│   ├── styles.css            # Website styles
+│   ├── script.js             # Website interactions, if applicable
+│   ├── assets/               # Logos, icons, screenshots, and images
+│   ├── privacy.html          # Privacy Policy, if maintained separately
+│   └── terms.html            # Terms and Conditions, if maintained separately
+│
 ├── README.md
 └── .gitignore
 ```
@@ -176,6 +194,24 @@ itself, not your development computer.
 Only put client-safe values in `EXPO_PUBLIC_*` variables. Never place
 service-role keys, private API tokens, or other server-side secrets in
 the mobile app.
+
+**Note:** Adjust the website filenames to match your actual files. For example, if your privacy policy and terms are sections within `index.html`, don't list separate HTML files that don't exist.
+
+### 3. Website Deployment
+
+FAIR's static website is hosted on Cloudflare Pages.
+
+To deploy the website:
+
+1. Connect the GitHub repository to Cloudflare Pages.
+2. Configure the website directory as the deployment root, using the repository's `website` directory.
+3. For a plain HTML, CSS, and JavaScript website, leave the build command empty if no build process is required.
+4. Configure the output directory according to the Cloudflare Pages project settings and repository layout.
+5. Deploy the site and verify that the landing page, assets, Privacy Policy, and Terms and Conditions load correctly.
+
+The website is deployed independently of the FastAPI backend hosted on Render.
+
+If the website links to the receipt-processing API, configure the appropriate backend URL. Do not expose private backend credentials in client-side website code.
 
 ## API
 
