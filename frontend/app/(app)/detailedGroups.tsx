@@ -72,46 +72,21 @@ export default function DetailedGroups() {
 			return;
 		}
 
-		const selectedDebts = simplifiedBalances.filter(debt => {
+		simplifiedBalances.forEach(debt => {
 			const key = settlementKey(
 				debt.fromMemberId,
 				debt.toMemberId
 			);
-			return selectedSettlements[key];
+
+			if (selectedSettlements[key]) {
+				insertSettlement(
+					id,
+					debt.fromMemberId,
+					debt.toMemberId,
+					debt.amount
+				);
+			}
 		});
-
-		const confirmationMessage = selectedDebts
-			.map(debt => `${memberMap.get(debt.fromMemberId)} owes ${memberMap.get(debt.toMemberId)}: ₹${debt.amount}`)
-			.join("\n");
-
-		Alert.alert( 
-			"Confirm Settlements", `Are you sure you want to mark the following debts as settled?\n\n${confirmationMessage}`, 
-			[ 
-				{ text: "Cancel", style: "cancel", }, 
-				{ text: "Save", onPress: () => { 
-					selectedDebts.forEach(debt => { 
-						insertSettlement( 
-							id, 
-							debt.fromMemberId, 
-							debt.toMemberId, 
-							debt.amount 
-						); 
-					}); 
-					// Clear selections 
-					setSelectedSettlements({}); // Re-fetch everything from SQLite 
-					const updatedGroup = getDetailedGroup(id); 
-					setGroups(updatedGroup); 
-					Alert.alert( 
-						"Settlements Saved", 
-						"The selected debts have been marked as settled.", 
-						[{ text: "OK" }], 
-						{ cancelable: true } 
-					); 
-					}, 
-				}, 
-			], 
-			{ cancelable: true } 
-		);
 
 		// Clear selections
 		setSelectedSettlements({});
