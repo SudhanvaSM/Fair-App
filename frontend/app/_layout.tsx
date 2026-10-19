@@ -5,8 +5,6 @@ import { Provider as PaperProvider } from 'react-native-paper';
 import { AuthProvider } from '@/lib/AuthProvider';
 import { useEffect } from 'react';
 import { initializeDatabase } from '@/src/db/schema';
-import * as Linking from "expo-linking";
-import { supabase } from '@/lib/supabase';
 
 export default function RootLayout() {
     useEffect(() => {
