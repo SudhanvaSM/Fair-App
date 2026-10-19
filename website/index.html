@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101a2a">
+  <meta name="description"
+    content="FAIR turns a shared receipt into clear item assignments, balanced debts, and a summary everyone can keep.">
+  <title>FAIR — The whole bill, made fair</title>
+  <link rel="icon" href="fairapp.png" type="image/png">
+  <link rel="stylesheet" href="styles.css">
+  <script src="site.js" defer></script>
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="nav-inner">
+      <a class="brand" href="#top" aria-label="FAIR home"><span class="brand-icon">F</span>FAIR</a>
+      <button class="menu-toggle" aria-label="Open navigation" aria-expanded="false"
+        aria-controls="site-nav"><span></span><span></span></button>
+      <nav id="site-nav" aria-label="Main navigation">
+        <a href="#workflow">How it works</a><a href="#settle">Settle up</a><a href="#sync">Data &amp; sync</a><a
+          href="#share">Share a split</a>
+        <a class="nav-download" href="https://github.com/SudhanvaSM/Fair-App/releases/latest">Get the app <span
+            aria-hidden="true">↗</span></a>
+      </nav>
+    </div>
+  </header>
+  <main id="top">
+    <section class="hero">
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="eyebrow-dot"></span>Fair And Intelligent Reconciliation</p>
+          <h1>One bill.<br><em>Every share.</em><br>No guesswork.</h1>
+          <p class="hero-lede">FAIR turns a restaurant receipt into a split your whole group can understand: what was
+            ordered, who shared it, who paid, and what is still owed.</p>
+          <div class="hero-actions"><a class="button button-green"
+              href="https://github.com/SudhanvaSM/Fair-App/releases/latest">Android release <span
+                aria-hidden="true">↗</span></a><a class="button button-outline" href="#workflow">See how it works <span
+                aria-hidden="true">↓</span></a></div>
+          <div class="hero-proof"><span>Receipt scanning</span><i></i><span>Item by item</span><i></i><span>Shareable
+              summary</span></div>
+        </div>
+        <div class="hero-visual">
+          <div class="hero-glow"></div>
+          <div class="float-label label-scan"><span class="label-symbol">↗</span><span><b>Receipt
+                scanned</b><small>Items ready to review</small></span></div>
+          <figure class="hero-phone"><img src="assets/screenshots/assignment.png"
+              alt="FAIR screen assigning each receipt item to the people who shared it">
+            <figcaption><span class="live-dot"></span>Every item, accounted for</figcaption>
+          </figure>
+          <div class="float-label label-total"><small>YOUR GROUP TOTAL</small><b>₹860.00</b><span>4 people · 5
+              items</span></div>
+        </div>
+      </div>
+      <a class="scroll-cue" href="#workflow"><span></span>SCROLL TO EXPLORE</a>
+    </section>
+
+    <section class="intro section-pad" id="workflow">
+      <div class="section-head">
+        <p class="eyebrow">A better way to split</p>
+        <h2>From crumpled receipt<br>to <em>clear agreement.</em></h2>
+        <p>Different orders, shared plates, tax, and rounding all belong in the same picture. FAIR keeps the details
+          attached to the final amount.</p>
+      </div>
+      <div class="workflow-grid">
+        <article class="workflow-card">
+          <div class="card-top"><span class="step-number">01</span><span class="step-icon">⌁</span></div>
+          <h3>Capture the bill</h3>
+          <p>Take a photo or choose one from your gallery. FAIR sends it through OCR and turns the result into editable
+            items.</p><a href="#screens">See receipt scanning <span>↘</span></a>
+        </article>
+        <article class="workflow-card">
+          <div class="card-top"><span class="step-number">02</span><span class="step-icon">✎</span></div>
+          <h3>Check the details</h3>
+          <p>Review names, quantities, prices, subtotal, tax, tips, and the total. Correct anything before saving.</p><a
+            href="#screens">See receipt review <span>↘</span></a>
+        </article>
+        <article class="workflow-card">
+          <div class="card-top"><span class="step-number">03</span><span class="step-icon">◎</span></div>
+          <h3>Assign each item</h3>
+          <p>Tap the people who shared each dish. Split one item across several people or assign it to just one.</p><a
+            href="#screens">See item assignment <span>↘</span></a>
+        </article>
+        <article class="workflow-card">
+          <div class="card-top"><span class="step-number">04</span><span class="step-icon">↗</span></div>
+          <h3>Review and reconcile</h3>
+          <p>FAIR calculates each person's share, shows who owes whom, and keeps a record of settlements.</p><a
+            href="#settle">How settling works <span>↘</span></a>
+        </article>
+      </div>
+      <div class="manual-note"><span class="manual-mark">↳</span>
+        <p><strong>Scanning is optional.</strong> If OCR cannot read a bill, enter items manually and continue with the
+          same assignment and split flow.</p>
+      </div>
+    </section>
+
+    <section class="showcase section-pad" id="screens">
+      <div class="showcase-heading">
+        <div>
+          <p class="eyebrow">A look inside FAIR</p>
+          <h2>Proof in the <em>details.</em></h2>
+        </div>
+        <p>These are real app screens. Each one keeps the next decision easy to see and easy to check.</p>
+      </div>
+      <div class="screen-row">
+        <figure class="screen-shot">
+          <div class="shot-image"><img src="assets/screenshots/processing.png"
+              alt="FAIR processing a receipt image and extracting its line items"></div>
+          <figcaption><span>01 / SCAN</span><b>Turn a receipt photo into editable items</b></figcaption>
+        </figure>
+        <figure class="screen-shot">
+          <div class="shot-image"><img src="assets/screenshots/review.png"
+              alt="FAIR receipt review with editable line items, taxes, and total"></div>
+          <figcaption><span>02 / REVIEW</span><b>Check every amount before saving</b></figcaption>
+        </figure>
+        <figure class="screen-shot">
+          <div class="shot-image"><img src="assets/screenshots/assignment.png"
+              alt="FAIR assigning each receipt item to the people who shared it"></div>
+          <figcaption><span>03 / ASSIGN</span><b>Make shared items fair for everyone</b></figcaption>
+        </figure>
+        <figure class="screen-shot">
+          <div class="shot-image"><img src="assets/screenshots/receipt-details.png"
+              alt="FAIR saved receipt with bill totals, debts, items, and item assignments"></div>
+          <figcaption><span>04 / KEEP THE RECORD</span><b>Return to the full split any time</b></figcaption>
+        </figure>
+      </div>
+      <div class="showcase-foot"><span>More than a total: each split stays connected to its items and people.</span><a
+          href="https://github.com/SudhanvaSM/Fair-App">Explore the source code ↗</a></div>
+    </section>
+
+    <section class="settlement section-pad" id="settle">
+      <div class="settle-copy">
+        <p class="eyebrow">Close the loop</p>
+        <h2>Know who owes whom.<br><em>Record when it’s paid.</em></h2>
+        <p>FAIR compares what each person owes with what they paid. The result is a short list of debts between people,
+          so the group can settle up without doing the math again.</p>
+        <div class="settle-steps">
+          <div><span>01</span>
+            <p><b>Review the balances</b><br>See who is owed and who needs to pay.</p>
+          </div>
+          <div><span>02</span>
+            <p><b>Select a debt</b><br>Choose the payment the group has made.</p>
+          </div>
+          <div><span>03</span>
+            <p><b>Mark it as paid</b><br>FAIR records a settlement and updates balances.</p>
+          </div>
+        </div>
+        <p class="small-note">FAIR records payments; it does not move money or verify a transfer.</p>
+      </div>
+      <figure class="settle-shot">
+        <div class="shot-image"><img src="assets/screenshots/settlements.png"
+            alt="FAIR group settlement screen with debts that can be selected and marked as paid"></div>
+        <figcaption><span class="live-dot"></span>Settlement stays in the group record</figcaption>
+      </figure>
+    </section>
+
+    <section class="sync-section section-pad" id="sync">
+      <div class="section-head">
+        <p class="eyebrow">Two databases. One FAIR account.</p>
+        <h2>Local first.<br><em>Synced to your cloud.</em></h2>
+        <p>FAIR keeps a SQLite database on the phone for core group and expense records, and uses Supabase as its cloud
+          database. That gives the app local data to work from and a cloud copy associated with your signed-in account.
+        </p>
+      </div>
+      <div class="sync-diagram">
+        <article class="database-card local-db">
+          <div class="db-icon">▤</div>
+          <p class="db-kicker">ON YOUR DEVICE</p>
+          <h3>SQLite</h3>
+          <p>Local database file: <code>fair.db</code></p>
+          <ul>
+            <li>Groups and members</li>
+            <li>Receipts and line items</li>
+            <li>Item assignments, debts, settlements</li>
+          </ul><span class="db-foot">The app reads and writes local records</span>
+        </article>
+        <div class="sync-bridge"><span class="bridge-line"></span><span class="sync-pill"><span>↻</span>
+            SYNC</span><small>Push local changes</small></div>
+        <article class="database-card cloud-db">
+          <div class="db-icon">☁</div>
+          <p class="db-kicker">YOUR FAIR ACCOUNT</p>
+          <h3>Supabase</h3>
+          <p>Cloud database + authentication</p>
+          <ul>
+            <li>Profiles and groups</li>
+            <li>Receipts and item records</li>
+            <li>Assignments, debts, settlements</li>
+          </ul><span class="db-foot">Sign in to access synced account data</span>
+        </article>
+      </div>
+      <div class="sync-explainer">
+        <div><span class="sync-index">A / STARTUP</span>
+          <h3>Pull from cloud</h3>
+          <p>After account sign-in, FAIR fetches your profile and synced groups, receipts, items, debts, and settlements
+            into the local SQLite database.</p>
+        </div>
+        <div><span class="sync-index">B / CHANGES</span>
+          <h3>Push to cloud</h3>
+          <p>New or updated local records carry a sync status. FAIR uploads groups, members, receipts, assignments,
+            debts, and settlements and marks successful records as synced.</p>
+        </div>
+        <div><span class="sync-index">C / CONTROL</span>
+          <h3>Sync on request</h3>
+          <p>You can also start a sync from the Profile menu. Sync needs a connection; locally stored data remains on
+            the device.</p>
+        </div>
+      </div>
+      <p class="sync-caveat">Receipt images are sent to the backend for OCR processing. They are not stored as receipt
+        image files in the app’s receipt records.</p>
+    </section>
+
+    <section class="share-section section-pad" id="share">
+      <div class="share-visual">
+        <div class="summary-paper">
+          <div class="paper-header"><span>FAIR / SPLIT SUMMARY</span><span class="paper-stamp">READY TO SHARE</span>
+          </div>
+          <h3>Sunday Breakfast</h3>
+          <p class="paper-date">19 October 2026 · Paid by Sudhanva S M</p>
+          <div class="paper-rule"></div>
+          <p class="paper-label">ITEMS</p>
+          <div class="paper-line"><span>Ghee Podi Thattu Idli</span><b>₹123.81</b></div>
+          <div class="paper-line"><span>Masala Vada 2 Pcs</span><b>₹171.43</b></div>
+          <div class="paper-line"><span>Southern Special Dosa</span><b>₹304.76</b></div>
+          <div class="paper-line"><span>Lemon Rice + Filter Coffee</span><b>₹219.04</b></div>
+          <div class="paper-rule"></div>
+          <div class="paper-total"><span>Total</span><b>₹860.00</b></div>
+          <p class="paper-label debt-label">DEBTS</p>
+          <div class="paper-debt"><span>Alice owes Sudhanva S M</span><b>₹195.00</b></div>
+          <div class="paper-debt"><span>Bob owes Sudhanva S M</span><b>₹335.00</b></div>
+          <div class="paper-debt"><span>Charlie owes Sudhanva S M</span><b>₹185.00</b></div>
+          <div class="paper-actions"><span>▣ Copy text</span><span>↗ Share</span></div>
+        </div>
+        <div class="share-orbit orbit-one">copy</div>
+        <div class="share-orbit orbit-two">send</div>
+      </div>
+      <div class="share-copy">
+        <p class="eyebrow">A split worth sharing</p>
+        <h2>One clear summary.<br><em>Everyone in the loop.</em></h2>
+        <p>From a saved receipt, copy the split to your clipboard or open your phone’s share sheet. FAIR prepares a
+          plain text summary that’s easy to paste into a group chat.</p>
+        <ul class="share-list">
+          <li>Group, date, and receipt title</li>
+          <li>Items, quantities, and item totals</li>
+          <li>Subtotal, tax, service charge, tips, and total</li>
+          <li>Who paid, plus who owes whom</li>
+        </ul>
+        <p class="small-note">Sharing sends the summary text you choose to share. It is not a public link to the app’s
+          database.</p>
+      </div>
+    </section>
+
+    <section class="features section-pad" id="features">
+      <div class="feature-intro">
+        <p class="eyebrow">Made for shared meals</p>
+        <h2>All the small things<br>that make a split <em>fair.</em></h2>
+        <p>Made to preserve the context behind a number, from the first photo through the last settlement.</p><a
+          href="https://github.com/SudhanvaSM/Fair-App">See how FAIR is built ↗</a>
+      </div>
+      <div class="feature-list">
+        <article><span>01</span>
+          <div>
+            <h3>Tax and extras stay in view</h3>
+            <p>Review subtotal, tax, service charge, tips, rounding, and total in the receipt flow.</p>
+          </div>
+        </article>
+        <article><span>02</span>
+          <div>
+            <h3>Shared dishes are truly shared</h3>
+            <p>Assign an item to one person or several, and FAIR calculates the per-person share.</p>
+          </div>
+        </article>
+        <article><span>03</span>
+          <div>
+            <h3>Groups keep their own history</h3>
+            <p>See members, group balances, recent transactions, and settlement records together.</p>
+          </div>
+        </article>
+        <article><span>04</span>
+          <div>
+            <h3>Correct the scan yourself</h3>
+            <p>OCR helps get started. Review and edit the extracted items before a split is saved.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="final-cta">
+      <div>
+        <p class="eyebrow">Make the next bill easier</p>
+        <h2>Less chasing.<br><em>More catching up.</em></h2>
+        <p>Keep the receipt, the shares, and the settlement in one place.</p>
+        <div class="hero-actions"><a class="button button-dark"
+            href="https://github.com/SudhanvaSM/Fair-App/releases/latest">Android release <span
+              aria-hidden="true">↗</span></a><a class="button button-light-outline"
+            href="https://github.com/SudhanvaSM/Fair-App">Browse FAIR on GitHub ↗</a></div>
+      </div>
+      <div class="cta-mark" aria-hidden="true">F<span>.</span></div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="footer-main">
+      <div><a class="brand" href="#top"><span class="brand-icon">F</span>FAIR</a>
+        <p>Fair And Intelligent Reconciliation</p>
+      </div>
+      <div class="footer-links"><a href="#workflow">How it works</a><a href="#sync">Local &amp; cloud data</a><a
+          href="#share">Share a split</a><a href="privacy/index.html">Privacy</a><a href="terms/index.html">Terms</a><a
+          href="https://github.com/SudhanvaSM/Fair-App">GitHub ↗</a></div>
+    </div>
+    <div class="footer-bottom"><span>© <span data-year></span> FAIR</span><span>Receipt images are processed online for
+        OCR.</span></div>
+  </footer>
+  <!-- Lenis Smooth Scroll -->
+	<script src="https://unpkg.com/lenis@1.3.27/dist/lenis.min.js"></script>
+	<script>
+		const lenis = new Lenis({
+			autoRaf: true,
+			anchors: true
+		});
+
+		window.lenis = lenis;
+	</script>
+</body>
+
+</html>
