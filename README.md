@@ -110,13 +110,15 @@ Fair-App/
 ├── website/
 │   ├── index.html            # Website landing page
 │   ├── styles.css            # Website styles
-│   ├── script.js             # Website interactions, if applicable
+│   ├── script.js             # Website interactions
 │   ├── assets/               # Logos, icons, screenshots, and images
-│   ├── privacy.html          # Privacy Policy, if maintained separately
-│   └── terms.html            # Terms and Conditions, if maintained separately
+│   ├── /privacy              # Privacy Policy
+│   └── /terms                # Terms and Conditions
 │
 ├── README.md
 └── .gitignore
+└── backendPingCron.js        # Pings backend every 10 minutes
+└── LICENSE.md                
 ```
 
 ## Prerequisites
