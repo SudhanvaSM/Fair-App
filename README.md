@@ -1,4 +1,4 @@
-# FAIR --- Fair And Intelligent Reconciliation
+# FAIR — Fair And Intelligent Reconciliation
 
 FAIR is a mobile expense-sharing app that helps groups split bills more
 accurately. It combines receipt scanning, item-level assignment, expense
