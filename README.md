@@ -1,51 +1,49 @@
 # FAIR — Fair And Intelligent Reconciliation
 
-FAIR is a mobile expense-sharing app that helps groups split bills more
-accurately. It combines receipt scanning, item-level assignment, expense
-calculation, and debt settlement, with local SQLite storage for core
-expense data.
+FAIR is a mobile expense-sharing app that helps groups split bills more accurately. It combines receipt scanning, item-level assignment, expense calculation, and debt settlement, with local SQLite storage for core expense data.
 
-The project includes a static website that introduces FAIR, documents 
-its features, and provides access to its policies and project information.
+Group members do not need their own accounts or the app. They are added as members of a group inside the app of the person organizing the expense.
 
-Receipt scanning requires an internet connection because receipt images
-are processed by a remote backend. If scanning fails or is unavailable,
-users can enter items manually.
+The repository also includes a static website that introduces FAIR, documents its features, and hosts its Privacy Policy and Terms and Conditions.
+
+Receipt scanning requires an internet connection because receipt images are processed by a remote backend. If scanning fails or is unavailable, items can be entered manually.
 
 **Website:** [FAIR — Fair And Intelligent Reconciliation](https://fair-app.getfair.workers.dev/)
 
+## Download
+
+The latest release is **v1.0.0**, available as an Android APK from the [Releases page](https://github.com/SudhanvaSM/Fair-App/releases).
+
+To install:
+
+1. Download the APK from the Releases page of this repository.
+2. Open the downloaded file on your Android device.
+3. If prompted, allow installation from your browser or file manager (Android's "install unknown apps" setting), then continue the installation.
+
+The APK is distributed directly through GitHub, not through an app store, so download it only from this repository's Releases page. Receipt scanning requires an internet connection and a signed-in account.
+
 ## Features
 
--   **Receipt scanning:** Upload receipt images for OCR and structured
-    item extraction.
--   **Receipt parsing:** Extract item names, quantities, prices, and
-    receipt totals using OCR output and rule-based parsing.
--   **Manual fallback:** Enter items manually when receipt scanning is
-    unavailable or does not produce usable results.
--   **Item-level assignment:** Assign individual items to group members.
--   **Expense splitting:** Calculate individual shares from assigned
-    items.
--   **Debt reconciliation:** Calculate balances and record settlements
-    between group members.
--   **Local persistence:** Store core expense and group data in SQLite
-    on the device.
--   **Authentication and remote services:** Use Supabase for the
-    authentication and remote functionality implemented by the app.
+- **Receipt scanning:** Upload receipt images for OCR and structured item extraction. Requires an internet connection and a signed-in user.
+- **Receipt parsing:** Extract item names, quantities, prices, and receipt totals using OCR output and custom coordinate-based parsing.
+- **Manual fallback:** Enter items manually when receipt scanning is unavailable or does not produce usable results.
+- **Item-level assignment:** Assign individual items to group members.
+- **Expense splitting:** Calculate individual shares from assigned items.
+- **Debt reconciliation:** Calculate balances and record settlements between group members.
+- **No accounts for group members:** The people you split with do not need accounts or the app.
+- **Local persistence:** Store core expense and group data in SQLite on the device.
+- **Authentication:** Supabase handles sign-in, and the backend validates the bearer token on receipt uploads.
 
 ## Architecture
 
-FAIR has three main components:
+FAIR has four main components:
 
-1.  **Mobile app** --- React Native, Expo, and TypeScript provide the
-    user interface, expense workflows, and local persistence.
-2.  **FastAPI backend** --- Receives receipt images, validates uploads,
-    invokes OCR, parses the result, and returns structured receipt data.
-3.  **External services** --- The backend uses a configured remote
-    Gradio OCR service. Supabase is used for authentication and the
-    remote integrations implemented in the project.
-4.  **Static website** — A website built with HTML, CSS, and JavaScript that introduces FAIR, explains its features, and provides access to project documentation, the Privacy Policy, and Terms and Conditions.
+1. **Mobile app:** React Native, Expo, and TypeScript provide the user interface, expense workflows, and local persistence.
+2. **FastAPI backend:** Receives receipt images, validates uploads, invokes OCR, parses the result, and returns structured receipt data.
+3. **External services:** The backend uses a configured remote Gradio OCR service. Supabase provides authentication and the app's other remote integrations.
+4. **Static website:** Built with HTML, CSS, and JavaScript. It introduces FAIR, explains its features, and hosts the Privacy Policy and Terms and Conditions.
 
-``` mermaid
+```mermaid
 flowchart LR
     User[User] --> Mobile[Expo / React Native app]
     Mobile --> SQLite[(Local SQLite)]
@@ -59,10 +57,7 @@ flowchart LR
     API --> Supabase
 ```
 
-Receipt scanning depends on network access and the availability of the
-backend and configured OCR service. Core expense workflows use local
-data; exact offline behavior can still depend on the individual screen
-or operation.
+Receipt scanning depends on network access and on the availability of the backend and the configured OCR service. Core expense workflows use local data, but exact offline behavior can still depend on the individual screen or operation.
 
 ## Technology Stack
 
@@ -70,15 +65,14 @@ or operation.
 |------|--------------|
 | Mobile app | React Native, Expo, Expo Router, TypeScript |
 | Local storage | SQLite through `expo-sqlite` |
-| Authentication | remote integration Supabase |
+| Authentication | Supabase |
 | Backend API | Python, FastAPI, Uvicorn |
-| Receipt processing | OCR through a configured remote Gradio service; rule-based parsing |
+| Receipt processing | OCR through a configured remote Gradio service; coordinate-based parsing |
 | Backend utilities | Pillow, `python-dotenv`, `slowapi`, `gradio_client` |
 | Static website | HTML, CSS, JavaScript |
 | Website hosting | Cloudflare Pages |
 
-The repository also contains a local PaddleOCR helper. Its dependencies
-and runtime requirements may differ from the default remote OCR path.
+The repository also contains a local PaddleOCR helper. Its dependencies and runtime requirements may differ from the default remote OCR path.
 
 ## Project Structure
 
@@ -112,40 +106,39 @@ Fair-App/
 │   ├── styles.css            # Website styles
 │   ├── script.js             # Website interactions
 │   ├── assets/               # Logos, icons, screenshots, and images
-│   ├── /privacy              # Privacy Policy
-│   └── /terms                # Terms and Conditions
+│   ├── privacy/              # Privacy Policy
+│   └── terms/                # Terms and Conditions
 │
-├── README.md
-└── .gitignore
-└── backendPingCron.js        # Pings backend every 10 minutes
-└── LICENSE.md                
+├── .gitignore
+├── backendPingCron.js        # Pings the backend every 10 minutes
+├── LICENSE
+└── README.md
 ```
 
 ## Prerequisites
 
--   Git
--   Python 3.12
--   Node.js and npm
--   Expo-compatible development environment or device
+- Git
+- Python 3.12
+- Node.js and npm
+- Expo-compatible development environment or device
 
 ## Setup
 
 Clone the repository:
 
-``` bash
+```bash
 git clone https://github.com/SudhanvaSM/Fair-App.git
 cd Fair-App
 ```
 
 ### 1. Configure the backend
 
-Create the backend environment file using `backend/.env-example` as a
-reference. Set the required values for the services you intend to use.
+Create the backend environment file using `backend/.env-example` as a reference. Set the required values for the services you intend to use.
 
 The backend configuration uses these variables:
 
 | Variable | Purpose |
-|------|--------------|
+|----------|---------|
 | `SUPABASE_URL` | Supabase project URL |
 | `SUPABASE_PUBLISHABLE_KEY` | Supabase publishable key used by the backend client |
 | `OCR_SERVICE_URL` | Remote OCR service endpoint |
@@ -155,150 +148,105 @@ The backend configuration uses these variables:
 
 Install dependencies and start the API:
 
-``` bash
+```bash
 cd backend
 python -m venv .venv
 ```
 
 Activate the virtual environment, then run:
 
-``` bash
+```bash
 python -m pip install -r requirements.txt
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-The remote OCR flow requires valid service configuration. Keep
-server-side tokens such as `HF_TOKEN` private and out of source control.
+The remote OCR flow requires valid service configuration. Keep server-side tokens such as `HF_TOKEN` private and out of source control.
 
 ### 2. Configure the frontend
 
-Create the frontend environment file using `frontend/.env-example` as a
-reference. The example file documents these variables:
+Create the frontend environment file using `frontend/.env-example` as a reference. The example file documents these variables:
 
 | Variable | Purpose |
-|------|--------------|
+|----------|---------|
 | `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL for the mobile app |
 | `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase publishable key for client-side use |
 | `EXPO_PUBLIC_API_URL` | Base URL of the receipt-processing API |
 
 Install dependencies and start Expo:
 
-``` bash
+```bash
 cd frontend
 npm install
 npx expo start
 ```
 
-For a physical device, configure `EXPO_PUBLIC_API_URL` with a backend
-address the device can reach. `localhost` on a phone refers to the phone
-itself, not your development computer.
+For a physical device, set `EXPO_PUBLIC_API_URL` to a backend address the device can reach. `localhost` on a phone refers to the phone itself, not your development computer.
 
-Only put client-safe values in `EXPO_PUBLIC_*` variables. Never place
-service-role keys, private API tokens, or other server-side secrets in
-the mobile app.
-
-**Note:** Adjust the website filenames to match your actual files. For example, if your privacy policy and terms are sections within `index.html`, don't list separate HTML files that don't exist.
-
-### 3. Website Deployment
-
-FAIR's static website is hosted on Cloudflare Pages.
-
-To deploy the website:
-
-1. Connect the GitHub repository to Cloudflare Pages.
-2. Configure the website directory as the deployment root, using the repository's `website` directory.
-3. For a plain HTML, CSS, and JavaScript website, leave the build command empty if no build process is required.
-4. Configure the output directory according to the Cloudflare Pages project settings and repository layout.
-5. Deploy the site and verify that the landing page, assets, Privacy Policy, and Terms and Conditions load correctly.
-
-The website is deployed independently of the FastAPI backend hosted on Render.
-
-If the website links to the receipt-processing API, configure the appropriate backend URL. Do not expose private backend credentials in client-side website code.
+Only put client-safe values in `EXPO_PUBLIC_*` variables. Never place service-role keys, private API tokens, or other server-side secrets in the mobile app.
 
 ## API
 
 ### `POST /upload`
 
-Uploads a receipt image for processing. The route requires a valid
-bearer token and accepts multipart form data.
+Uploads a receipt image for processing. The route requires a valid bearer token and accepts multipart form data.
 
 Example for a locally running backend:
 
-``` bash
+```bash
 curl -X POST "http://127.0.0.1:8000/upload" \
   -H "Authorization: Bearer <access-token>" \
   -F "file=@receipt.jpg"
 ```
 
-Supported image formats and upload limits are enforced by the backend.
-The upload route currently applies an 8 MB file-size limit; additional
-request-size checks may reject larger requests.
+Supported image formats and upload limits are enforced by the backend. The upload route currently applies an 8 MB file-size limit, and additional request-size checks may reject larger requests.
 
 ### `GET /health`
 
 Checks whether the API is responding:
 
-``` bash
+```bash
 curl http://127.0.0.1:8000/health
 ```
 
 Expected response:
 
-``` json
+```json
 {"status":"ok"}
 ```
 
 ## Data Handling and Privacy
 
--   Core expense and group data is stored locally using SQLite in the
-    mobile app.
--   Receipt images are sent from the app to the FastAPI backend for
-    processing.
--   The backend temporarily writes receipt images before sending them to
-    the configured remote OCR service.
--   The backend uses Supabase-related configuration and validates bearer
-    tokens for protected upload operations.
--   The remote OCR provider's own processing and retention practices are
-    governed by that provider and should be reviewed separately.
+- Core expense and group data is stored locally using SQLite in the mobile app.
+- Receipt images are sent from the app to the FastAPI backend for processing.
+- The backend temporarily writes receipt images before sending them to the configured remote OCR service.
+- The backend uses Supabase-related configuration and validates bearer tokens for protected upload operations.
+- The remote OCR provider's own processing and retention practices are governed by that provider and should be reviewed separately.
 
-Presence of local storage does not mean every feature works offline:
-receipt scanning requires connectivity to the backend and OCR service.
-Consult the published Privacy Policy for the app's complete
-data-handling disclosures once it is available.
+Local storage does not mean every feature works offline: receipt scanning requires connectivity to the backend and the OCR service. See the [Privacy Policy](https://fair-app.getfair.workers.dev/privacy/) and [Terms and Conditions](https://fair-app.getfair.workers.dev/terms/) for the app's complete data-handling disclosures.
 
 ## Security Notes
 
-The repository implements several protections for receipt processing,
-including upload validation, request throttling, and bearer-token
-authentication. These measures do not by themselves establish that the
-application is free of vulnerabilities or has passed a formal security
-audit.
+The repository implements several protections for receipt processing, including upload validation, request throttling, and bearer-token authentication. These measures do not by themselves establish that the application is free of vulnerabilities or has passed a formal security audit.
 
 When deploying:
 
--   Keep backend secrets in the hosting provider's environment
-    configuration.
--   Do not commit `.env` files or credentials.
--   Configure the allowed CORS origins for the deployment.
--   Review the OCR provider's data-handling terms before sending real
-    receipts.
--   Keep dependencies updated and test authentication, upload
-    validation, and account/data deletion flows.
+- Keep backend secrets in the hosting provider's environment configuration.
+- Do not commit `.env` files or credentials.
+- Configure the allowed CORS origins for the deployment.
+- Review the OCR provider's data-handling terms before sending real receipts.
+- Keep dependencies updated and test authentication, upload validation, and account and data deletion flows.
 
 ## Testing and Development
 
-Backend tests are located under `backend/app/tests/`. Run the test suite
-from the `backend` directory when the project's test dependencies are
-installed:
+Backend tests are located under `backend/app/tests/`. From the `backend` directory, with the project's test dependencies installed, run:
 
-``` bash
+```bash
 pytest
 ```
 
-If the frontend defines a lint script in `frontend/package.json`, run it
-from the `frontend` directory:
+If `frontend/package.json` defines a lint script, run it from the `frontend` directory:
 
-``` bash
+```bash
 npm run lint
 ```
 
@@ -306,18 +254,16 @@ npm run lint
 
 Contributions and bug reports are welcome.
 
-1.  Fork the repository.
-2.  Create a branch for your change.
-3.  Keep changes focused and explain the reason for them.
-4.  Run relevant backend tests and frontend checks.
-5.  Open a pull request describing the change and any testing performed.
+1. Fork the repository.
+2. Create a branch for your change.
+3. Keep changes focused and explain the reason for them.
+4. Run relevant backend tests and frontend checks.
+5. Open a pull request describing the change and any testing performed.
 
 ## License
 
-**`MIT`** License
+Released under the **MIT** License. See [LICENSE](LICENSE).
 
-------------------------------------------------------------------------
+---
 
-FAIR combines local expense management with remote receipt processing to
-make group bill splitting easier. Contributions, bug reports, and
-feedback are welcome.
+FAIR combines local expense management with remote receipt processing to make group bill splitting easier. Contributions, bug reports, and feedback are welcome.
